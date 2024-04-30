@@ -37,10 +37,10 @@ namespace groceries_webshop.Data
         private static void PopulateTableFromJson<T>(string jsonFileName, DbSet<T> table) where T : class 
         {
             string filePath = "./Data/" + jsonFileName;
-            string productData = File.ReadAllText(filePath);
+            string textFileRaw = File.ReadAllText(filePath);
 
             // Get an array of the passed data type containing the deserialized json data
-            T[] entries = JsonSerializer.Deserialize<T[]>(productData);
+            T[] entries = JsonSerializer.Deserialize<T[]>(textFileRaw);
 
             foreach (var entry in entries)
             {

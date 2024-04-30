@@ -1,9 +1,40 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
-using games_r_us_source.Classes;
 using Microsoft.EntityFrameworkCore;
 
 namespace games_r_us_source.Models
 {
+    public enum Platform
+    {
+        XBOX,
+        PlayStation,
+        GameCube,
+        NintendoSwitch,
+        NintendoWii,
+        NintendoDS,
+        Nintendo64,
+        GameBoy
+    }
+
+    public enum GameCategory
+    {
+        FPS,
+        Sports,
+        Fantasy,
+        RPG,
+        Sandbox,
+        Platformer,
+        MMO,
+        TurnBased,
+        FourX,
+        Strategy,
+        Simulator,
+        Action,
+        Horror,
+        Fighting,
+        Indie,
+        Survival
+    }
+
     public class Listing
     {
         public int ID { get; set; }
@@ -25,6 +56,8 @@ namespace games_r_us_source.Models
 
         public DateTime AuctionEnd { get; set; }
 
-        public CompositeCategory Categories { get; set; }
+        public Platform Platform { get; set; }
+
+        public GameCategory? GameCategory { get; set; }
     }
 }

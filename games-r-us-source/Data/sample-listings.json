@@ -1,0 +1,30 @@
+[
+  {
+    "AccountID": 3,
+    "Name": "Playstation 4 Controller",
+    "StartingPrice": 199,
+    "ImagePath": "",
+    "Description": "My used controller.",
+    "AuctionEnd": "2024-06-05T12:00:00",
+    "Platform": 1
+  },
+  {
+    "AccountID": 1,
+    "Name": "Super Mario Galaxy",
+    "StartingPrice": 459,
+    "ImagePath": "",
+    "Description": "My childhood is calling.",
+    "AuctionEnd": "2024-06-13T12:00:00",
+    "Platform": 4,
+    "GameCategory": 5
+  },
+  {
+    "AccountID": 2,
+    "Name": "Nintendo DS",
+    "StartingPrice": 3999,
+    "ImagePath": "",
+    "Description": "A brand new Nintendo DS. Selling it now.",
+    "AuctionEnd": "2024-06-22T12:00:00",
+    "Platform": 5
+  }
+]

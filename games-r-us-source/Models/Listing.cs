@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using games_r_us_source.Classes;
+using Microsoft.EntityFrameworkCore;
 
 namespace games_r_us_source.Models
 {
@@ -10,6 +11,8 @@ namespace games_r_us_source.Models
         [ForeignKey("AccountID")]
         public int AccountID { get; set; }
 
+        // sets AccountID to null if the related account is deleted
+        [DeleteBehavior(DeleteBehavior.NoAction)]
         public Account Account { get; set; }
 
         public string Name { get; set; }

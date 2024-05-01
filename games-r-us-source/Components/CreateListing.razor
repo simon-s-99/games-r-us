@@ -22,6 +22,9 @@
                         <DataAnnotationsValidator />
                         <ValidationSummary />
 
+                        @* Add accountId so we can connect the seller to the auction *@
+                        @* fix imageurl *@
+                        @*Add hours to datetime*@
                         Name: <InputText id="name" @bind-Value="listing.Name" class="input" placeholder="Name of your listing" />
                         Starting price: <InputNumber id="startingPrice" @bind-Value="listing.StartingPrice" class="input" placeholder="Starting Price" />
                         Image: <InputText id="imagePath" @bind-Value="listing.ImagePath" class="input" placeholder="Image URL" />

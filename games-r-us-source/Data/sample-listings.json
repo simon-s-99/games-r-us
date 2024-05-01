@@ -1,0 +1,182 @@
+[
+  {
+    "AccountID": 3,
+    "Name": "Playstation 4 Controller",
+    "StartingPrice": 50,
+    "ImagePath": "",
+    "Description": "My used controller.",
+    "AuctionEnd": "2024-06-05T12:00:00",
+    "Platform": 1
+  },
+  {
+    "AccountID": 1,
+    "Name": "Super Mario Galaxy",
+    "StartingPrice": 49,
+    "ImagePath": "",
+    "Description": "My childhood is calling.",
+    "AuctionEnd": "2024-06-13T12:00:00",
+    "Platform": 4,
+    "GameCategory": 5
+  },
+  {
+    "AccountID": 2,
+    "Name": "Nintendo DS",
+    "StartingPrice": 399,
+    "ImagePath": "",
+    "Description": "A brand new Nintendo DS. Selling it now.",
+    "AuctionEnd": "2024-06-22T12:00:00",
+    "Platform": 5
+  },
+  {
+    "AccountID": 2,
+    "Name": "Nintendo Switch Pro Controller",
+    "StartingPrice": 69,
+    "ImagePath": "",
+    "Description": "Official controller for Nintendo Switch with enhanced features.",
+    "AuctionEnd": "2024-06-15T12:00:00",
+    "Platform": 3
+  },
+  {
+    "AccountID": 3,
+    "Name": "PlayStation 5 DualSense Controller",
+    "StartingPrice": 79,
+    "ImagePath": "",
+    "Description": "Advanced controller with haptic feedback and adaptive triggers.",
+    "AuctionEnd": "2024-07-20T12:00:00",
+    "Platform": 1
+  },
+  {
+    "AccountID": 1,
+    "Name": "Xbox Elite Series 2 Controller",
+    "StartingPrice": 149,
+    "ImagePath": "",
+    "Description": "Premium controller with customizable components and advanced features.",
+    "AuctionEnd": "2024-07-10T12:00:00",
+    "Platform": 0
+  },
+  {
+    "AccountID": 2,
+    "Name": "The Legend of Zelda: Breath of the Wild",
+    "StartingPrice": 59,
+    "ImagePath": "",
+    "Description": "Open-world adventure game for Nintendo Switch.",
+    "AuctionEnd": "2024-06-25T12:00:00",
+    "Platform": 3,
+    "GameCategory": 11
+  },
+  {
+    "AccountID": 3,
+    "Name": "FIFA 23",
+    "StartingPrice": 49,
+    "ImagePath": "",
+    "Description": "Latest installment of the FIFA series.",
+    "AuctionEnd": "2024-07-15T12:00:00",
+    "Platform": 1,
+    "GameCategory": 1
+  },
+  {
+    "AccountID": 1,
+    "Name": "Halo Infinite",
+    "StartingPrice": 69,
+    "ImagePath": "",
+    "Description": "First-person shooter game for Xbox Series X.",
+    "AuctionEnd": "2024-06-30T12:00:00",
+    "Platform": 0,
+    "GameCategory": 0
+  },
+  {
+    "AccountID": 3,
+    "Name": "Super Mario Odyssey",
+    "StartingPrice": 49,
+    "ImagePath": "",
+    "Description": "Platformer game featuring Mario for Nintendo Switch.",
+    "AuctionEnd": "2024-07-05T12:00:00",
+    "Platform": 3,
+    "GameCategory": 5
+  },
+  {
+    "AccountID": 3,
+    "Name": "Nintendo Switch Lite - Gray",
+    "StartingPrice": 179,
+    "ImagePath": "",
+    "Description": "Compact and lightweight version of Nintendo Switch.",
+    "AuctionEnd": "2024-07-12T12:00:00",
+    "Platform": 3
+  },
+  {
+    "AccountID": 2,
+    "Name": "Assassin's Creed Valhalla",
+    "StartingPrice": 39,
+    "ImagePath": "",
+    "Description": "Action role-playing game set in the Viking Age for Xbox Series X.",
+    "AuctionEnd": "2024-06-28T12:00:00",
+    "Platform": 0,
+    "GameCategory": 3
+  },
+  {
+    "AccountID": 3,
+    "Name": "Xbox Series S",
+    "StartingPrice": 299,
+    "ImagePath": "",
+    "Description": "Digital-only gaming console with next-gen performance.",
+    "AuctionEnd": "2024-07-22T12:00:00",
+    "Platform": 0
+  },
+  {
+    "AccountID": 2,
+    "Name": "The Last of Us Part II",
+    "StartingPrice": 49,
+    "ImagePath": "",
+    "Description": "Action-adventure game exclusive to PlayStation 4.",
+    "AuctionEnd": "2024-07-02T12:00:00",
+    "Platform": 1,
+    "GameCategory": 11
+  },
+  {
+    "AccountID": 1,
+    "Name": "Xbox Wireless Headset",
+    "StartingPrice": 99,
+    "ImagePath": "",
+    "Description": "Immersive gaming headset with spatial audio technology for Xbox consoles.",
+    "AuctionEnd": "2024-07-18T12:00:00",
+    "Platform": 0
+  },
+  {
+    "AccountID": 3,
+    "Name": "Animal Crossing: New Horizons",
+    "StartingPrice": 49,
+    "ImagePath": "",
+    "Description": "Life simulation game for Nintendo Switch.",
+    "AuctionEnd": "2024-07-25T12:00:00",
+    "Platform": 3,
+    "GameCategory": 4
+  },
+  {
+    "AccountID": 1,
+    "Name": "Xbox Wireless Controller - Robot White",
+    "StartingPrice": 59,
+    "ImagePath": "",
+    "Description": "Sleek and stylish controller for Xbox Series X/S.",
+    "AuctionEnd": "2024-07-28T12:00:00",
+    "Platform": 0
+  },
+  {
+    "AccountID": 2,
+    "Name": "The Witcher 3: Wild Hunt - Complete Edition",
+    "StartingPrice": 39,
+    "ImagePath": "",
+    "Description": "Open-world action RPG for Nintendo Switch.",
+    "AuctionEnd": "2024-07-30T12:00:00",
+    "Platform": 1,
+    "GameCategory": 3
+  },
+  {
+    "AccountID": 1,
+    "Name": "Nintendo Switch Dock Set",
+    "StartingPrice": 79,
+    "ImagePath": "",
+    "Description": "Official docking station for Nintendo Switch.",
+    "AuctionEnd": "2024-08-05T12:00:00",
+    "Platform": 3
+  }
+]

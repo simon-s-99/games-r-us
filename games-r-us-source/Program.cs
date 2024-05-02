@@ -66,6 +66,10 @@ namespace games_r_us_source
                 googleOptions.ClientId = builder.Configuration["Authentication:Google:ClientId"];
                 googleOptions.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
             });
+            
+            // this is needed so that we can place our 
+            // <CascadingAuthenticationState> tag on root level
+            builder.Services.AddCascadingAuthenticationState();
 
             var app = builder.Build();
 

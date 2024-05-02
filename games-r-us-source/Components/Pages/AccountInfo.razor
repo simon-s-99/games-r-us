@@ -1,0 +1,51 @@
+﻿@page "/AccountInfo"
+@using games_r_us_source.Models
+@using System.Text.Json
+@rendermode InteractiveServer
+
+<div>
+    <img src="userlogo.png" alt="User Logo" @onclick="ShowAccountInfo" style="cursor: pointer;">
+</div>
+
+<div id="accountDetails" style="display: @popupDisplay"> 
+    <section class="popup-content">
+        <button class="close" @onclick="ClosePopup">&times;</button>
+       
+        @if (accounts != null && accounts.Any())
+        {
+            var firstAccount = accounts.First();
+            <p><strong>Name:</strong> @firstAccount.Name</p>
+            <p><strong>Phone Number:</strong> @firstAccount.PhoneNumber</p>
+            <p><strong>Address:</strong> @firstAccount.Address</p>
+        }
+    </section>
+</div>
+
+@code {
+    private string popupDisplay = "none";
+    private Account account;
+    private List<Account> accounts;
+
+    protected override void OnInitialized()
+    {
+        // Fetch user accounts from JSON file
+        string jsonFilePath = Path.Combine("Data", "sample-accounts.json");
+        string jsonData = File.ReadAllText(jsonFilePath);
+        accounts = JsonSerializer.Deserialize<List<Account>>(jsonData);
+    }
+
+    private void ShowAccountInfo()
+    {
+        // Display user details with the first account
+        if (accounts != null && accounts.Count > 0)
+        {
+            account = accounts[0];
+            popupDisplay = "block";
+        }
+    }
+
+    private void ClosePopup()
+    {
+        popupDisplay = "none";
+    }
+}

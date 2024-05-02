@@ -14,7 +14,10 @@
 </head>
 
 <body>
-    <Routes />
+    <!-- Allows auth state to be checked on any and all parts of the site, needs to wrap routes-tag -->
+    <CascadingAuthenticationState>
+        <Routes />
+    </CascadingAuthenticationState>
     <script src="_framework/blazor.web.js"></script>
 </body>
 

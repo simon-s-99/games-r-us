@@ -6,16 +6,17 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>games_r_us_source</RootNamespace>
     <AssemblyName>$(AssemblyName.Replace(' ', '_'))</AssemblyName>
+    <UserSecretsId>d14b2df4-07dc-4091-8b51-63837f615c8c</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <Folder Include="Classes\" />
-    <Folder Include="Controllers\" />
     <Folder Include="Migrations\" />
     <Folder Include="wwwroot\tailwind\" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.4">

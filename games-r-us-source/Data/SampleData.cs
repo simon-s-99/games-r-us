@@ -29,7 +29,6 @@ namespace groceries_webshop.Data
                 PopulateTableFromJson<Bid>("sample-bids.json", database.Bids);
                 database.SaveChanges();
             }
-
         }
 
         // Using generics, pass the data type along with the json file name and the table

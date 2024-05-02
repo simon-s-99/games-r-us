@@ -1,6 +1,8 @@
+using games_r_us_source.Classes;
 using games_r_us_source.Components;
 using games_r_us_source.Data;
 using groceries_webshop.Data;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
 
 namespace games_r_us_source
@@ -14,6 +16,14 @@ namespace games_r_us_source
             // Add services to the container.
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
+
+            // Add services related to user authentication
+            builder.Services.AddScoped<AuthenticationDataStorage>();
+            builder.Services.AddScoped<GamesRUsAccountService>();
+            builder.Services.AddScoped<GamesRUsAuthenticationStateProvider>();
+            builder.Services.AddScoped<AuthenticationStateProvider>(sp =>
+                sp.GetRequiredService<GamesRUsAuthenticationStateProvider>());
+            builder.Services.AddAuthorizationCore();
 
             // add db
             builder.Services.AddDbContext<AppDbContext>(options =>

@@ -1,20 +1,44 @@
 ﻿@using Models;
 
-<div class="border-2 m-auto flex h-fit w-1/2 flex-col items-center rounded-2xl border-blue-800 p-4">
-    <img class="max-h-60 w-full rounded-2xl bg-gray-300 object-cover" src="@CurrentListing.ImagePath" alt="@CurrentListing.Name" />
+<div class="border-2 font-[Kadwa] m-auto flex h-1/2 w-fit flex-col rounded-2xl border-blue-800 bg-gray-200 p-4 text-center md:flex-row">
+    <img class="mr-2 h-96 w-96 rounded-xl border-black object-cover drop-shadow-2xl" src="@CurrentListing.ImagePath" alt="@CurrentListing.Name" />
 
-    <div class="mt-6 flex w-full flex-col rounded-2xl bg-gray-300">
-        <h3 class="text-center font-bold tracking-wider">@CurrentListing.Name</h3>
-        <div class="mt-3 flex flex-row justify-evenly">
-            <p>$@CurrentListing.StartingPrice</p>
-            <div class="border-b-2 group relative inline-block cursor-help border-dotted">
-                <span class="text-red-700">Ends in: @GetTimeDifference(CurrentListing.AuctionEnd)</span>
-                <span class="-ml-[50%] invisible absolute bottom-full left-1/2 w-full rounded bg-black text-center text-white opacity-70 group-hover:visible">@CurrentListing.AuctionEnd.</span>
+    <div class="inline-block h-96 w-full pl-2">
+        <p class="mb-10 text-gray-800 md:text-right">
+            In
+            @CurrentListing.Platform @(
+            CurrentListing.GameCategory != null ? $" > {CurrentListing.GameCategory}" : "")
+        </p>
+
+        <div class="flex h-3/4 flex-col justify-between">
+            <h3 class="text-xl font-bold tracking-wider">@CurrentListing.Name</h3>
+
+            <div class="flex flex-row justify-evenly justify-self-center">
+                <div>
+                    <p>Starting at </p><span class="font-bold">$@CurrentListing.StartingPrice</span>
+                </div>
+                <div class="border-r-2 h-full border-gray-400"></div>
+                <div class="group relative inline-block cursor-help">
+                    <p>Ends in</p><span class="border-b-2 border-dotted border-black text-red-700">@GetTimeDifference(CurrentListing.AuctionEnd)</span>
+                    <span class="-ml-[50%] invisible absolute bottom-full left-1/2 w-fit rounded bg-black text-white opacity-70 group-hover:visible">@CurrentListing.AuctionEnd</span>
+                </div>
             </div>
+
+            <section>
+                <h4 class="font-bold">Description</h4>
+                <p>@CurrentListing.Description</p>
+            </section>
+
+            <section>
+                <h4 class="font-bold">Seller</h4>
+                <p>
+                    @CurrentListing.Account.Name
+                </p>
+                <p>
+                    Phone: @CurrentListing.Account.PhoneNumber
+                </p>
+            </section>
         </div>
-        <p class="text-center">@CurrentListing.Description</p>
-        <p>By: @CurrentListing.Account.Name</p> 
-        <p>@CurrentListing.Account.PhoneNumber</p>
     </div>
 </div>
 
@@ -22,10 +46,10 @@
     // [Parameter]
     // public Listing CurrentListing { get; set; }
 
-    public Listing CurrentListing = new Listing
+    private Listing CurrentListing = new Listing
         {
-            Name = "test prodcut",
-            Description = "idwjaidjw. djwiaodjiawpdjiowahjdiwjdiwa d diwjdiwjdiwa dwa daw.",
+            Name = "My Product",
+            Description = "This is my product. I love it but now I want to sell it.",
             AuctionEnd = new DateTime(2024, 05, 29, 12, 00, 00),
             AccountID = 1,
             Account = new Account
@@ -38,7 +62,7 @@
                 PhoneNumber = "852358725"
             },
             GameCategory = GameCategory.Fantasy,
-            ImagePath = "/favicon.png",
+            ImagePath = "images/bananas.jpg",
             StartingPrice = 33,
             ID = 1,
             Platform = Platform.PlayStation

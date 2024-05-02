@@ -1,9 +1,8 @@
-﻿using games_r_us_source.Data;
-using games_r_us_source.Models;
+﻿using games_r_us_source.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
-namespace groceries_webshop.Data
+namespace games_r_us_source.Data
 {
     public class SampleData
     {

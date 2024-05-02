@@ -26,14 +26,20 @@
                 <div>
                     <p>Starting at </p><span class="font-bold">$@CurrentListing.StartingPrice</span>
                 </div>
-                <div class="border-r-2 h-full border-gray-400"></div>
+
+                <!-- Vertical divider -->
+                <div class="border-r-2 border-gray-400"></div>
+
+                <!-- Show tooltip on hover -->
                 <div class="group relative inline-block cursor-help">
                     <p>Ends in</p><span class="border-b-2 border-dotted border-black text-red-700">@GetTimeDifference(CurrentListing.AuctionEnd)</span>
-                    <span class="-ml-[50%] invisible absolute bottom-full left-1/2 w-fit rounded bg-black text-white opacity-70 group-hover:visible">@CurrentListing.AuctionEnd</span>
+                    <span class="-ml-[130%] invisible absolute bottom-full left-1/2 w-fit text-nowrap rounded bg-black text-white opacity-70 group-hover:visible">@CurrentListing.AuctionEnd</span>
                 </div>
             </div>
 
+
             <section class="mt-8">
+                <!-- If description is too long, put it in a details element instead -->
                 @if (CurrentListing.Description != null && CurrentListing.Description.Length > 50)
                 {
                     <details><summary>Description</summary>@CurrentListing.Description</details>

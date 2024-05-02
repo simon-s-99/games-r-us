@@ -1,19 +1,28 @@
 ﻿@using Models;
 
-<div class="border-2 font-[Kadwa] m-auto flex h-1/2 w-fit flex-col rounded-2xl border-blue-800 bg-gray-200 p-4 text-center md:flex-row">
-    <img class="mr-2 h-96 w-96 rounded-xl border-black object-cover drop-shadow-2xl" src="@CurrentListing.ImagePath" alt="@CurrentListing.Name" />
+<div class="border-2 font-[Kadwa] m-auto flex h-fit w-1/2 flex-col rounded-2xl border-blue-800 bg-gray-200 p-4 text-center md:flex-row">
+    <img class="mb-6 mr-2 rounded object-cover drop-shadow-2xl md:w-1/2 md:mb-0" src="@CurrentListing.ImagePath" alt="@CurrentListing.Name" />
 
-    <div class="inline-block h-96 w-full pl-2">
-        <p class="mb-10 text-gray-800 md:text-right">
+    <div class="inline-block h-full pl-2 md:w-1/2">
+        <span class="text-gray-800">
             In
-            @CurrentListing.Platform @(
-            CurrentListing.GameCategory != null ? $" > {CurrentListing.GameCategory}" : "")
-        </p>
+        </span>
+        <a class="text-blue-700 underline" href="#">
+            @CurrentListing.Platform
+        </a>
 
-        <div class="flex h-3/4 flex-col justify-between">
-            <h3 class="text-xl font-bold tracking-wider">@CurrentListing.Name</h3>
+        @if (CurrentListing.GameCategory != null)
+        {
+            <span class="text-gray-800"> > </span>
+            <a class="text-blue-700 underline" href="#">
+                @CurrentListing.GameCategory
+            </a>
+        }
 
-            <div class="flex flex-row justify-evenly justify-self-center">
+        <div class="mt-10 flex h-3/4 flex-col justify-between">
+            <h3 class="text-2xl font-bold uppercase">@CurrentListing.Name</h3>
+
+            <div class="mt-8 flex flex-row justify-evenly">
                 <div>
                     <p>Starting at </p><span class="font-bold">$@CurrentListing.StartingPrice</span>
                 </div>
@@ -24,19 +33,27 @@
                 </div>
             </div>
 
-            <section>
-                <h4 class="font-bold">Description</h4>
-                <p>@CurrentListing.Description</p>
+            <section class="mt-8">
+                @if (CurrentListing.Description != null && CurrentListing.Description.Length > 50)
+                {
+                    <details><summary>Description</summary>@CurrentListing.Description</details>
+                }
+                else if (CurrentListing.Description != null)
+                {
+                    <h4 class="font-bold">Description</h4>
+                    <p>@CurrentListing.Description</p>
+                }
             </section>
 
-            <section>
+            <section class="mt-8">
                 <h4 class="font-bold">Seller</h4>
                 <p>
                     @CurrentListing.Account.Name
                 </p>
-                <p>
-                    Phone: @CurrentListing.Account.PhoneNumber
-                </p>
+                Phone:
+                <a class="text-blue-700 underline" href="tel:@CurrentListing.Account.PhoneNumber">
+                    @CurrentListing.Account.PhoneNumber
+                </a>
             </section>
         </div>
     </div>
@@ -48,8 +65,8 @@
 
     private Listing CurrentListing = new Listing
         {
-            Name = "My Product",
-            Description = "This is my product. I love it but now I want to sell it.",
+            Name = "Bananas",
+            Description = "This is my product. I love it but now I want to sell it. This is my product. I love it but now I want to sell it. This is my product. I love it but now I want to sell it. This is my product. I love it but now I want to sell it.",
             AuctionEnd = new DateTime(2024, 05, 29, 12, 00, 00),
             AccountID = 1,
             Account = new Account

@@ -1,6 +1,5 @@
 using games_r_us_source.Components;
 using games_r_us_source.Data;
-using groceries_webshop.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace games_r_us_source

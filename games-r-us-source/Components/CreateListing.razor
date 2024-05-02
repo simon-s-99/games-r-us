@@ -74,23 +74,73 @@
                             </InputSelect>
                         </li>
                     </ul>
-                    <button type="submit" class="mt-4 px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded">Submit</button>
-                    <button type="button" @onclick="CloseModal" class="mt-4 ml-2 px-4 py-2 bg-red-500 hover:bg-red-700 text-white font-bold rounded">Cancel</button>
+                    <button type="submit" @onclick="HandleValidSubmit" class="mt-4 px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded">Submit</button>
+                    <button type="button" @onclick="ShowConfirmCancel" class="mt-4 ml-2 px-4 py-2 bg-red-500 hover:bg-red-700 text-white font-bold rounded">Cancel</button>
                 </EditForm>
             </div>
         </div>
+    </div>
+
+    @if (showConfirmation)
+    {
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+            <div class="bg-white p-4 rounded">
+                <h2 class="text-lg">Are you sure you want to cancel?</h2>
+                <button class="mr-2 px-4 py-2 bg-green-500 text-white rounded" @onclick="ConfirmCancel">Yes</button>
+                <button class="px-4 py-2 bg-red-500 text-white rounded" @onclick="HideConfirmCancel">No</button>
+            </div>
+        </div>
+    }
+}
+
+@if (listings.Any())
+{
+    <div class="mt-4">
+        <h2 class="text-lg font-semibold text-gray-800">Listings:</h2>
+        @foreach (var listing in listings)
+        {
+            <div class="p-3 border rounded mt-2">
+                <h3 class="text-md font-semibold">@listing.Name</h3>
+                
+                    <img src="@listing.ImagePath" alt="Listing Image" class="w-48 h-48 object-cover rounded-md">
+                
+                <p>Starting Price: @listing.StartingPrice.ToString("C")</p>
+                @* <p>Current Price: @listing.CurrentPrice.ToString("C")</p> *@
+                <p>Description: @listing.Description</p>
+                <p>Ends on: @listing.AuctionEnd.ToString("MM/dd/yyyy HH:mm")</p>
+                <p>Platform: @listing.Platform.ToString()</p>
+                <p>Category: @listing.GameCategory?.ToString()</p>
+            </div>
+        }
     </div>
 }
 
 
 
 
+
 @code {
-    //Listing listing = new Listing();
+    private List<Listing> listings = new List<Listing>();
     Listing listing = new Listing { AuctionEnd = DateTime.Now.AddDays(7) };
+
     private string imagePath;
     private bool isImageUploaded = false;
 
+    private async Task HandleValidSubmit()
+    {
+        if (!isImageUploaded)
+        {
+            errors.Add("Please upload a image of your listing");
+            return;
+        }
+
+        dbContext.Listings.Add(listing);
+        //await dbContext.SaveChangesAsync();
+
+        //Adds listing to the list
+        listings.Add(listing);
+        CloseModal();
+    }
 
     private string auctionEnd
     {
@@ -106,7 +156,7 @@
 
     // file size set to 3MB
     private long maxFileSize = 1024 * 1024 * 3;
-    private int maxAllowedFiles = 1;
+    //private int maxAllowedFiles = 1;
     private List<string> errors = new();
     private Listing newListingImage = new();
     private IBrowserFile? file;
@@ -181,40 +231,40 @@
         }
     }
 
-    private async Task HandleValidSubmit()
-    {
-        if (!isImageUploaded)
-        {
-            Console.WriteLine("Please upload an image");
-            return;
-        }
+    private bool IsVisible;
+    private bool showConfirmation;
 
-        dbContext.Listings.Add(listing);
-        await dbContext.SaveChangesAsync();
-        CloseModal();
+    private void ShowConfirmCancel() => showConfirmation = true;
+
+    private void HideConfirmCancel()
+    {
+        showConfirmation = false;
     }
 
-
-    bool IsVisible;
-    bool showConfirmation;
+    private void ConfirmCancel()
+    {
+        showConfirmation = false;
+        IsVisible = false;
+    }
 
     public void ShowModal()
     {
+        listing = new Listing { AuctionEnd = DateTime.Now.AddDays(7) };
+        imagePath = null;
+        isImageUploaded = false;
         IsVisible = true;
-        //StateHasChanged();
     }
 
     public void CloseModal()
     {
+        // Reset the listing model when closing the modal
+        listing = new Listing { AuctionEnd = DateTime.Now.AddDays(7) };
+        imagePath = null;
+        isImageUploaded = false;
         IsVisible = false;
-        //StateHasChanged();
     }
 
-    public async Task ConfirmCancel()
-    {
-        showConfirmation = false;
-        //StateHasChanged();
-    }
+
 
 }
 

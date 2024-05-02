@@ -17,6 +17,7 @@ namespace games_r_us_source.Models
 
     public enum GameCategory
     {
+        None,
         FPS,
         Sports,
         Fantasy,

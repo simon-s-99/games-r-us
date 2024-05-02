@@ -1,0 +1,59 @@
+﻿@page "/details";
+
+@using Models;
+
+<div class="flex flex-row">
+    <img class="border-2 h-auto w-1/2 border-violet-800" src="@CurrentListing.ImagePath" alt="@CurrentListing.Name" />
+
+    <div class="border-2 flex w-1/2 flex-col border-red-500">
+        <h3 class="text-center font-bold tracking-wider">@CurrentListing.Name</h3>
+        <div class="mt-3 flex flex-row justify-evenly">
+            <p>Current bid: <span class="text-red-700">$@CurrentListing.StartingPrice</span></p>
+            <p>By: @CurrentListing.Account.Name</p>
+        </div>
+        <div class="border-b-2 relative inline-block border-dotted">
+            <span >Ends in: @GetTimeDifference(CurrentListing.AuctionEnd)</span>
+            <span class="hidden w-10 bg-gray-300 text-center text-white group-hover:visible">@CurrentListing.AuctionEnd</span>
+        </div>
+        <p>@CurrentListing.Description</p>
+    </div>
+</div>
+
+@code {
+    // [Parameter]
+    // public Listing CurrentListing { get; set; }
+
+    public Listing CurrentListing = new Listing
+        {
+            Name = "test prodcut",
+            Description = "idwjaidjw. djwiaodjiawpdjiowahjdiwjdiwa d diwjdiwjdiwa dwa daw.",
+            AuctionEnd = new DateTime(2024, 05, 29, 12, 00, 00),
+            AccountID = 1,
+            Account = new Account
+            {
+                Address = "Teststreet 234",
+                Name = "Jack",
+                ID = 1,
+                OpenIDIssuer = "fakeisss",
+                OpenIDSubject = "11111",
+                PhoneNumber = "852358725"
+            },
+            GameCategory = GameCategory.Fantasy,
+            ImagePath = "/favicon.png",
+            StartingPrice = 33,
+            ID = 1,
+            Platform = Platform.PlayStation
+        };
+
+    private string GetTimeDifference(DateTime endDate)
+    {
+        TimeSpan timeDifference = endDate - DateTime.Today;
+
+        if (timeDifference.TotalDays >= 7)
+        {
+            return Math.Round(timeDifference.TotalDays / 7) + " weeks";
+        }
+
+        return timeDifference.TotalDays + "days";
+    }
+}

@@ -1,6 +1,5 @@
 using games_r_us_source.Components;
 using games_r_us_source.Data;
-using groceries_webshop.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders; //Needed to display images from temp folder
 

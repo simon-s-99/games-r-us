@@ -1,9 +1,8 @@
-﻿using games_r_us_source.Data;
-using games_r_us_source.Models;
+﻿using games_r_us_source.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
-namespace groceries_webshop.Data
+namespace games_r_us_source.Data
 {
     public class SampleData
     {
@@ -29,7 +28,6 @@ namespace groceries_webshop.Data
                 PopulateTableFromJson<Bid>("sample-bids.json", database.Bids);
                 database.SaveChanges();
             }
-
         }
 
         // Using generics, pass the data type along with the json file name and the table

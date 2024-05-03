@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace games_r_us_source.Models
@@ -46,12 +47,17 @@ namespace games_r_us_source.Models
         [DeleteBehavior(DeleteBehavior.NoAction)]
         public Account Account { get; set; }
 
+        [Required]
+        [StringLength(20, MinimumLength = 1, ErrorMessage = "Name must be between 1 and 20 characters")]
         public string Name { get; set; }
 
+        [Range(1, double.MaxValue, ErrorMessage = "Starting price must be at least 1")]
         public decimal StartingPrice { get; set; }
 
         public string? ImagePath { get; set; }
 
+        [Required]
+        [MaxLength(100, ErrorMessage = "Description cannot exceed 100 characters")]
         public string? Description { get; set; }
 
         public DateTime AuctionEnd { get; set; }

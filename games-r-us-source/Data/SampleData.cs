@@ -28,7 +28,6 @@ namespace games_r_us_source.Data
                 PopulateTableFromJson<Bid>("sample-bids.json", database.Bids);
                 database.SaveChanges();
             }
-
         }
 
         // Using generics, pass the data type along with the json file name and the table

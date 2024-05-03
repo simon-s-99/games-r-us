@@ -15,6 +15,11 @@ namespace games_r_us_source
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
 
+            // add db 2.0
+            builder.Services.AddDbContextFactory<AppDbContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+
             // add db
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -42,7 +47,7 @@ namespace games_r_us_source
 
             app.UseAntiforgery();
 
-            app.MapRazorComponents<App>()
+            app.MapRazorComponents<Components.App>()
                 .AddInteractiveServerRenderMode();
 
             using (var scope = app.Services.CreateScope())

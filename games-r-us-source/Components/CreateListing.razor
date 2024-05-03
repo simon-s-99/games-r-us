@@ -3,11 +3,15 @@
 @using games_r_us_source.Models
 @using games_r_us_source.Data
 @using System.Net.Http
+@using System
+@using System.Text
+@using System.Linq
 @using Microsoft.EntityFrameworkCore
 
 @inject IConfiguration config
 @rendermode InteractiveServer
 @inject AppDbContext dbContext
+@inject IDbContextFactory<AppDbContext> dbContextFactory
 
 <AuthorizeView>
 
@@ -109,23 +113,21 @@
 {
     <div class="mt-4">
         <h2 class="text-lg font-semibold text-gray-800">Listings:</h2>
-        @foreach (var listing in listings)
+        @for (int i = 0; i < listings.Count; i++)
         {
             <section class="p-3 border rounded mt-2">
-                <h3 class="text-md font-semibold">@listing.Name</h3>
-                @* Gets listing image from temp storage *@
-                <img src="@($"/Storage/{listing.ImagePath}")" alt="Listing Image" class="w-48 h-48 object-cover rounded-md">
- 
-                <p>Price: @GetCurrentBid(listing.ID) kr </p>             
-                
-                <textarea>Description: @listing.Description</textarea>
-                <p>Time Remaining: @GetTimeDifference(listing.AuctionEnd)</p>
-                <p>Platform: @listing.Platform.ToString()</p>
-                <p>Category: @listing.GameCategory?.ToString()</p>
+                <h3 class="text-md font-semibold">@listings[i].Name</h3>
+                <img src="@($"/Storage/{listings[i].ImagePath}")" alt="Listing Image" class="w-48 h-48 object-cover rounded-md">
+                <p>Price: @prices[i] kr </p>
+                <p>Description: @listings[i].Description</p>
+                <p>Time Remaining: @GetTimeDifference(listings[i].AuctionEnd)</p>
+                <p>Platform: @listings[i].Platform.ToString()</p>
+                <p>Category: @listings[i].GameCategory?.ToString()</p>
             </section>
         }
     </div>
 }
+
 
 
 
@@ -142,40 +144,33 @@
     private long maxFileSize = 1024 * 1024 * 3;
     private int maxAllowedFiles = 1; // In case we ever want to allow more than one image
     private List<string> errors = new();
-    //private Listing newListingImage = new();
+
     private IBrowserFile? file;
 
     private string base64Image; // For immediate display
     private string serverImagePath; // For server storage and retrieval
 
-    protected override async Task OnInitializedAsync()
-    {
-        listings = await dbContext.Listings.ToListAsync();
-        // await LoadListings();
-    }
-
-    private async Task LoadListings()
-    {
-        listings = await dbContext.Listings.ToListAsync();
-    }
-
-
     private async Task HandleValidSubmit()
     {
-        if (!isImageUploaded)
-        {
-            errors.Add("Please upload a image of your listing");
-            return;
-        }
+        using var dbContext = dbContextFactory.CreateDbContext();
+        // if (!isImageUploaded)
+        // {
+        //     errors.Add("Please upload an image of your listing");
+        //     return;
+        // }
 
-        listing.ImagePath = serverImagePath; //Sets the image path to the uploaded file
         dbContext.Listings.Add(listing);
-
         try
         {
             await dbContext.SaveChangesAsync();
-            await LoadListings();
+            //await LoadListings();
             CloseModal();
+        }
+        catch (DbUpdateException ex)
+        {
+            // Here we log the inner exception which usually contains the details about database errors
+            var errorDetails = ex.InnerException != null ? ex.InnerException.Message : "No inner exception information";
+            errors.Add($"Error: {ex.Message}. Details: {errorDetails}");
         }
         catch (Exception ex)
         {
@@ -183,35 +178,156 @@
         }
     }
 
-    private decimal GetCurrentBid(int listingID)
-    {
-        // Fetch the highest bid for the listing
-        var highestBid = dbContext.Bids
-        .Where(b => b.ListingID == listingID)
-        .OrderByDescending(b => b.Amount)
-        .FirstOrDefault();
+    private List<decimal> prices = new();
 
-        // Fetch the listing to obtain the starting price
-        var listing = dbContext.Listings.FirstOrDefault(l => l.ID == listingID);
+    private async Task LoadPrices()
+    {
+        prices.Clear();
+        foreach (var listing in listings)
+        {
+            var price = await GetCurrentBid(listing.ID);
+            prices.Add(price);
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        listings = await dbContext.Listings.ToListAsync();
+
+        // Let the task of fetching the price complete, else it displays "System.Runtime.CompilerServices"
+        await LoadPrices();        
+        //await LoadListings();
+    }
+
+    //Loadlistings and loadprices doesn't seem to work at the same time
+
+    // private async Task LoadListings()
+    // {
+    //     listings = await dbContext.Listings.ToListAsync();
+    // }
+
+    private async Task<decimal> GetCurrentBid(int listingID)
+    {
+        using var dbContext = dbContextFactory.CreateDbContext();
+        var highestBid = await dbContext.Bids
+                            .Where(b => b.ListingID == listingID)
+                            .OrderByDescending(b => b.Amount)
+                            .FirstOrDefaultAsync();
+
+        var listing = await dbContext.Listings
+                            .FirstOrDefaultAsync(l => l.ID == listingID);
 
         if (listing == null)
         {
-            // Log this issue, throw an exception, or handle it according to your application needs
             throw new InvalidOperationException($"No listing found with ID {listingID}.");
         }
 
-        // check if there's been at least one bid
-        if (highestBid != null && highestBid.Amount > listing.StartingPrice)
-        {
-            return highestBid.Amount;
-        }
-
-        else
-        {
-            return listing.StartingPrice; //System.NullReferenceException: 'Object reference not set to an instance of an object.'
-                                          // return listing?.StartingPrice ?? 0;
-        }
+        return highestBid != null && highestBid.Amount > listing.StartingPrice
+               ? highestBid.Amount
+               : listing.StartingPrice;
     }
+
+    // private async Task LoadListings()
+    // {
+    //     using var dbContext = dbContextFactory.CreateDbContext();
+    //     listings = await dbContext.Listings.ToListAsync();
+    // }
+
+    // private async Task<decimal> GetCurrentBid(int listingID)
+    // {
+    //     using var dbContext = dbContextFactory.CreateDbContext();
+    //     var highestBid = await dbContext.Bids
+    //                         .Where(b => b.ListingID == listingID)
+    //                         .OrderByDescending(b => b.Amount)
+    //                         .FirstOrDefaultAsync();
+
+    //     var listing = await dbContext.Listings
+    //                         .FirstOrDefaultAsync(l => l.ID == listingID);
+
+    //     if (listing == null)
+    //     {
+    //         throw new InvalidOperationException($"No listing found with ID {listingID}.");
+    //     }
+
+    //     return highestBid != null && highestBid.Amount > listing.StartingPrice
+    //            ? highestBid.Amount
+    //            : listing.StartingPrice;
+    // }
+    
+    // private async Task HandleValidSubmit()
+    // {
+    //     if (!isImageUploaded)
+    //     {
+    //         errors.Add("Please upload a image of your listing");
+    //         return;
+    //     }
+
+
+    //     //listing.ImagePath = serverImagePath; //Sets the image path to the uploaded file
+    //      dbContext.Listings.Add(listing);
+
+    //     try
+    //     {
+    //         var entities = dbContext.ChangeTracker.Entries().Where(e => e.State == EntityState.Added || e.State == EntityState.Modified);
+    //         foreach (var entity in entities)
+    //         {
+    //             Console.WriteLine($"Entity: {entity.Entity.GetType().Name}, State: {entity.State}");
+    //         }
+
+
+    //         await dbContext.SaveChangesAsync();
+    //         await LoadListings();
+    //         CloseModal();
+    //     }
+    //     catch (DbUpdateException ex)
+    //     {
+    //         var sb = new StringBuilder();
+    //         sb.AppendLine($"Error saving changes: {ex.Message}");
+    //         if (ex.InnerException != null)
+    //             sb.AppendLine($"Inner exception: {ex.InnerException.Message}");
+
+    //         errors.Add(sb.ToString());
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         errors.Add($"Error: {ex.Message}");
+    //     }
+
+        
+    // }
+
+    
+
+
+    // private decimal GetCurrentBid(int listingID)
+    // {
+    //     Fetch the highest bid for the listing
+    //     var highestBid = dbContext.Bids
+    //     .Where(b => b.ListingID == listingID)
+    //     .OrderByDescending(b => b.Amount)
+    //     .FirstOrDefault();
+
+    //     Fetch the listing to obtain the starting price
+    //     var listing = dbContext.Listings.FirstOrDefault(l => l.ID == listingID);
+
+    //     if (listing == null)
+    //     {
+    //         Log this issue, throw an exception, or handle it according to your application needs
+    //         throw new InvalidOperationException($"No listing found with ID {listingID}.");
+    //     }
+
+    //     check if there's been at least one bid
+    //     if (highestBid != null && highestBid.Amount > listing.StartingPrice)
+    //     {
+    //         return highestBid.Amount;
+    //     }
+
+    //     else
+    //     {
+    //         return listing.StartingPrice; System.NullReferenceException: 'Object reference not set to an instance of an object.'
+
+    //     }
+    // }
 
     // Used to set the end time of a listing
     private string auctionEnd
@@ -232,7 +348,6 @@
         {
             string relativePath = await CaptureFile();
             listing.ImagePath = relativePath;
-            //newListingImage.ImagePath = relativePath;
         }
         catch (Exception ex)
         {
@@ -260,7 +375,10 @@
                 string fullPath = Path.Combine(folderPath, fileName);
                 await File.WriteAllBytesAsync(fullPath, buffer); // Saves the image to the server directory
 
-                serverImagePath = fullPath; // Saves the path for database entry
+                listing.ImagePath = fullPath; // save fullpath to imagePath
+                dbContext.Listings.Add(listing); // adding imagePath here for now
+
+                //serverImagePath = fullPath; // Saves the path for database entry
             }
             catch (Exception ex)
             {

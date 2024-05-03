@@ -41,14 +41,14 @@ namespace games_r_us_source.Models
         public int ID { get; set; }
 
         [ForeignKey("AccountID")]
-        public int AccountID { get; set; }
+        public int? AccountID { get; set; } //Allowing to be null for testing purposes
 
         // sets AccountID to null if the related account is deleted
         [DeleteBehavior(DeleteBehavior.NoAction)]
         public Account Account { get; set; }
 
         [Required]
-        [StringLength(20, MinimumLength = 1, ErrorMessage = "Name must be between 1 and 20 characters")]
+        [StringLength(50, MinimumLength = 1, ErrorMessage = "Name must be between 1 and 50 characters")]
         public string Name { get; set; }
 
         [Range(1, double.MaxValue, ErrorMessage = "Starting price must be at least 1")]

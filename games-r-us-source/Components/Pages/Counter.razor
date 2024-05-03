@@ -1,6 +1,6 @@
 ﻿@page "/counter"
 @rendermode InteractiveServer
-@using Components.Bid;
+@using games_r_us_source.Components.Bid;
 
 <PageTitle>Counter</PageTitle>
 
@@ -10,7 +10,7 @@
 
 <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
 
-<games_r_us_source.Components.Bid.PlaceBidForm />
+<PlaceBidForm ListingID="1" />
 
 @code {
     private int currentCount = 0;

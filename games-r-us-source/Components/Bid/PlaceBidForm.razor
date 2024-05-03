@@ -1,24 +1,33 @@
 ﻿@using Models;
+@using Data;
+@inject AppDbContext _context;
 
 <h3>Place Bid</h3>
 
-<form method="post" @onsubmit="PlaceBid" @formname="place-bid-form">
+<EditForm Model=@Bid OnSubmit=@HandleSubmit>
     <label>
         New bid
-        <InputNumber @bind-Value="Bid.Amount" />
+        <InputNumber class="border-2 border-black" @bind-Value="@Bid.Amount" />
     </label>
-</form>
+    <button type="submit">Place bid</button>
+</EditForm>
 
 @code {
-    [SupplyParameterFromForm]
-    public Bid? Bid { get; set; }
+    [Parameter]
+    public int ListingID { get; set; }
 
-    protected override void OnInitialized()
+    Bid Bid = new Bid();
+
+    private void HandleSubmit()
     {
-        Bid ??= new();
+        decimal highestBid = GetHighestBidAmountForCurrentListing(ListingID);
+        Console.WriteLine(highestBid);
     }
-    private void PlaceBid()
+
+    private decimal GetHighestBidAmountForCurrentListing(int listingID)
     {
-        Console.Write(Bid.Amount);
+        decimal highestBidAmount = _context.Bids.Where(e => e.ListingID == listingID).Max(b => b.Amount);
+
+        return highestBidAmount;
     }
 }

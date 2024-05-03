@@ -16,9 +16,9 @@
         <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
             <EditForm Model="newListingImage" OnValidSubmit="SubmitForm">
                 <div class="relative">
-                    @if (imagePath != null)
+                    @if (base64Image != null)
                     {
-                        <img src="@imagePath" alt="Listing Image" class="mx-auto w-48 h-48 object-cover rounded-md">
+                        <img src="@base64Image" alt="Listing Image" class="mx-auto w-48 h-48 object-cover rounded-md">
                     }
                     <label class="absolute right-2 top-2 cursor-pointer text-sm bg-gray-300 hover:bg-gray-400 text-black rounded-full p-2">
                         Add Image
@@ -101,11 +101,8 @@
         {
             <div class="p-3 border rounded mt-2">
                 <h3 class="text-md font-semibold">@listing.Name</h3>
-                
-                    <img src="@listing.ImagePath" alt="Listing Image" class="w-48 h-48 object-cover rounded-md">
-                
+                <img src="@($"/Storage/{listing.ImagePath}")" alt="Listing Image" class="w-48 h-48 object-cover rounded-md">
                 <p>Starting Price: @listing.StartingPrice.ToString("C")</p>
-                @* <p>Current Price: @listing.CurrentPrice.ToString("C")</p> *@
                 <p>Description: @listing.Description</p>
                 <p>Ends on: @listing.AuctionEnd.ToString("MM/dd/yyyy HH:mm")</p>
                 <p>Platform: @listing.Platform.ToString()</p>
@@ -114,6 +111,7 @@
         }
     </div>
 }
+
 
 
 
@@ -134,6 +132,7 @@
             return;
         }
 
+        listing.ImagePath = serverImagePath; //Sets the image path to the uploaded file
         dbContext.Listings.Add(listing);
         //await dbContext.SaveChangesAsync();
 
@@ -156,7 +155,7 @@
 
     // file size set to 3MB
     private long maxFileSize = 1024 * 1024 * 3;
-    //private int maxAllowedFiles = 1;
+    private int maxAllowedFiles = 1;
     private List<string> errors = new();
     private Listing newListingImage = new();
     private IBrowserFile? file;
@@ -174,24 +173,109 @@
         }
     }
 
+    // private async Task LoadFiles(InputFileChangeEventArgs e)
+    // {
+    //     //file = e.File;
+    //     var imageFile = e.File;
+    //     if (imageFile != null)
+    //     {
+    //         // Convert the image to a base64 string to display in an <img> tag
+    //         var format = "image/png";
+    //         using (var ms = new MemoryStream())
+    //         {
+    //             await imageFile.OpenReadStream(maxFileSize).CopyToAsync(ms);
+    //             var buffer = ms.ToArray();
+    //             imagePath = $"data:{format};base64,{Convert.ToBase64String(buffer)}";
+    //             isImageUploaded = true;
+    //         }
+    //     }
+
+    // }
+
+    private string base64Image; // For immediate display
+    private string serverImagePath; // For server storage and retrieval
+
     private async Task LoadFiles(InputFileChangeEventArgs e)
     {
-        //file = e.File;
+        errors.Clear();
         var imageFile = e.File;
         if (imageFile != null)
         {
-            // Convert the image to a base64 string to display in an <img> tag
-            var format = "image/png"; 
-            using (var ms = new MemoryStream())
+            MemoryStream ms = new MemoryStream();
+            try
             {
                 await imageFile.OpenReadStream(maxFileSize).CopyToAsync(ms);
                 var buffer = ms.ToArray();
-                imagePath = $"data:{format};base64,{Convert.ToBase64String(buffer)}";
+                var format = "image/png"; // Determine based on the file type
+                base64Image = $"data:{format};base64,{Convert.ToBase64String(buffer)}";
                 isImageUploaded = true;
+
+                string newFileName = Path.ChangeExtension(
+                    Path.GetRandomFileName(),
+                    Path.GetExtension(imageFile.Name));
+
+                string folderPath = Path.Combine(config.GetValue<string>("FileStorage")!, "Listings");
+                Directory.CreateDirectory(folderPath);
+
+                string fullPath = Path.Combine(folderPath, newFileName);
+                ms.Seek(0, SeekOrigin.Begin);
+                await using FileStream fs = new FileStream(fullPath, FileMode.Create);
+                await ms.CopyToAsync(fs);
+
+                serverImagePath = Path.Combine("Listings", newFileName);
+            }
+            catch (Exception ex)
+            {
+                errors.Add($"Error: {ex.Message}");
+            }
+            finally
+            {
+                ms.Dispose();
             }
         }
-
     }
+
+
+
+    // private async Task LoadFiles(InputFileChangeEventArgs e)
+    // {
+    //     errors.Clear();
+    //     var files = e.GetMultipleFiles(maxAllowedFiles);
+    //     if (files.Count > maxAllowedFiles)
+    //     {
+    //         errors.Add($"Error: Attempting to upload {files.Count} files, but only {maxAllowedFiles} files are allowed");
+    //         return;
+    //     }
+
+    //     var file = files.FirstOrDefault();
+    //     if (file != null)
+    //     {
+    //         try
+    //         {
+    //             string newFileName = Path.ChangeExtension(
+    //                 Path.GetRandomFileName(),
+    //                 Path.GetExtension(file.Name));
+
+    //             string folderPath = Path.Combine(config.GetValue<string>("FileStorage")!, "Listings");
+    //             Directory.CreateDirectory(folderPath); // Ensure the directory exists
+
+    //             string fullPath = Path.Combine(folderPath, newFileName);
+    //             await using FileStream fs = new(fullPath, FileMode.Create);
+    //             await file.OpenReadStream(maxFileSize).CopyToAsync(fs);
+
+    //             // Here, instead of setting imagePath to a local path, you would store the relative path in the database and serve it via a controller if outside wwwroot.
+    //             imagePath = fullPath; // Temporary for local display, you would normally store and serve these files differently.
+    //             isImageUploaded = true;
+
+    //             // Trigger UI update
+    //             StateHasChanged();
+    //         }
+    //         catch (Exception ex)
+    //         {
+    //             errors.Add($"File upload failed: {ex.Message}");
+    //         }
+    //     }
+    // }
 
     private async Task<string> CaptureFile()
     {
@@ -250,19 +334,23 @@
     public void ShowModal()
     {
         listing = new Listing { AuctionEnd = DateTime.Now.AddDays(7) };
-        imagePath = null;
+        base64Image = null;
+        serverImagePath = null;
         isImageUploaded = false;
+        errors.Clear();
         IsVisible = true;
     }
 
     public void CloseModal()
     {
-        // Reset the listing model when closing the modal
         listing = new Listing { AuctionEnd = DateTime.Now.AddDays(7) };
-        imagePath = null;
-        isImageUploaded = false;
-        IsVisible = false;
+        base64Image = null;
+        serverImagePath = null;
+        isImageUploaded = false; 
+        errors.Clear(); 
+        IsVisible = false; 
     }
+
 
 
 

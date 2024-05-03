@@ -2,6 +2,7 @@ using games_r_us_source.Components;
 using games_r_us_source.Data;
 using groceries_webshop.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders; //Needed to display images from temp folder
 
 namespace games_r_us_source
 {
@@ -32,6 +33,14 @@ namespace games_r_us_source
             app.UseHttpsRedirection();
 
             app.UseStaticFiles();
+
+            // Static files config for displaying images
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider("D:\\Temp\\Storage"),
+                RequestPath = "/Storage"
+            });
+
             app.UseAntiforgery();
 
             app.MapRazorComponents<App>()

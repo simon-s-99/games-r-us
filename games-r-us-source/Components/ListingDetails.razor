@@ -1,12 +1,14 @@
 ﻿@using Models;
 
-<div class="border-2 font-[Kadwa] m-auto flex h-fit w-1/2 flex-col rounded-2xl border-blue-800 bg-gray-200 p-4 text-center md:flex-row">
-    <img class="mb-6 mr-2 rounded object-cover drop-shadow-2xl md:w-1/2 md:mb-0" src="@CurrentListing.ImagePath" alt="@CurrentListing.Name" />
+<article class="border-2 font-[Kadwa] m-auto flex h-fit w-1/2 flex-col rounded-2xl border-blue-800 bg-gray-200 p-4 text-center md:flex-row">
+    <img class="mb-6 mr-2 rounded object-contain drop-shadow-2xl xl:object-cover md:w-1/2 md:mb-0" src="@CurrentListing.ImagePath" alt="@CurrentListing.Name" />
 
-    <div class="inline-block h-full pl-2 md:w-1/2">
+    <div class="pl-2 md:w-1/2">
         <span class="text-gray-800">
             In
         </span>
+
+        <!-- TODO: Add breadcrumb navigation when search/filter functionality works -->
         <a class="text-blue-700 underline" href="#">
             @CurrentListing.Platform
         </a>
@@ -19,19 +21,19 @@
             </a>
         }
 
-        <div class="mt-10 flex h-3/4 flex-col justify-between">
+        <div class="mt-10 flex h-1/2 flex-col justify-between">
             <h3 class="text-2xl font-bold uppercase">@CurrentListing.Name</h3>
 
-            <div class="mt-8 flex flex-row justify-evenly">
+            <div class="mt-8 flex flex-col justify-evenly md:flex-row">
                 <div>
                     <p>Starting at </p><span class="font-bold">$@CurrentListing.StartingPrice</span>
                 </div>
 
                 <!-- Vertical divider -->
-                <div class="border-r-2 border-gray-400"></div>
+                <div class="border-r-2 hidden border-gray-400 md:block"></div>
 
                 <!-- Show tooltip on hover -->
-                <div class="group relative inline-block cursor-help">
+                <div class="group relative mt-4 inline-block cursor-help md:mt-0">
                     <p>Ends in</p><span class="border-b-2 border-dotted border-black text-red-700">@GetTimeDifference(CurrentListing.AuctionEnd)</span>
                     <span class="-ml-[130%] invisible absolute bottom-full left-1/2 w-fit text-nowrap rounded bg-black text-white opacity-70 group-hover:visible">@CurrentListing.AuctionEnd</span>
                 </div>
@@ -40,14 +42,14 @@
 
             <section class="mt-8">
                 <!-- If description is too long, put it in a details element instead -->
-                @if (CurrentListing.Description != null && CurrentListing.Description.Length > 50)
+                @if (CurrentListing.Description != null && CurrentListing.Description.Length > 200)
                 {
-                    <details><summary>Description</summary>@CurrentListing.Description</details>
+                    <details class="text-left"><summary>Description</summary>@CurrentListing.Description</details>
                 }
                 else if (CurrentListing.Description != null)
                 {
                     <h4 class="font-bold">Description</h4>
-                    <p>@CurrentListing.Description</p>
+                    <p class="text-left">@CurrentListing.Description</p>
                 }
             </section>
 
@@ -63,16 +65,17 @@
             </section>
         </div>
     </div>
-</div>
+</article>
 
 @code {
     // [Parameter]
     // public Listing CurrentListing { get; set; }
 
+    // Currenly using sample data as currently no page uses the component
     private Listing CurrentListing = new Listing
         {
             Name = "Bananas",
-            Description = "This is my product. I love it but now I want to sell it. This is my product. I love it but now I want to sell it. This is my product. I love it but now I want to sell it. This is my product. I love it but now I want to sell it.",
+            Description = "Bananas. Use them in yoghurt, ice cream, or whatever. Your choice.",
             AuctionEnd = new DateTime(2024, 05, 29, 12, 00, 00),
             AccountID = 1,
             Account = new Account
@@ -80,7 +83,7 @@
                 Address = "Teststreet 234",
                 Name = "Jack",
                 ID = 1,
-                OpenIDIssuer = "fakeisss",
+                OpenIDIssuer = "fakeissuer",
                 OpenIDSubject = "11111",
                 PhoneNumber = "852358725"
             },
@@ -100,6 +103,6 @@
             return Math.Round(timeDifference.TotalDays / 7) + " weeks";
         }
 
-        return timeDifference.TotalDays + "days";
+        return timeDifference.TotalDays + " days";
     }
 }

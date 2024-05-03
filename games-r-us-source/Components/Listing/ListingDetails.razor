@@ -3,7 +3,7 @@
 <article class="border-2 font-[Kadwa] m-auto flex h-fit w-1/2 flex-col rounded-2xl border-blue-800 bg-gray-200 p-4 text-center md:flex-row">
     <img class="mb-6 mr-2 rounded object-contain drop-shadow-2xl xl:object-cover md:w-1/2 md:mb-0" src="@CurrentListing.ImagePath" alt="@CurrentListing.Name" />
 
-    <div class="pl-2 md:w-1/2">
+    <hgroup class="pl-2 md:w-1/2">
         <span class="text-gray-800">
             In
         </span>
@@ -35,7 +35,7 @@
                 <!-- Show tooltip on hover -->
                 <div class="group relative mt-4 inline-block cursor-help md:mt-0">
                     <p>Ends in</p><span class="border-b-2 border-dotted border-black text-red-700">@GetTimeDifference(CurrentListing.AuctionEnd)</span>
-                    <span class="-ml-[130%] invisible absolute bottom-full left-1/2 w-fit text-nowrap rounded bg-black text-white opacity-70 group-hover:visible">@CurrentListing.AuctionEnd</span>
+                    <span class="-ml-[70%] invisible absolute bottom-full left-1/2 w-fit text-nowrap rounded bg-black text-white opacity-70 group-hover:visible">@CurrentListing.AuctionEnd</span>
                 </div>
             </div>
 
@@ -64,7 +64,7 @@
                 </a>
             </section>
         </div>
-    </div>
+    </hgroup>
 </article>
 
 @code {
@@ -100,7 +100,13 @@
 
         if (timeDifference.TotalDays >= 7)
         {
-            return Math.Round(timeDifference.TotalDays / 7) + " weeks";
+            // Round down
+            double wholeWeeks = Math.Floor(timeDifference.TotalDays / 7);
+
+            // Get the rest value
+            double wholeDays = Math.Round(timeDifference.TotalDays % 7);
+
+            return wholeWeeks + " weeks" + (wholeDays > 0 ? $", {wholeDays} days" : "");
         }
 
         return timeDifference.TotalDays + " days";

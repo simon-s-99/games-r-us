@@ -1,0 +1,24 @@
+﻿@using Models;
+
+<h3>Place Bid</h3>
+
+<form method="post" @onsubmit="PlaceBid" @formname="place-bid-form">
+    <label>
+        New bid
+        <InputNumber @bind-Value="Bid.Amount" />
+    </label>
+</form>
+
+@code {
+    [SupplyParameterFromForm]
+    public Bid? Bid { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Bid ??= new();
+    }
+    private void PlaceBid()
+    {
+        Console.Write(Bid.Amount);
+    }
+}

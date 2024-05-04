@@ -1,11 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace games_r_us_source.Models
+namespace games_r_us_source.Data
 {
     public class Bid
     {
-        public int ID {  get; set; }
+        public int ID { get; set; }
 
         [ForeignKey("ListingID")]
         public int ListingID { get; set; }
@@ -15,12 +15,12 @@ namespace games_r_us_source.Models
         public Listing Listing { get; set; }
 
         // account that placed the bid 
-        [ForeignKey("AccountID")]
-        public int AccountID {  get; set; }
+        [ForeignKey("ApplicationUserID")]
+        public int ApplicationUserID { get; set; }
 
         // sets AccountID to null if the related account is deleted
         [DeleteBehavior(DeleteBehavior.NoAction)]
-        public Account Account { get; set; }
+        public ApplicationUser ApplicationUser { get; set; }
 
         public decimal Amount { get; set; }
 

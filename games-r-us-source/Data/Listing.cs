@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
-namespace games_r_us_source.Models
+namespace games_r_us_source.Data
 {
     public enum Platform
     {
@@ -39,12 +39,12 @@ namespace games_r_us_source.Models
     {
         public int ID { get; set; }
 
-        [ForeignKey("AccountID")]
-        public int AccountID { get; set; }
+        [ForeignKey("ApplicationUserID")]
+        public int ApplicationUserID { get; set; }
 
         // sets AccountID to null if the related account is deleted
-        [DeleteBehavior(DeleteBehavior.NoAction)]
-        public Account Account { get; set; }
+        //[DeleteBehavior(DeleteBehavior.NoAction)]
+        //public ApplicationUser ApplicationUser { get; set; }
 
         public string Name { get; set; }
 

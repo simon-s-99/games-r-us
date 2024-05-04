@@ -7,7 +7,6 @@
 @using System.Text
 @using System.Linq
 @using Microsoft.EntityFrameworkCore
-@using Models
 
 @inject IConfiguration config
 @rendermode InteractiveServer
@@ -117,6 +116,7 @@
 {
     <div class="mt-4">
         <h2 class="text-lg font-semibold text-gray-800">Listings:</h2>
+        @* Iterate over all listings *@
         @for (int i = 0; i < listings.Count; i++)
         {
             <section class="p-3 border rounded mt-2">
@@ -134,9 +134,10 @@
 
 
 
-
 @code {
     Listing listing = new Listing { AuctionEnd = DateTime.Now.AddDays(7) };
+
+    // Stores the listings to later display them on the page
     private List<Listing> listings = new List<Listing>();
 
     private string imagePath;
@@ -152,33 +153,97 @@
     private string base64Image; // For immediate display
     private string serverImagePath; // For server storage and retrieval
 
+    private async Task<bool> ListingExists()
+    {
+        return await dbContext.Listings.AnyAsync(l =>
+            l.Name == listing.Name && 
+            l.StartingPrice == listing.StartingPrice &&
+            l.Description == listing.Description &&
+            l.Platform == listing.Platform &&
+            l.GameCategory == listing.GameCategory);
+    }
+
+
+    //Works for removing duplicates
+    // private async Task HandleValidSubmit()
+    // {
+    //     using var dbContext = dbContextFactory.CreateDbContext();
+
+    //     // Start a transaction with a higher isolation level
+    //     var transaction = dbContext.Database.BeginTransaction(System.Data.IsolationLevel.Serializable);
+
+    //     try
+    //     {
+    //         // Explicitly lock the rows during the read operation if needed
+    //         var existingListings = await dbContext.Listings
+    //             .Where(l => l.Name == listing.Name
+    //                         && l.StartingPrice == listing.StartingPrice
+    //                         && l.Description == listing.Description
+    //                         && l.Platform == listing.Platform
+    //                         && l.GameCategory == listing.GameCategory)
+    //             .ToListAsync();
+
+    //         if (existingListings.Any())
+    //         {
+    //             dbContext.Listings.RemoveRange(existingListings);
+    //             await dbContext.SaveChangesAsync();
+    //             Console.WriteLine("Duplicates removed.");
+    //         }
+
+    //         // Add the new listing
+    //         dbContext.Listings.Add(listing);
+    //         await dbContext.SaveChangesAsync();
+    //         await transaction.CommitAsync();
+
+    //         CloseModal();
+    //         Console.WriteLine("New listing added successfully.");
+    //     }
+    //     catch (DbUpdateException ex)
+    //     {
+    //         await transaction.RollbackAsync();
+    //         var errorDetails = ex.InnerException?.Message ?? "No inner exception information";
+    //         errors.Add($"Error: {ex.Message}. Details: {errorDetails}");
+    //         Console.WriteLine("Transaction rolled back due to an update error.");
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         await transaction.RollbackAsync();
+    //         errors.Add($"Error: {ex.Message}");
+    //         Console.WriteLine("Transaction rolled back due to an unexpected error.");
+    //     }
+    // }
+    
+    private DateTime lastSubmissionTime = DateTime.MinValue;
+
     private async Task HandleValidSubmit()
     {
-        //using var dbContext = dbContextFactory.CreateDbContext(); Currently makes duplicates
-
-        if (!isImageUploaded)
+        var currentTime = DateTime.Now;
+        // Used to avoid duplicates
+        if ((currentTime - lastSubmissionTime).TotalSeconds < 10)
         {
-            errors.Add("Please upload an image of your listing");
+            Console.WriteLine("You must wait 10 seconds before creating another listing.");
             return;
         }
+        lastSubmissionTime = currentTime;
 
+        using var dbContext = dbContextFactory.CreateDbContext();
         try
         {
-            dbContext.Listings.Add(listing); // Adds the new listing to the databasse
+            dbContext.Listings.Add(listing); // Adds the new listing to the database
             await dbContext.SaveChangesAsync();
             CloseModal();
+            Console.WriteLine("Listing created successfully.");
         }
         catch (DbUpdateException ex)
         {
-            // Here we log the inner exception which usually contains the details about database errors
-            var errorDetails = ex.InnerException != null ? ex.InnerException.Message : "No inner exception information";
-            errors.Add($"Error: {ex.Message}. Details: {errorDetails}");
+            Console.WriteLine($"Database update failed: {ex.Message}");
         }
         catch (Exception ex)
         {
-            errors.Add($"Error: {ex.Message}");
+            Console.WriteLine($"An error occurred: {ex.Message}");
         }
     }
+
 
     private List<decimal> prices = new();
 
@@ -192,13 +257,27 @@
         }
     }
 
+    // Fetch listings
     protected override async Task OnInitializedAsync()
     {
-        listings = await dbContext.Listings.ToListAsync();
+        var currentDate = DateTime.Now;
+
+        listings = await dbContext.Listings
+        .Where(l => l.AuctionEnd > currentDate) //filter away expired listings
+        .Select(l => new Listing
+            {
+                ID = l.ID,
+                Name = l.Name,
+                StartingPrice = l.StartingPrice,
+                Description = l.Description,
+                ImagePath = l.ImagePath,
+                AuctionEnd = l.AuctionEnd,
+                Platform = l.Platform,
+                GameCategory = l.GameCategory
+            }).ToListAsync();
 
         // Let the task of fetching the price complete, else it displays "System.Runtime.CompilerServices"
         await LoadPrices();        
-
     }
 
     private async Task<decimal> GetCurrentBid(int listingID)
@@ -342,10 +421,10 @@
         IsVisible = true;
     }
 
-    // public void ReloadPage()
-    // {
-    //     _navigationManager.NavigateTo("/createListing");
-    // }
+    public void ReloadPage()
+    {
+        _navigationManager.NavigateTo("/createListing");
+    }
 
     public void CloseModal()
     {

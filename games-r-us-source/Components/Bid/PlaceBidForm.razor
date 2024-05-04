@@ -1,32 +1,47 @@
 ﻿@using Models;
 @using Data;
-@inject AppDbContext _context;
+@using Classes;
+@inject AppDbContext context;
+@* @inject Account loggedInAccount; *@
 
-<h3>Place Bid</h3>
 
-<EditForm Model=@Bid OnSubmit=@HandleSubmit>
-    <label>
-        New bid
-        <InputNumber class="border-2 border-black" @bind-Value="@Bid.Amount" />
-    </label>
-    <button type="submit">Place bid</button>
+<p>Current highest bid: <span class="text-red-700">@GetHighestBidAmountForCurrentListing(ListingID)</span></p>
+
+<EditForm class="w-fit" Model=@bid OnSubmit=@HandleSubmit>
+    <div class="inline-block">
+        <label for="amount" class="block text-center">
+            New bid
+        </label>
+        <InputNumber id="amount" class="border-2 border-black" @bind-Value="@bid.Amount" />
+    </div>
+    <button class="border-2 rounded-l border-black bg-cyan-500" type="submit">Place bid</button>
 </EditForm>
 
 @code {
     [Parameter]
     public int ListingID { get; set; }
 
-    Bid Bid = new Bid();
+    Bid bid = new Bid { Time = DateTime.Now };
 
     private void HandleSubmit()
     {
         decimal highestBid = GetHighestBidAmountForCurrentListing(ListingID);
-        Console.WriteLine(highestBid);
+
+        if (highestBid >= bid.Amount)
+        {
+            return;
+        }
+
+        bid.ListingID = ListingID;
+        bid.Listing = Helper.GetListingFromListingID(ListingID, context);
+        // bid.AccountID = loggedInAccount.ID;
+        // bid.Account = Helper.GetAccountFromAccountID(loggedInAccount.ID)
+        context.Bids.Add(bid);
     }
 
     private decimal GetHighestBidAmountForCurrentListing(int listingID)
     {
-        decimal highestBidAmount = _context.Bids.Where(e => e.ListingID == listingID).Max(b => b.Amount);
+        decimal highestBidAmount = context.Bids.Where(e => e.ListingID == listingID).Max(b => b.Amount);
 
         return highestBidAmount;
     }

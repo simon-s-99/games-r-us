@@ -4,6 +4,7 @@ using games_r_us_source.Data;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace games_r_us_source
 {
@@ -65,6 +66,15 @@ namespace games_r_us_source
 
             // Add additional endpoints required by the Identity /Account Razor components.
             app.MapAdditionalIdentityEndpoints();
+
+            // adds sampledata for a table if the table is empty 
+            // DOES NOT add data for AspNet-tables
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                var database = services.GetRequiredService<ApplicationDbContext>();
+                SampleData.Create(database);
+            }
 
             app.Run();
         }

@@ -1,19 +1,16 @@
-﻿using games_r_us_source.Models;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Net.Http.Headers;
+﻿using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
 namespace games_r_us_source.Data
 {
-    public class SampleData
+	public class SampleData
     {
         public static void Create(ApplicationDbContext database)
         {
             // If no accounts are found, add sample accounts
-            if (!database.Accounts.Any())
+            if (!database.ApplicationUser.Any())
             {
-                PopulateTableFromJson<Account>("sample-accounts.json", database.Accounts);
+                PopulateTableFromJson<ApplicationUser>("sample-accounts.json", database.ApplicationUser);
 
                 // SaveChanges is necessary as both Listings and Bids depend on Accounts
                 database.SaveChanges();

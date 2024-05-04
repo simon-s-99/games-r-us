@@ -40,11 +40,11 @@ namespace games_r_us_source.Data
         public int ID { get; set; }
 
         [ForeignKey("ApplicationUserID")]
-        public int ApplicationUserID { get; set; }
+		public string ApplicationUserID { get; set; }
 
-        // sets AccountID to null if the related account is deleted
-        //[DeleteBehavior(DeleteBehavior.NoAction)]
-        //public ApplicationUser ApplicationUser { get; set; }
+		[NotMapped]
+        [DeleteBehavior(DeleteBehavior.NoAction)] // sets AccountID to null if the related account is deleted 
+		public ApplicationUser ApplicationUser { get; set; }
 
         public string Name { get; set; }
 

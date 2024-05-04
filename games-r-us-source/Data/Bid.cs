@@ -14,13 +14,12 @@ namespace games_r_us_source.Data
         [DeleteBehavior(DeleteBehavior.NoAction)]
         public Listing Listing { get; set; }
 
-        // account that placed the bid 
         [ForeignKey("ApplicationUserID")]
-        public int ApplicationUserID { get; set; }
+		public string ApplicationUserID { get; set; } // account that placed the bid 
 
-        // sets AccountID to null if the related account is deleted
-        [DeleteBehavior(DeleteBehavior.NoAction)]
-        public ApplicationUser ApplicationUser { get; set; }
+		[NotMapped]
+        [DeleteBehavior(DeleteBehavior.NoAction)] // sets AccountID to null if the related account is deleted 
+		public ApplicationUser ApplicationUser { get; set; }
 
         public decimal Amount { get; set; }
 

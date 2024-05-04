@@ -14,6 +14,7 @@ namespace games_r_us_source
             // Add services to the container.
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
+            builder.Services.AddSingleton<IWebHostEnvironment>(builder.Environment); // To display images
 
             // add db 2.0
             builder.Services.AddDbContextFactory<AppDbContext>(options =>

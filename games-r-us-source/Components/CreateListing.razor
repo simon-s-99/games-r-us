@@ -7,11 +7,15 @@
 @using System.Text
 @using System.Linq
 @using Microsoft.EntityFrameworkCore
+@using Models
 
 @inject IConfiguration config
 @rendermode InteractiveServer
 @inject AppDbContext dbContext
 @inject IDbContextFactory<AppDbContext> dbContextFactory
+@inject IWebHostEnvironment Environment
+@inject NavigationManager _navigationManager
+
 
 <AuthorizeView>
 
@@ -117,7 +121,7 @@
         {
             <section class="p-3 border rounded mt-2">
                 <h3 class="text-md font-semibold">@listings[i].Name</h3>
-                <img src="@($"/Storage/{listings[i].ImagePath}")" alt="Listing Image" class="w-48 h-48 object-cover rounded-md">
+                <img src="@listings[i].ImagePath" alt="Listing Image" class="w-48 h-48 object-cover rounded-md">
                 <p>Price: @prices[i] kr </p>
                 <p>Description: @listings[i].Description</p>
                 <p>Time Remaining: @GetTimeDifference(listings[i].AuctionEnd)</p>
@@ -132,8 +136,6 @@
 
 
 @code {
-    //private Listing listings = new Listing();
-    //private Listing newListing = new Listing();
     Listing listing = new Listing { AuctionEnd = DateTime.Now.AddDays(7) };
     private List<Listing> listings = new List<Listing>();
 
@@ -152,18 +154,18 @@
 
     private async Task HandleValidSubmit()
     {
-        using var dbContext = dbContextFactory.CreateDbContext();
-        // if (!isImageUploaded)
-        // {
-        //     errors.Add("Please upload an image of your listing");
-        //     return;
-        // }
+        //using var dbContext = dbContextFactory.CreateDbContext(); Currently makes duplicates
 
-        dbContext.Listings.Add(listing);
+        if (!isImageUploaded)
+        {
+            errors.Add("Please upload an image of your listing");
+            return;
+        }
+
         try
         {
+            dbContext.Listings.Add(listing); // Adds the new listing to the databasse
             await dbContext.SaveChangesAsync();
-            //await LoadListings();
             CloseModal();
         }
         catch (DbUpdateException ex)
@@ -196,15 +198,8 @@
 
         // Let the task of fetching the price complete, else it displays "System.Runtime.CompilerServices"
         await LoadPrices();        
-        //await LoadListings();
+
     }
-
-    //Loadlistings and loadprices doesn't seem to work at the same time
-
-    // private async Task LoadListings()
-    // {
-    //     listings = await dbContext.Listings.ToListAsync();
-    // }
 
     private async Task<decimal> GetCurrentBid(int listingID)
     {
@@ -227,109 +222,6 @@
                : listing.StartingPrice;
     }
 
-    // private async Task LoadListings()
-    // {
-    //     using var dbContext = dbContextFactory.CreateDbContext();
-    //     listings = await dbContext.Listings.ToListAsync();
-    // }
-
-    // private async Task<decimal> GetCurrentBid(int listingID)
-    // {
-    //     using var dbContext = dbContextFactory.CreateDbContext();
-    //     var highestBid = await dbContext.Bids
-    //                         .Where(b => b.ListingID == listingID)
-    //                         .OrderByDescending(b => b.Amount)
-    //                         .FirstOrDefaultAsync();
-
-    //     var listing = await dbContext.Listings
-    //                         .FirstOrDefaultAsync(l => l.ID == listingID);
-
-    //     if (listing == null)
-    //     {
-    //         throw new InvalidOperationException($"No listing found with ID {listingID}.");
-    //     }
-
-    //     return highestBid != null && highestBid.Amount > listing.StartingPrice
-    //            ? highestBid.Amount
-    //            : listing.StartingPrice;
-    // }
-    
-    // private async Task HandleValidSubmit()
-    // {
-    //     if (!isImageUploaded)
-    //     {
-    //         errors.Add("Please upload a image of your listing");
-    //         return;
-    //     }
-
-
-    //     //listing.ImagePath = serverImagePath; //Sets the image path to the uploaded file
-    //      dbContext.Listings.Add(listing);
-
-    //     try
-    //     {
-    //         var entities = dbContext.ChangeTracker.Entries().Where(e => e.State == EntityState.Added || e.State == EntityState.Modified);
-    //         foreach (var entity in entities)
-    //         {
-    //             Console.WriteLine($"Entity: {entity.Entity.GetType().Name}, State: {entity.State}");
-    //         }
-
-
-    //         await dbContext.SaveChangesAsync();
-    //         await LoadListings();
-    //         CloseModal();
-    //     }
-    //     catch (DbUpdateException ex)
-    //     {
-    //         var sb = new StringBuilder();
-    //         sb.AppendLine($"Error saving changes: {ex.Message}");
-    //         if (ex.InnerException != null)
-    //             sb.AppendLine($"Inner exception: {ex.InnerException.Message}");
-
-    //         errors.Add(sb.ToString());
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         errors.Add($"Error: {ex.Message}");
-    //     }
-
-        
-    // }
-
-    
-
-
-    // private decimal GetCurrentBid(int listingID)
-    // {
-    //     Fetch the highest bid for the listing
-    //     var highestBid = dbContext.Bids
-    //     .Where(b => b.ListingID == listingID)
-    //     .OrderByDescending(b => b.Amount)
-    //     .FirstOrDefault();
-
-    //     Fetch the listing to obtain the starting price
-    //     var listing = dbContext.Listings.FirstOrDefault(l => l.ID == listingID);
-
-    //     if (listing == null)
-    //     {
-    //         Log this issue, throw an exception, or handle it according to your application needs
-    //         throw new InvalidOperationException($"No listing found with ID {listingID}.");
-    //     }
-
-    //     check if there's been at least one bid
-    //     if (highestBid != null && highestBid.Amount > listing.StartingPrice)
-    //     {
-    //         return highestBid.Amount;
-    //     }
-
-    //     else
-    //     {
-    //         return listing.StartingPrice; System.NullReferenceException: 'Object reference not set to an instance of an object.'
-
-    //     }
-    // }
-
-    // Used to set the end time of a listing
     private string auctionEnd
     {
         get => listing.AuctionEnd.ToString("yyyy-MM-ddTHH:mm");
@@ -365,20 +257,18 @@
             {
                 await imageFile.OpenReadStream(maxFileSize).CopyToAsync(ms);
                 byte[] buffer = ms.ToArray();
-                base64Image = $"data:image/png;base64,{Convert.ToBase64String(buffer)}"; // Displaying the image immediately in UI
+                base64Image = $"data:image/png;base64,{Convert.ToBase64String(buffer)}"; // For immediate display in UI
                 isImageUploaded = true;
 
                 string fileName = Path.ChangeExtension(Path.GetRandomFileName(), Path.GetExtension(imageFile.Name));
-                string folderPath = Path.Combine(config.GetValue<string>("FileStorage"), "Listings");
+                string folderPath = Path.Combine(Environment.WebRootPath, "images"); // Pointing to the 'images' folder in wwwroot
                 Directory.CreateDirectory(folderPath); // Ensures directory exists
 
                 string fullPath = Path.Combine(folderPath, fileName);
                 await File.WriteAllBytesAsync(fullPath, buffer); // Saves the image to the server directory
 
-                listing.ImagePath = fullPath; // save fullpath to imagePath
-                dbContext.Listings.Add(listing); // adding imagePath here for now
-
-                //serverImagePath = fullPath; // Saves the path for database entry
+                string relativePath = Path.Combine("images", fileName); // Save only the relative path
+                listing.ImagePath = relativePath; // Save relative path to imagePath                                               
             }
             catch (Exception ex)
             {
@@ -386,48 +276,6 @@
             }
         }
     }
-
-
-    // private async Task LoadFiles(InputFileChangeEventArgs e)
-    // {
-    //     errors.Clear();
-    //     var imageFile = e.File;
-    //     if (imageFile != null)
-    //     {
-    //         MemoryStream ms = new MemoryStream();
-    //         try
-    //         {
-    //             await imageFile.OpenReadStream(maxFileSize).CopyToAsync(ms);
-    //             var buffer = ms.ToArray();
-    //             var format = "image/png"; // Determine based on the file type
-    //             base64Image = $"data:{format};base64,{Convert.ToBase64String(buffer)}";
-    //             isImageUploaded = true;
-
-    //             string newFileName = Path.ChangeExtension(
-    //                 Path.GetRandomFileName(),
-    //                 Path.GetExtension(imageFile.Name));
-
-    //             string folderPath = Path.Combine(config.GetValue<string>("FileStorage")!, "Listings");
-    //             Directory.CreateDirectory(folderPath);
-
-    //             string fullPath = Path.Combine(folderPath, newFileName);
-    //             ms.Seek(0, SeekOrigin.Begin);
-    //             await using FileStream fs = new FileStream(fullPath, FileMode.Create);
-    //             await ms.CopyToAsync(fs);
-
-    //             serverImagePath = Path.Combine("Listings", newFileName);
-    //         }
-    //         catch (Exception ex)
-    //         {
-    //             errors.Add($"Error: {ex.Message}");
-    //         }
-    //         finally
-    //         {
-    //             ms.Dispose();
-    //         }
-    //     }
-    // }
-
 
     private async Task<string> CaptureFile()
     {
@@ -494,6 +342,11 @@
         IsVisible = true;
     }
 
+    // public void ReloadPage()
+    // {
+    //     _navigationManager.NavigateTo("/createListing");
+    // }
+
     public void CloseModal()
     {
         listing = new Listing { AuctionEnd = DateTime.Now.AddDays(7), StartingPrice = 1 };
@@ -502,6 +355,7 @@
         isImageUploaded = false;
         errors.Clear();
         IsVisible = false;
+        // ReloadPage();
     }
 
     private string GetTimeDifference(DateTime endDate)
@@ -526,66 +380,4 @@
         }
     }
 
-
-    // private async Task LoadFiles(InputFileChangeEventArgs e)
-    // {
-    //     //file = e.File;
-    //     var imageFile = e.File;
-    //     if (imageFile != null)
-    //     {
-    //         // Convert the image to a base64 string to display in an <img> tag
-    //         var format = "image/png";
-    //         using (var ms = new MemoryStream())
-    //         {
-    //             await imageFile.OpenReadStream(maxFileSize).CopyToAsync(ms);
-    //             var buffer = ms.ToArray();
-    //             imagePath = $"data:{format};base64,{Convert.ToBase64String(buffer)}";
-    //             isImageUploaded = true;
-    //         }
-    //     }
-
-    // }
-
-
-    // private async Task LoadFiles(InputFileChangeEventArgs e)
-    // {
-    //     errors.Clear();
-    //     var files = e.GetMultipleFiles(maxAllowedFiles);
-    //     if (files.Count > maxAllowedFiles)
-    //     {
-    //         errors.Add($"Error: Attempting to upload {files.Count} files, but only {maxAllowedFiles} files are allowed");
-    //         return;
-    //     }
-
-    //     var file = files.FirstOrDefault();
-    //     if (file != null)
-    //     {
-    //         try
-    //         {
-    //             string newFileName = Path.ChangeExtension(
-    //                 Path.GetRandomFileName(),
-    //                 Path.GetExtension(file.Name));
-
-    //             string folderPath = Path.Combine(config.GetValue<string>("FileStorage")!, "Listings");
-    //             Directory.CreateDirectory(folderPath); // Ensure the directory exists
-
-    //             string fullPath = Path.Combine(folderPath, newFileName);
-    //             await using FileStream fs = new(fullPath, FileMode.Create);
-    //             await file.OpenReadStream(maxFileSize).CopyToAsync(fs);
-
-    //             // Here, instead of setting imagePath to a local path, you would store the relative path in the database and serve it via a controller if outside wwwroot.
-    //             imagePath = fullPath; // Temporary for local display, you would normally store and serve these files differently.
-    //             isImageUploaded = true;
-
-    //             // Trigger UI update
-    //             StateHasChanged();
-    //         }
-    //         catch (Exception ex)
-    //         {
-    //             errors.Add($"File upload failed: {ex.Message}");
-    //         }
-    //     }
-    // }
-
 }
-

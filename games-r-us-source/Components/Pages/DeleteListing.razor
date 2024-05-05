@@ -1,0 +1,42 @@
+﻿@page "/deletelisting"
+@using Microsoft.EntityFrameworkCore
+@using games_r_us_source.Data
+@inject ApplicationDbContext dbContext
+@rendermode InteractiveServer
+
+@foreach (var listing in listings)
+{
+    <div>
+        <p>@listing.Name</p>
+        <p>@listing.Description</p>
+        <button type ="button" @onclick="() => RemoveListing(listing.ID)">Delete</button>
+    </div>
+}
+
+@code {
+    private List<Listing> listings; 
+
+    protected override void OnInitialized()
+    {
+        listings = dbContext.Listings.ToList();
+    }
+
+    private void RemoveListing(int listingId)
+    {
+        var listingToDelete = listings.FirstOrDefault(l => l.ID == listingId);
+
+        if (listingToDelete != null)
+        {
+            // Fetch all bids associated with the listing
+            var associatedBids = dbContext.Bids.Where(b => b.ListingID == listingId).ToList();
+
+            dbContext.Bids.RemoveRange(associatedBids);
+            dbContext.Listings.Remove(listingToDelete);
+            dbContext.SaveChanges();
+
+            listings = dbContext.Listings.ToList();
+        }
+    }
+}
+
+

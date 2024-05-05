@@ -1,6 +1,6 @@
 [
   {
-    "ApplicationUserID": "cc6276e8-819e-4cfa-adc0-30e81954d1ea",
+    "AccountID": 3,
     "Name": "Playstation 4 Controller",
     "StartingPrice": 50,
     "ImagePath": "",
@@ -9,7 +9,7 @@
     "Platform": 1
   },
   {
-    "ApplicationUserID": "025f94af-891c-45dc-a5af-f46254ee5523",
+    "AccountID": 1,
     "Name": "Super Mario Galaxy",
     "StartingPrice": 49,
     "ImagePath": "",
@@ -19,7 +19,7 @@
     "GameCategory": 5
   },
   {
-    "ApplicationUserID": "6f30e364-2c22-4aa4-943f-105893635e5d",
+    "AccountID": 2,
     "Name": "Nintendo DS",
     "StartingPrice": 399,
     "ImagePath": "",
@@ -28,7 +28,7 @@
     "Platform": 5
   },
   {
-    "ApplicationUserID": "6f30e364-2c22-4aa4-943f-105893635e5d",
+    "AccountID": 2,
     "Name": "Nintendo Switch Pro Controller",
     "StartingPrice": 69,
     "ImagePath": "",
@@ -37,7 +37,7 @@
     "Platform": 3
   },
   {
-    "ApplicationUserID": "cc6276e8-819e-4cfa-adc0-30e81954d1ea",
+    "AccountID": 3,
     "Name": "PlayStation 5 DualSense Controller",
     "StartingPrice": 79,
     "ImagePath": "",
@@ -46,7 +46,7 @@
     "Platform": 1
   },
   {
-    "ApplicationUserID": "025f94af-891c-45dc-a5af-f46254ee5523",
+    "AccountID": 1,
     "Name": "Xbox Elite Series 2 Controller",
     "StartingPrice": 149,
     "ImagePath": "",
@@ -55,7 +55,7 @@
     "Platform": 0
   },
   {
-    "ApplicationUserID": "6f30e364-2c22-4aa4-943f-105893635e5d",
+    "AccountID": 2,
     "Name": "The Legend of Zelda: Breath of the Wild",
     "StartingPrice": 59,
     "ImagePath": "",
@@ -65,7 +65,7 @@
     "GameCategory": 11
   },
   {
-    "ApplicationUserID": "cc6276e8-819e-4cfa-adc0-30e81954d1ea",
+    "AccountID": 3,
     "Name": "FIFA 23",
     "StartingPrice": 49,
     "ImagePath": "",
@@ -75,7 +75,7 @@
     "GameCategory": 1
   },
   {
-    "ApplicationUserID": "025f94af-891c-45dc-a5af-f46254ee5523",
+    "AccountID": 1,
     "Name": "Halo Infinite",
     "StartingPrice": 69,
     "ImagePath": "",
@@ -85,7 +85,7 @@
     "GameCategory": 0
   },
   {
-    "ApplicationUserID": "cc6276e8-819e-4cfa-adc0-30e81954d1ea",
+    "AccountID": 3,
     "Name": "Super Mario Odyssey",
     "StartingPrice": 49,
     "ImagePath": "",
@@ -95,7 +95,7 @@
     "GameCategory": 5
   },
   {
-    "ApplicationUserID": "cc6276e8-819e-4cfa-adc0-30e81954d1ea",
+    "AccountID": 3,
     "Name": "Nintendo Switch Lite - Gray",
     "StartingPrice": 179,
     "ImagePath": "",
@@ -104,7 +104,7 @@
     "Platform": 3
   },
   {
-    "ApplicationUserID": "6f30e364-2c22-4aa4-943f-105893635e5d",
+    "AccountID": 2,
     "Name": "Assassin's Creed Valhalla",
     "StartingPrice": 39,
     "ImagePath": "",
@@ -114,7 +114,7 @@
     "GameCategory": 3
   },
   {
-    "ApplicationUserID": "cc6276e8-819e-4cfa-adc0-30e81954d1ea",
+    "AccountID": 3,
     "Name": "Xbox Series S",
     "StartingPrice": 299,
     "ImagePath": "",
@@ -123,7 +123,7 @@
     "Platform": 0
   },
   {
-    "ApplicationUserID": "6f30e364-2c22-4aa4-943f-105893635e5d",
+    "AccountID": 2,
     "Name": "The Last of Us Part II",
     "StartingPrice": 49,
     "ImagePath": "",
@@ -133,7 +133,7 @@
     "GameCategory": 11
   },
   {
-    "ApplicationUserID": "025f94af-891c-45dc-a5af-f46254ee5523",
+    "AccountID": 1,
     "Name": "Xbox Wireless Headset",
     "StartingPrice": 99,
     "ImagePath": "",
@@ -142,7 +142,7 @@
     "Platform": 0
   },
   {
-    "ApplicationUserID": "cc6276e8-819e-4cfa-adc0-30e81954d1ea",
+    "AccountID": 3,
     "Name": "Animal Crossing: New Horizons",
     "StartingPrice": 49,
     "ImagePath": "",
@@ -152,7 +152,7 @@
     "GameCategory": 4
   },
   {
-    "ApplicationUserID": "025f94af-891c-45dc-a5af-f46254ee5523",
+    "AccountID": 1,
     "Name": "Xbox Wireless Controller - Robot White",
     "StartingPrice": 59,
     "ImagePath": "",
@@ -161,7 +161,7 @@
     "Platform": 0
   },
   {
-    "ApplicationUserID": "6f30e364-2c22-4aa4-943f-105893635e5d",
+    "AccountID": 2,
     "Name": "The Witcher 3: Wild Hunt - Complete Edition",
     "StartingPrice": 39,
     "ImagePath": "",
@@ -171,7 +171,7 @@
     "GameCategory": 3
   },
   {
-    "ApplicationUserID": "025f94af-891c-45dc-a5af-f46254ee5523",
+    "AccountID": 1,
     "Name": "Nintendo Switch Dock Set",
     "StartingPrice": 79,
     "ImagePath": "",

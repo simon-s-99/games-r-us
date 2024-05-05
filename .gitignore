@@ -396,13 +396,8 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
-
-# Ignore tailwind extension in Visual Studio Community
 games-r-us-source/tailwind.extension.json
-games-r-us-source/tailwind.config.js
-
 games-r-us-source/package-lock.json
 games-r-us-source/package.json
-
-# Ignore ef migrations 
+games-r-us-source/tailwind.config.js
 /games-r-us-source/Migrations

@@ -10,7 +10,7 @@ namespace games_r_us_source.Data
             // If no accounts are found, add sample accounts
             if (!database.ApplicationUsers.Any())
             {
-                PopulateTableFromJson<ApplicationUser>("sample-accounts.json", database.ApplicationUser);
+                PopulateTableFromJson<ApplicationUser>("sample-accounts.json", database.ApplicationUsers);
 
                 // SaveChanges is necessary as both Listings and Bids depend on Accounts
                 database.SaveChanges();

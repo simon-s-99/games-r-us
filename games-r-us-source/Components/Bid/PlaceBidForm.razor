@@ -1,22 +1,26 @@
-﻿@using games_r_us_source.Data
-@using games_r_us_source.Components.Helpers
+﻿@using games_r_us_source.Data;
+@using games_r_us_source.Components.Helpers;
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject ApplicationDbContext context;
 
 <p>Current highest bid: <span class="text-red-700">@GetHighestBidAmountForCurrentListing(ListingID)</span></p>
 
-<EditForm class="w-fit" Model=@bid OnSubmit=@HandleSubmit>
-    <div class="inline-block">
-        <label for="amount" class="block text-center">
-            New bid
-        </label>
-        <InputNumber id="amount" class="border-2 border-black" @bind-Value="@bid.Amount" />
-    </div>
-    <button class="border-2 rounded-l border-black bg-cyan-500" type="submit">Place bid</button>
-</EditForm>
+    <EditForm class="w-fit" Model=@bid OnSubmit=@HandleSubmit>
+        <div class="inline-block">
+            <label for="amount" class="block text-center">
+                New bid
+            </label>
+            <InputNumber id="amount" class="border-2 border-black" @bind-Value="@bid.Amount" />
+        </div>
+        <button class="border-2 rounded-l border-black bg-cyan-500" type="submit">Place bid</button>
+    </EditForm>
 
 @code {
     [Parameter]
     public int ListingID { get; set; }
+
+    private string UserName { get; set; }
 
     Bid bid = new Bid { Time = DateTime.Now };
 
@@ -31,9 +35,22 @@
 
         bid.ListingID = ListingID;
         bid.Listing = ListingHelper.GetListingFromListingID(ListingID, context);
-        // bid.AccountID = loggedInAccount.ID;
-        // bid.Account = Helper.GetAccountFromAccountID(loggedInAccount.ID)
+
+        ApplicationUser user = AccountHelper.GetAccountFromUserName(UserName, context);
+        bid.ApplicationUserID = user.Id;
+        bid.ApplicationUser = user;
         context.Bids.Add(bid);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            UserName = user.Identity.Name; // Or fetch username from claims
+        }
     }
 
     private decimal GetHighestBidAmountForCurrentListing(int listingID)

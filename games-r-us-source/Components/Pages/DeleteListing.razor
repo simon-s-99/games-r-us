@@ -6,11 +6,11 @@
 
 @foreach (var listing in listings)
 {
-    <div>
-        <p>@listing.Name</p>
-        <p>@listing.Description</p>
-        <button type ="button" @onclick="() => RemoveListing(listing.ID)">Delete</button>
-    </div>
+    <section class="border-gray-200 p-4 mb-4 rounded-md border">
+        <p class="text-lg font-bold">@listing.Name</p>
+        <p class="text-gray-600">@listing.Description</p>
+        <button type="button" @onclick="() => RemoveListing(listing.ID)" class="mt-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Delete</button>
+    </section>
 }
 
 @code {

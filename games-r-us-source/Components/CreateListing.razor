@@ -15,6 +15,12 @@
 @inject IWebHostEnvironment Environment
 @inject NavigationManager _navigationManager
 
+@* Move image button for create modal *@
+@* Add css for listing view *@
+@* Add comments*@
+@* Display hours, minutes etc on listings *@
+@* Maybe something wrong with displaying the listing from a list? Refresh in the html with statehaschanged? *@
+
 
 <AuthorizeView>
 
@@ -42,28 +48,28 @@
                         }
                     </ul>
                 </div>
-            
 
-            <div class="text-center mt-4">
-                <h3 class="text-lg leading-6 font-medium text-gray-900">Create a Listing</h3>
-                @* <EditForm Model="@listing" OnValidSubmit="HandleValidSubmit"> *@
+
+                <div class="text-center mt-4">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Create a Listing</h3>
+
                     <DataAnnotationsValidator />
                     <ValidationSummary />
                     <ul class="space-y-4 mt-3">
                         <li>
                             <label class="block text-sm font-medium text-gray-700">Name:</label>
-                            <InputText id="name" @bind-Value="listing.Name" class="input-field mt-1 block w-full" 
-                            placeholder="Name of your listing" min="1"/>
+                            <InputText id="name" @bind-Value="listing.Name" class="input-field mt-1 block w-full"
+                                       placeholder="Name of your listing" min="1" />
                         </li>
                         <li>
                             <label class="block text-sm font-medium text-gray-700">Starting price:</label>
                             <InputNumber id="startingPrice" @bind-Value="listing.StartingPrice" class="input-field mt-1 block w-full"
-                            placeholder="Starting Price" min="1"/>
+                                         placeholder="Starting Price" min="1" />
                         </li>
                         <li>
                             <label class="block text-sm font-medium text-gray-700">Description:</label>
                             <InputTextArea id="description" @bind-Value="listing.Description" class="input-field mt-1 block w-full"
-                            placeholder="Description" maxlength="100" />
+                                           placeholder="Description" maxlength="100" />
                         </li>
                         <li>
                             <label class="block text-sm font-medium text-gray-700">End date for Auction:</label>
@@ -92,10 +98,10 @@
                             </InputSelect>
                         </li>
                     </ul>
-                    <button type="submit" @onclick="HandleValidSubmit" class="mt-4 px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded">Submit</button>
+                    <button type="submit" @onclick="SubmitAndRefresh" class="mt-4 px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded">Submit</button>
                     <button type="button" @onclick="ShowConfirmCancel" class="mt-4 ml-2 px-4 py-2 bg-red-500 hover:bg-red-700 text-white font-bold rounded">Cancel</button>
-                @* </EditForm> *@
-            </div>
+                    @* </EditForm> *@
+                </div>
             </EditForm>
         </div>
     </div>
@@ -153,84 +159,33 @@
     private string base64Image; // For immediate display
     private string serverImagePath; // For server storage and retrieval
 
-    private async Task<bool> ListingExists()
+    private async Task SubmitAndRefresh()
     {
-        return await dbContext.Listings.AnyAsync(l =>
-            l.Name == listing.Name && 
-            l.StartingPrice == listing.StartingPrice &&
-            l.Description == listing.Description &&
-            l.Platform == listing.Platform &&
-            l.GameCategory == listing.GameCategory);
+        await HandleValidSubmit();
+        await LoadListingsAndPrices();
+        StateHasChanged();
     }
-
-
-    //Works for removing duplicates
-    // private async Task HandleValidSubmit()
-    // {
-    //     using var dbContext = dbContextFactory.CreateDbContext();
-
-    //     // Start a transaction with a higher isolation level
-    //     var transaction = dbContext.Database.BeginTransaction(System.Data.IsolationLevel.Serializable);
-
-    //     try
-    //     {
-    //         // Explicitly lock the rows during the read operation if needed
-    //         var existingListings = await dbContext.Listings
-    //             .Where(l => l.Name == listing.Name
-    //                         && l.StartingPrice == listing.StartingPrice
-    //                         && l.Description == listing.Description
-    //                         && l.Platform == listing.Platform
-    //                         && l.GameCategory == listing.GameCategory)
-    //             .ToListAsync();
-
-    //         if (existingListings.Any())
-    //         {
-    //             dbContext.Listings.RemoveRange(existingListings);
-    //             await dbContext.SaveChangesAsync();
-    //             Console.WriteLine("Duplicates removed.");
-    //         }
-
-    //         // Add the new listing
-    //         dbContext.Listings.Add(listing);
-    //         await dbContext.SaveChangesAsync();
-    //         await transaction.CommitAsync();
-
-    //         CloseModal();
-    //         Console.WriteLine("New listing added successfully.");
-    //     }
-    //     catch (DbUpdateException ex)
-    //     {
-    //         await transaction.RollbackAsync();
-    //         var errorDetails = ex.InnerException?.Message ?? "No inner exception information";
-    //         errors.Add($"Error: {ex.Message}. Details: {errorDetails}");
-    //         Console.WriteLine("Transaction rolled back due to an update error.");
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         await transaction.RollbackAsync();
-    //         errors.Add($"Error: {ex.Message}");
-    //         Console.WriteLine("Transaction rolled back due to an unexpected error.");
-    //     }
-    // }
-    
     private DateTime lastSubmissionTime = DateTime.MinValue;
 
     private async Task HandleValidSubmit()
     {
         var currentTime = DateTime.Now;
         // Used to avoid duplicates
-        if ((currentTime - lastSubmissionTime).TotalSeconds < 10)
+        if ((currentTime - lastSubmissionTime).TotalSeconds < 5)
         {
-            Console.WriteLine("You must wait 10 seconds before creating another listing.");
+            Console.WriteLine("You must wait 5 seconds before creating another listing.");
             return;
         }
+
         lastSubmissionTime = currentTime;
 
         using var dbContext = dbContextFactory.CreateDbContext();
+
         try
         {
             dbContext.Listings.Add(listing); // Adds the new listing to the database
             await dbContext.SaveChangesAsync();
+
             CloseModal();
             Console.WriteLine("Listing created successfully.");
         }
@@ -247,14 +202,17 @@
 
     private List<decimal> prices = new();
 
-    private async Task LoadPrices()
+    private async Task LoadListingsAndPrices()
     {
-        prices.Clear();
-        foreach (var listing in listings)
-        {
-            var price = await GetCurrentBid(listing.ID);
-            prices.Add(price);
-        }
+        var currentDate = DateTime.Now;
+        listings = await dbContext.Listings
+            .Where(l => l.AuctionEnd > currentDate) // Filter away expired listings
+            .ToListAsync();
+
+        var priceTasks = listings.Select(listing => GetCurrentBid(listing.ID)).ToList();
+        prices = (await Task.WhenAll(priceTasks)).ToList();
+
+        StateHasChanged(); // Updates UI after loading listings and prices
     }
 
     // Fetch listings
@@ -277,9 +235,10 @@
             }).ToListAsync();
 
         // Let the task of fetching the price complete, else it displays "System.Runtime.CompilerServices"
-        await LoadPrices();        
+        await LoadListingsAndPrices();
     }
 
+    // Fetch the current bid of the respective listing
     private async Task<decimal> GetCurrentBid(int listingID)
     {
         using var dbContext = dbContextFactory.CreateDbContext();
@@ -347,7 +306,7 @@
                 await File.WriteAllBytesAsync(fullPath, buffer); // Saves the image to the server directory
 
                 string relativePath = Path.Combine("images", fileName); // Save only the relative path
-                listing.ImagePath = relativePath; // Save relative path to imagePath                                               
+                listing.ImagePath = relativePath; // Save relative path to imagePath
             }
             catch (Exception ex)
             {
@@ -365,6 +324,7 @@
         try
         {
             // Gets the extension of the file name the user passes in
+            // Gets random file name to avoid duplicates
             string newFileName = Path.ChangeExtension(
                 Path.GetRandomFileName(),
                 Path.GetExtension(file.Name));
@@ -421,11 +381,6 @@
         IsVisible = true;
     }
 
-    public void ReloadPage()
-    {
-        _navigationManager.NavigateTo("/createListing");
-    }
-
     public void CloseModal()
     {
         listing = new Listing { AuctionEnd = DateTime.Now.AddDays(7), StartingPrice = 1 };
@@ -434,7 +389,6 @@
         isImageUploaded = false;
         errors.Clear();
         IsVisible = false;
-        // ReloadPage();
     }
 
     private string GetTimeDifference(DateTime endDate)

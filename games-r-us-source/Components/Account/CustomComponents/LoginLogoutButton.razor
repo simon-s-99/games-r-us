@@ -1,0 +1,22 @@
+﻿<AuthorizeView>
+	<Authorized>
+		<form action="Account/Logout" method="post">
+			<AntiforgeryToken />
+			@* Sends user to home-page after loggin out (Index - / ) *@
+			<input type="hidden" name="ReturnUrl" value="./" />
+			<button type="submit" class=@_twBlueButton>
+				Logout
+			</button>
+		</form>
+	</Authorized>
+	<NotAuthorized>
+		<NavLink href="/Account/Login"
+				 class=@_twBlueButton>
+			Log in
+		</NavLink>
+	</NotAuthorized>
+</AuthorizeView>
+
+@code {
+	private string _twBlueButton = "rounded-xl bg-gray-300 px-4 py-2 font-bold text-black hover:bg-gray-400";
+}

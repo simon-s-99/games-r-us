@@ -1,17 +1,16 @@
-﻿using games_r_us_source.Models;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
 namespace games_r_us_source.Data
 {
-    public class SampleData
+	public class SampleData
     {
-        public static void Create(AppDbContext database)
+        public static void Create(ApplicationDbContext database)
         {
             // If no accounts are found, add sample accounts
-            if (!database.Accounts.Any())
+            if (!database.ApplicationUsers.Any())
             {
-                PopulateTableFromJson<Account>("sample-accounts.json", database.Accounts);
+                PopulateTableFromJson<ApplicationUser>("sample-accounts.json", database.ApplicationUsers);
 
                 // SaveChanges is necessary as both Listings and Bids depend on Accounts
                 database.SaveChanges();
@@ -32,9 +31,9 @@ namespace games_r_us_source.Data
 
         // Using generics, pass the data type along with the json file name and the table
         // "where T : class" is required by EF Core to correctly recognize the data type of each table
-        private static void PopulateTableFromJson<T>(string jsonFileName, DbSet<T> table) where T : class 
+        private static void PopulateTableFromJson<T>(string jsonFileName, DbSet<T> table) where T : class
         {
-            string filePath = "./Data/" + jsonFileName;
+            string filePath = "./Data/SampleDataFiles/" + jsonFileName;
             string textFileRaw = File.ReadAllText(filePath);
 
             // Get an array of the passed data type containing the deserialized json data
@@ -45,6 +44,5 @@ namespace games_r_us_source.Data
                 table.Add(entry);
             }
         }
-
     }
 }

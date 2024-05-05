@@ -8,7 +8,7 @@ namespace games_r_us_source.Data
         public static void Create(ApplicationDbContext database)
         {
             // If no accounts are found, add sample accounts
-            if (!database.ApplicationUser.Any())
+            if (!database.ApplicationUsers.Any())
             {
                 PopulateTableFromJson<ApplicationUser>("sample-accounts.json", database.ApplicationUser);
 

@@ -7,7 +7,7 @@ namespace games_r_us_source.Data
     {
         // the dbset for applicationUser here is so that we can reference to it 
         // when we reference dbContext, it is still set as AspNetUsers in the database 
-        public DbSet<ApplicationUser> ApplicationUser { get; set; }
+        public DbSet<ApplicationUser> ApplicationUsers { get; set; }
 
         public DbSet<Listing> Listings { get; set; }
 

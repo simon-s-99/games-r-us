@@ -1,4 +1,7 @@
 ﻿@using games_r_us_source.Data;
+@using games_r_us_source.Components.Bid;
+@using Components.Helpers;
+@inject ApplicationDbContext dbContext;
 
 <article class="font-[Kadwa] border-blue-800 bg-gray-200 p-4 m-auto flex h-fit w-1/2 flex-col rounded-2xl border-2 text-center md:flex-row">
 	<img class="mb-6 mr-2 rounded object-contain drop-shadow-2xl xl:object-cover md:w-1/2 md:mb-0" src="@CurrentListing.ImagePath" alt="@CurrentListing.Name" />
@@ -26,7 +29,16 @@
 
 			<div class="mt-8 flex flex-col justify-evenly md:flex-row">
 				<div>
-					<p>Starting at </p><span class="font-bold">$@CurrentListing.StartingPrice</span>
+					@if (HighestBidAmount != 0)
+					{
+						<p>Highest bid at <span class="font-bold">@HighestBidAmount</span></p>
+					}
+					else
+					{
+						<p>Starting at </p>
+
+						<span class="font-bold">$@CurrentListing.StartingPrice</span>
+					}
 				</div>
 
 				<!-- Vertical divider -->
@@ -63,6 +75,7 @@
 					@CurrentListing.ApplicationUser.PhoneNumber
 				</a>
 			</section>
+			<PlaceBidForm ListingID="@CurrentListing.ID" />
 		</div>
 	</div>
 </article>
@@ -70,6 +83,7 @@
 @code {
 	// [Parameter]
 	// public Listing CurrentListing { get; set; }
+	private decimal HighestBidAmount { get; set; } = 0;
 
 	// Currenly using sample data as currently no page uses the component
 	private Listing CurrentListing = new Listing
@@ -113,5 +127,10 @@
 		}
 
 		return timeDifference.TotalDays + " days";
+	}
+
+	protected override void OnInitialized()
+	{
+		HighestBidAmount = BidHelper.GetHighestBidAmountFromListingID(CurrentListing.ID, dbContext);
 	}
 }

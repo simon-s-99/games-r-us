@@ -1,10 +1,29 @@
 ﻿@using games_r_us_source.Components.Listing
+@using games_r_us_source.Components.Account
+@using games_r_us_source.Components.Account.CustomComponents
 @page "/"
 @rendermode InteractiveServer
 
 <PageTitle>Home</PageTitle>
 
 <h1>Hello, world!</h1>
+
+<!-- Temporary for testing purposes -->
+<LoginLogoutButton />
+
+<!-- Only here as a template for how to show content if
+	user is logged  in or not.
+-->
+<AuthorizeView>
+	<Authorized>
+		@* Display this content here if user is logged in *@
+		@* content accesses the AuthenticationState of the logged in user *@
+		@context.User.Identity.Name
+	</Authorized>
+	<NotAuthorized>
+		@* Display this content here if user is not logged in *@
+	</NotAuthorized>
+</AuthorizeView>
 
 <!-- Temporary for testing purposes -->
 <ListingDetails CurrentListingID="9"/>

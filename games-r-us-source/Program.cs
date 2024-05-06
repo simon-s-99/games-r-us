@@ -4,8 +4,6 @@ using games_r_us_source.Data;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Security.Claims;
 
 namespace games_r_us_source
 {
@@ -37,6 +35,9 @@ namespace games_r_us_source
 				.AddIdentityCookies();
 
 			var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+			// Add dbContextFactory aswell so that we can inject IDbContextFactory in our components 
+			builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
+				options.UseSqlServer(connectionString));
 			builder.Services.AddDbContext<ApplicationDbContext>(options =>
 				options.UseSqlServer(connectionString));
 			builder.Services.AddDatabaseDeveloperPageExceptionFilter();

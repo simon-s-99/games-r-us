@@ -1,0 +1,476 @@
+﻿@* Used for EditForms, InputText, number, select etc *@
+@using Microsoft.AspNetCore.Components.Forms
+@using System.ComponentModel.DataAnnotations
+@using games_r_us_source.Data
+@using Microsoft.EntityFrameworkCore
+@rendermode InteractiveServer
+
+@* Used in CaptureFile *@
+@inject IConfiguration config
+
+@* It's generally recommended to use IDbContextFactory for Blazor Server applications because
+it gives you more control over the creation and disposal of DbContext instances,
+helping mitigate issues associated with having a DbContext that is too long-lived. *@
+@inject IDbContextFactory<ApplicationDbContext> dbContextFactory
+
+@* Used in LoadFiles *@
+@inject IWebHostEnvironment Environment
+
+@* Used to fetch listings. Prices in particular *@
+@inject NavigationManager NavigationManager
+
+@page "/createListing"
+
+@* Error handling for "attacks"? eg scripts in input fields *@
+
+
+<AuthorizeView>
+    <Authorized>
+        @* Button to show the modal for creating a new listing *@
+        <button @onclick="ShowModal" class="rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-600">Create a listing</button>
+    </Authorized>
+</AuthorizeView>
+
+@if (IsVisible)
+{
+    <div class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75">
+        <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+
+            @* Editform used in blazor for creating a listing  *@
+            <EditForm Model="@listing" OnValidSubmit="HandleValidSubmit">
+
+                @* Here the user uploads their image *@
+                <div class="relative text-center">
+                    @if (base64Image != null)
+                    {
+                        <img src="@base64Image" alt="Listing Image" class="mx-auto h-48 w-48 rounded-md object-cover">
+                        <label class="border-2 m-auto block rounded-l bg-white bg-clip-border text-gray-500 transition w-full[padding:0.375rem_0.75rem]">
+                            Change Image
+                            <InputFile class="hidden" OnChange="@LoadFiles" accept=".png, .jpg, .jpeg, .img" />
+                        </label>
+                    }
+                    else
+                    {
+                        <label class="form-control mt-4 inline-block cursor-pointer rounded-full bg-gray-300 p-2 text-sm text-black hover:bg-gray-400">
+                            Add Image
+                            <InputFile class="hidden" OnChange="@LoadFiles" accept=".png, .jpg, .jpeg, .img" />
+                        </label>
+                    }
+                </div>
+
+
+                @* Rest of the input fields *@
+                <div class="mt-4 text-center">
+                    <h3 class="leading-6 text-lg font-medium text-gray-900">Create a Listing</h3>
+
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    <ul class="mt-3 space-y-4">
+                        <li>
+                            <label class="block text-sm font-medium text-gray-700">Name:</label>
+                            <InputText id="name" @bind-Value="listing.Name" class="input-field mt-1 block w-full"
+                                       placeholder="Name of your listing" min="1" />
+                        </li>
+                        <li>
+                            <label class="block text-sm font-medium text-gray-700">Starting price:</label>
+                            <InputNumber id="startingPrice" @bind-Value="listing.StartingPrice" class="input-field mt-1 block w-full"
+                                         placeholder="Starting Price" min="1" />
+                        </li>
+                        <li>
+                            <label class="block text-sm font-medium text-gray-700">Description:</label>
+                            <InputTextArea id="description" @bind-Value="listing.Description" class="input-field mt-1 block w-full"
+                                           placeholder="Description" maxlength="100" />
+                        </li>
+                        <li>
+                            <label class="block text-sm font-medium text-gray-700">End date for Auction:</label>
+                            <input type="datetime-local" id="auctionEnd" @bind="listing.AuctionEnd" class="input-field mt-1 block w-full"
+                                   min="@DateTime.Now.ToString("yyy-MM-ddTHH:mm")" /> @* Disables the user from setting a negative date  *@
+                        </li>
+                        <li>
+                            <label class="block text-sm font-medium text-gray-700">Platform:</label>
+                            <InputSelect id="platform" @bind-Value="listing.Platform" class="input-field mt-1 block w-full">
+                                @* generate options for platforms *@
+                                @foreach (var platform in Enum.GetValues(typeof(Platform)))
+                                {
+                                    <option value="@platform">@platform</option>
+                                }
+                            </InputSelect>
+                        </li>
+                        <li>
+                            <label class="block text-sm font-medium text-gray-700">Game Category:</label>
+                            <InputSelect id="gameCategory" @bind-Value="listing.GameCategory" class="input-field mt-1 block w-full">
+
+                                <option value="null">None</option> @* None as an option in case the listing is a console *@
+
+                                @foreach (var category in Enum.GetValues(typeof(GameCategory)))
+                                {
+                                    <option value="@category">@category</option>
+                                }
+                            </InputSelect>
+                        </li>
+                    </ul>
+                    <button type="submit" @onclick="SubmitAndRefresh" class="mt-4 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700">Submit</button>
+                    <button type="button" @onclick="ShowConfirmCancel" class="ml-2 mt-4 rounded bg-red-500 px-4 py-2 font-bold text-white hover:bg-red-700">Cancel</button>
+                    @* </EditForm> *@
+                </div>
+            </EditForm>
+        </div>
+    </div>
+
+    @if (showConfirmation)
+    {
+        <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+            <div class="flex flex-col items-center rounded bg-white p-4">
+                <h2 class="mb-4 text-lg">Are you sure you want to cancel?</h2>
+                <div class="flex justify-center space-x-4">
+                    <button class="rounded bg-green-500 px-4 py-2 text-white" @onclick="ConfirmCancel">Yes</button>
+                    <button class="rounded bg-red-500 px-4 py-2 text-white" @onclick="HideConfirmCancel">No</button>
+                </div>
+            </div>
+        </div>
+    }
+
+}
+
+@* Display the listings here *@
+@if (listings.Any())
+{
+    int index = 0;
+    <div class="mt-4 px-4">
+        <h2 class="text-lg font-semibold text-gray-800">Listings:</h2>
+        <div class="grid-cols-1 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            @foreach (var listing in listings)
+            {
+                <div class="overflow-hidden rounded-lg bg-white shadow-lg">
+                    @* "Object-contain"" scales down the image for a better fit *@
+                    <img class="h-64 w-full object-contain" src="@listing.ImagePath" alt="Image of listing">
+                    <div class="p-4">
+                        <h3 class="text-md font-semibold text-gray-900">@listing.Name</h3>
+                        <p class="text-gray-500">@listing.Description</p>
+                    </div>
+                    <div class="border-t border-gray-200 bg-gray-100 px-4 pb-4 pt-3">
+                        <div class="text-xs font-bold uppercase tracking-wide text-gray-600">Price</div>
+                        @* Align each index with it's' corresponding price with the use of index *@
+                        <div class="text-lg text-gray-900">@prices[index] kr</div>
+                        <div class="mt-2 text-xs font-bold uppercase tracking-wide text-gray-600">Time Remaining</div>
+                        <div class="text-lg text-gray-900">@GetTimeDifference(listing.AuctionEnd)</div>
+                    </div>
+                </div>
+                index++; // prepares to pair the next listing with it's corresponding price
+            }
+        </div>
+    </div>
+}
+
+
+@code {
+
+    // Placeholder for a new or existing listing to be edited or created
+    Listing listing = new Listing { AuctionEnd = DateTime.Now.AddDays(7) };
+
+    // List to store and display existing listings fetched from the database
+    private List<Listing> listings = new List<Listing>();
+
+    private bool isImageUploaded = false;
+
+    // file size set to 3MB
+    private long maxFileSize = 1024 * 1024 * 3;
+    private int maxAllowedFiles = 1; // In case we ever want to allow more than one image
+    private List<string> errors = new(); //displays errors in the UI
+
+    private IBrowserFile? file; // Holds a reference to the uploaded file
+
+    private string base64Image; // For immediate display in our ui
+    private string serverImagePath; // Path where the image is stored
+
+    // When creating a listing we submit it the the cb and refresh all listings
+    private async Task SubmitAndRefresh()
+    {
+        await HandleValidSubmit();
+        await LoadListingsAndPrices();
+        StateHasChanged();
+    }
+    private DateTime lastSubmissionTime = DateTime.MinValue;
+
+    private async Task HandleValidSubmit()
+    {
+        var currentTime = DateTime.Now;
+        // Used to avoid duplicates
+        if ((currentTime - lastSubmissionTime).TotalSeconds < 5)
+        {
+            Console.WriteLine("You must wait 5 seconds before creating another listing.");
+            return;
+        }
+
+        lastSubmissionTime = currentTime;
+
+        using var dbContext = dbContextFactory.CreateDbContext();
+
+        try
+        {
+            dbContext.Listings.Add(listing); // Adds the new listing to the database
+            await dbContext.SaveChangesAsync();
+
+            CloseModal();
+            Console.WriteLine("Listing created successfully.");
+        }
+        catch (DbUpdateException ex)
+        {
+            Console.WriteLine($"Database update failed: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"An error occurred: {ex.Message}");
+        }
+    }
+
+
+    private List<decimal> prices = new();
+
+    private async Task LoadListingsAndPrices()
+    {
+        using (var dbContext = dbContextFactory.CreateDbContext())
+        {
+            var currentDate = DateTime.Now;
+            listings = await dbContext.Listings
+                .Where(l => l.AuctionEnd > currentDate) // Filter away expired listings
+                .ToListAsync();
+
+            prices.Clear(); // Not sure if needed
+            var priceTasks = listings.Select(listing => GetCurrentBid(listing.ID)).ToList();
+            prices = (await Task.WhenAll(priceTasks)).ToList();
+
+        }
+
+        StateHasChanged(); // Updates UI after loading listings and prices
+    }
+
+    // Lifecycle method for blazor that is called after this component
+    // is initialized but before being rendered.
+    protected override async Task OnInitializedAsync()
+    {
+        // Let the task of fetching the price complete, else it displays "System.Runtime.CompilerServices" at "price"
+        await LoadListingsAndPrices();
+    }
+
+    // Fetch the current bid of the respective listing
+    private async Task<decimal> GetCurrentBid(int listingID)
+    {
+        using var dbContext = dbContextFactory.CreateDbContext();
+        var highestBid = await dbContext.Bids
+                            .Where(b => b.ListingID == listingID)
+                            .OrderByDescending(b => b.Amount)
+                            .FirstOrDefaultAsync();
+
+        var listing = await dbContext.Listings
+                            .FirstOrDefaultAsync(l => l.ID == listingID);
+
+        if (listing == null)
+        {
+            throw new InvalidOperationException($"No listing found with ID {listingID}.");
+        }
+
+        return highestBid != null && highestBid.Amount > listing.StartingPrice
+               ? highestBid.Amount
+               : listing.StartingPrice;
+    }
+
+    private async Task SubmitForm()
+    {
+        try
+        {
+            string relativePath = await CaptureFile();
+            listing.ImagePath = relativePath;
+        }
+        catch (Exception ex)
+        {
+            errors.Add($"Error: {ex.Message}");
+        }
+    }
+
+    private string currentImagePath;
+
+    private async Task LoadFiles(InputFileChangeEventArgs e)
+    {
+        var imageFile = e.File;
+        if (imageFile != null && imageFile.Size > 0)
+        {
+            MemoryStream ms = new MemoryStream();
+            try
+            {
+                // Clear the previous image from images folder if the user changes image while creating a listing
+                if (!string.IsNullOrEmpty(currentImagePath))
+                {
+                    var previousFilePath = Path.Combine(Environment.WebRootPath, currentImagePath);
+                    if (File.Exists(previousFilePath))
+                    {
+                        File.Delete(previousFilePath);
+                    }
+                }
+
+                await imageFile.OpenReadStream(maxFileSize).CopyToAsync(ms);
+                byte[] buffer = ms.ToArray();
+                base64Image = $"data:image/png;base64,{Convert.ToBase64String(buffer)}"; // For immediate display in UI
+                isImageUploaded = true;
+
+                string fileName = Path.ChangeExtension(Path.GetRandomFileName(), Path.GetExtension(imageFile.Name));
+                string folderPath = Path.Combine(Environment.WebRootPath, "images"); // Pointing to the 'images' folder in wwwroot
+                Directory.CreateDirectory(folderPath); // Ensures directory exists
+
+                string fullPath = Path.Combine(folderPath, fileName);
+                await File.WriteAllBytesAsync(fullPath, buffer); // Saves the image to the server directory
+
+                string relativePath = Path.Combine("images", fileName); // Save only the relative path
+                listing.ImagePath = relativePath; // Save relative path to imagePath
+                currentImagePath = relativePath; // Updates the current image path
+            }
+            catch (Exception ex)
+            {
+                errors.Add($"Error uploading image: {ex.Message}");
+            }
+        }
+    }
+
+    private async Task<string> CaptureFile()
+    {
+        if (file is null)
+        {
+            return "";
+        }
+        try
+        {
+            // Gets the extension of the file name the user passes in
+            // Gets random file name to avoid duplicates
+            string newFileName = Path.ChangeExtension(
+                Path.GetRandomFileName(),
+                Path.GetExtension(file.Name));
+
+            string path = Path.Combine(
+                config.GetValue<string>("FileStorage")!,
+                "Listings",
+                newFileName);
+
+            string relativePath = Path.Combine("Listings", newFileName);
+
+            Directory.CreateDirectory(Path.Combine(
+                config.GetValue<string>("FileStorage")!,
+            "Listings"));
+
+            // using closes by itself when reaching the end of the method
+            await using FileStream fs = new(@"C:\temp" + newFileName /* path */, FileMode.Create);
+            // copy the file to the currently open filestream
+            await file.OpenReadStream(maxFileSize).CopyToAsync(fs);
+
+            return relativePath;
+        }
+        catch (Exception ex)
+        {
+            errors.Add($"File: {file.Name} Error: {ex.Message}");
+            throw;
+        }
+    }
+
+    private bool IsVisible;
+    private bool showConfirmation;
+
+    private void ShowConfirmCancel() => showConfirmation = true;
+
+    private void HideConfirmCancel()
+    {
+        showConfirmation = false;
+    }
+
+    private void ConfirmCancel()
+    {
+        showConfirmation = false;
+        IsVisible = false;
+        errors.Clear();
+    }
+
+    public void ShowModal()
+    {
+        listing = new Listing { AuctionEnd = DateTime.Now.AddDays(7), StartingPrice = 1 };
+        base64Image = null;
+        serverImagePath = null;
+        isImageUploaded = false;
+        errors.Clear();
+        IsVisible = true;
+    }
+
+    public void CloseModal()
+    {
+        listing = new Listing { AuctionEnd = DateTime.Now.AddDays(7), StartingPrice = 1 };
+        base64Image = null;
+        serverImagePath = null;
+        isImageUploaded = false;
+        errors.Clear();
+        IsVisible = false;
+    }
+
+    private string GetTimeDifference(DateTime endDate)
+    {
+        TimeSpan timeDifference = endDate - DateTime.Now;
+
+        if (timeDifference.TotalDays >= 7)
+        {
+            int weeks = (int)(timeDifference.TotalDays / 7);
+            int days = (int)(timeDifference.TotalDays % 7); // Get remaining days after full weeks
+            if (days > 0)
+                return $"{weeks} weeks and {days} days";
+            else
+                return $"{weeks} weeks";
+        }
+        else if (timeDifference.TotalDays >= 1)
+        {
+            int days = (int)timeDifference.TotalDays;
+            int hours = timeDifference.Hours;
+            if (hours > 0)
+                return $"{days} days and {hours} hours";
+            else
+                return $"{days} days";
+        }
+        else if (timeDifference.TotalHours >= 1)
+        {
+            int hours = (int)timeDifference.TotalHours;
+            int minutes = timeDifference.Minutes;
+            if (minutes > 0)
+                return $"{hours} hours and {minutes} minutes";
+            else
+                return $"{hours} hours";
+        }
+        else if (timeDifference.TotalMinutes >= 1)
+        {
+            int minutes = (int)timeDifference.TotalMinutes;
+            int seconds = timeDifference.Seconds;
+            if (seconds > 0)
+                return $"{minutes} minutes and {seconds} seconds";
+            else
+                return $"{minutes} minutes";
+        }
+        else if (timeDifference.TotalSeconds >= 1)
+        {
+            return $"{(int)Math.Floor(timeDifference.TotalSeconds)} seconds";
+        }
+        else
+        {
+            return "Auction ended";
+        }
+    }
+}
+
+<style>
+    .form-control {
+        display: block;
+        width: 100%;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #495057;
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        margin: auto;
+    }
+</style>

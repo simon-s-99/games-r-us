@@ -1,13 +1,14 @@
 ﻿@using games_r_us_source.Data;
 @using games_r_us_source.Components.Helpers;
 @using Microsoft.AspNetCore.Components.Authorization
-@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject ApplicationDbContext dbContext;
+@inject AuthenticationStateProvider AuthenticationStateProvider;
 @rendermode InteractiveServer
 
 <AuthorizeView Context="authorizeViewContext">
     <Authorized>
         <p class="font-bold text-red-600">@ErrorMessage</p>
+        <p class="font-bold text-green-600">@SuccessMessage</p>
         <EditForm class="m-auto max-w-full" Model="@bid" OnValidSubmit="HandleSubmit" FormName="placeBidForm">
             <DataAnnotationsValidator />
             <ValidationSummary />
@@ -21,7 +22,7 @@
         </EditForm>
     </Authorized>
     <NotAuthorized>
-        <p>You need to be logged in to place a bid.</p>
+        <p class="font-bold">You need to be logged in to place a bid.</p>
     </NotAuthorized>
 </AuthorizeView>
 
@@ -30,15 +31,39 @@
     public int ListingID { get; set; }
 
     private string UserName { get; set; }
-
     private string ErrorMessage { get; set; }
+    private string SuccessMessage { get; set; }
 
     Bid bid = new Bid { Time = DateTime.Now };
 
     private void HandleSubmit()
     {
-        decimal highestBid = GetHighestBidAmountForCurrentListing(ListingID);
-        if (highestBid >= this.bid.Amount)
+        Listing listing = ListingHelper.GetListingFromListingID(ListingID, dbContext);
+        ApplicationUser user = AccountHelper.GetAccountFromUserName(UserName, dbContext);
+        Bid? highestBid = BidHelper.GetHighestBidFromListingID(ListingID, dbContext);
+
+        // If logged in user authored the listing in question
+        if (listing.ApplicationUser.Id == user.Id)
+        {
+            ErrorMessage = "You cannot make a bid on a listing that you authored.";
+            return;
+        }
+
+        // If logged in user already holds the highest bid
+        if (highestBid.ApplicationUserID == user.Id)
+        {
+            ErrorMessage = "You already hold the highest bid.";
+            return;
+        }
+
+        if (this.bid.Amount == 0)
+        {
+            ErrorMessage = "Amount is required.";
+            return;
+        }
+
+        // If bid is lower than the current highest bid, or lower than the starting price
+        if (highestBid.Amount >= this.bid.Amount || (highestBid == null && this.bid.Amount <= listing.StartingPrice))
         {
             ErrorMessage = "Bid amount is too low.";
             return;
@@ -47,15 +72,18 @@
         bid.ListingID = ListingID;
         bid.Listing = ListingHelper.GetListingFromListingID(ListingID, dbContext);
 
-        ApplicationUser user = AccountHelper.GetAccountFromUserName(UserName, dbContext);
         bid.ApplicationUserID = user.Id;
         bid.ApplicationUser = user;
         dbContext.Bids.Add(bid);
         dbContext.SaveChanges();
+
+        ErrorMessage = "";
+        SuccessMessage = $"Success! New bid at {bid.Amount} placed.";
     }
 
     protected override async Task OnInitializedAsync()
     {
+        // Get the logged in user
         var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authenticationState.User;
 
@@ -64,19 +92,5 @@
         {
             UserName = user.Identity.Name;
         }
-    }
-
-    private decimal GetHighestBidAmountForCurrentListing(int listingID)
-    {
-        var listingBids = dbContext.Bids.Where(b => b.ListingID == listingID);
-        decimal highestBidAmount = 0;
-
-        // If bids for the current listing exist
-        if (listingBids.Any())
-        {
-            highestBidAmount = listingBids.Max(b => b.Amount);
-        }
-
-        return highestBidAmount;
     }
 }

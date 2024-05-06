@@ -8,6 +8,13 @@
 @* Used in CaptureFile *@
 @inject IConfiguration config
 
+@* Follwing three using/injects are needed for ApplicationUserID *@
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> userManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+
+
 @* It's generally recommended to use IDbContextFactory for Blazor Server applications because
 it gives you more control over the creation and disposal of DbContext instances,
 helping mitigate issues associated with having a DbContext that is too long-lived. *@
@@ -206,6 +213,15 @@ helping mitigate issues associated with having a DbContext that is too long-live
 
         using var dbContext = dbContextFactory.CreateDbContext();
 
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var userID = userManager.GetUserId(user); // makes sure user isn't null
+            listing.ApplicationUserID = userID;
+        }
+
         try
         {
             dbContext.Listings.Add(listing); // Adds the new listing to the database
@@ -275,23 +291,10 @@ helping mitigate issues associated with having a DbContext that is too long-live
                : listing.StartingPrice;
     }
 
-    // private async Task SubmitForm()
-    // {
-    //     try
-    //     {
-    //         string relativePath = await CaptureFile();
-    //         listing.ImagePath = relativePath;
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         errors.Add($"Error: {ex.Message}");
-    //     }
-    // }
-
     private string currentImagePath;
 
 
-    //Combine Load, and CaptureFiles
+    // Combine Load, and CaptureFiles
     private async Task LoadFiles(InputFileChangeEventArgs e)
     {
         var imageFile = e.File;
@@ -315,6 +318,7 @@ helping mitigate issues associated with having a DbContext that is too long-live
                 base64Image = $"data:image/png;base64,{Convert.ToBase64String(buffer)}"; // For immediate display in UI
                 isImageUploaded = true;
 
+                // Creating a unique file name to avoid conflicts
                 string fileName = Path.ChangeExtension(Path.GetRandomFileName(), Path.GetExtension(imageFile.Name));
                 string folderPath = Path.Combine(Environment.WebRootPath, "images");
                 Directory.CreateDirectory(folderPath);
@@ -323,8 +327,8 @@ helping mitigate issues associated with having a DbContext that is too long-live
                 await File.WriteAllBytesAsync(fullPath, buffer); // Saves the image to the server directory
 
                 string relativePath = Path.Combine("images", fileName); // Saves to the relative path
-                listing.ImagePath = relativePath; // Saves relative path to imagePath
-                currentImagePath = relativePath; // Updates the current image path
+                listing.ImagePath = relativePath; 
+                currentImagePath = relativePath; 
             }
             catch (Exception ex)
             {
@@ -333,87 +337,6 @@ helping mitigate issues associated with having a DbContext that is too long-live
         }
     }
 
-
-
-    // private async Task LoadFiles(InputFileChangeEventArgs e)
-    // {
-    //     var imageFile = e.File;
-    //     if (imageFile != null && imageFile.Size > 0)
-    //     {
-    //         MemoryStream ms = new MemoryStream();
-    //         try
-    //         {
-    //             // Clear the previous image from images folder if the user changes image while creating a listing
-    //             if (!string.IsNullOrEmpty(currentImagePath))
-    //             {
-    //                 var previousFilePath = Path.Combine(Environment.WebRootPath, currentImagePath);
-    //                 if (File.Exists(previousFilePath))
-    //                 {
-    //                     File.Delete(previousFilePath);
-    //                 }
-    //             }
-
-    //             await imageFile.OpenReadStream(maxFileSize).CopyToAsync(ms);
-    //             byte[] buffer = ms.ToArray();
-    //             base64Image = $"data:image/png;base64,{Convert.ToBase64String(buffer)}"; // For immediate display in UI
-    //             isImageUploaded = true;
-
-    //             string fileName = Path.ChangeExtension(Path.GetRandomFileName(), Path.GetExtension(imageFile.Name));
-    //             string folderPath = Path.Combine(Environment.WebRootPath, "images"); // Pointing to the 'images' folder in wwwroot
-    //             Directory.CreateDirectory(folderPath); // Ensures directory exists
-
-    //             string fullPath = Path.Combine(folderPath, fileName);
-    //             await File.WriteAllBytesAsync(fullPath, buffer); // Saves the image to the server directory
-
-    //             string relativePath = Path.Combine("images", fileName); // Save only the relative path
-    //             listing.ImagePath = relativePath; // Save relative path to imagePath
-    //             currentImagePath = relativePath; // Updates the current image path
-    //         }
-    //         catch (Exception ex)
-    //         {
-    //             errors.Add($"Error uploading image: {ex.Message}");
-    //         }
-    //     }
-    // }
-
-    // private async Task<string> CaptureFile()
-    // {
-    //     if (file is null)
-    //     {
-    //         return "";
-    //     }
-    //     try
-    //     {
-    //         // Gets the extension of the file name the user passes in
-    //         // Gets random file name to avoid duplicates
-    //         string newFileName = Path.ChangeExtension(
-    //             Path.GetRandomFileName(),
-    //             Path.GetExtension(file.Name));
-
-    //         string path = Path.Combine(
-    //             config.GetValue<string>("FileStorage")!,
-    //             "Listings",
-    //             newFileName);
-
-    //         string relativePath = Path.Combine("Listings", newFileName);
-
-    //         Directory.CreateDirectory(Path.Combine(
-    //             config.GetValue<string>("FileStorage")!,
-    //         "Listings"));
-
-    //         // using closes by itself when reaching the end of the method
-    //         await using FileStream fs = new(@"C:\temp" + newFileName /* path */, FileMode.Create);
-    //         // copy the file to the currently open filestream
-    //         await file.OpenReadStream(maxFileSize).CopyToAsync(fs);
-
-    //         return relativePath;
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         errors.Add($"File: {file.Name} Error: {ex.Message}");
-    //         throw;
-    //     }
-    // }
 
     private bool IsVisible;
     private bool showConfirmation;

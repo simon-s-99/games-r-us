@@ -4,9 +4,9 @@ namespace games_r_us_source.Components.Helpers
 {
     public class BidHelper
     {
-        public static decimal GetHighestBidAmountFromListingID(int listingID, ApplicationDbContext context)
+        public static Data.Bid GetHighestBidFromListingID(int listingID, ApplicationDbContext context)
         {
-            decimal bid = context.Bids.Where(b => b.ID == listingID).Max(b => b.Amount);
+            Data.Bid bid = context.Bids.Where(b => b.ID == listingID).OrderByDescending(b => b.Amount).FirstOrDefault();
             return bid;
         }
     }

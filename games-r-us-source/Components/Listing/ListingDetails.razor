@@ -1,6 +1,7 @@
 ﻿@using games_r_us_source.Data;
 @using games_r_us_source.Components.Bid;
 @using Components.Helpers;
+@rendermode InteractiveServer
 @inject ApplicationDbContext dbContext;
 
 <article class="font-[Kadwa] border-2 m-auto flex h-fit w-1/2 flex-col rounded-2xl border-blue-800 bg-gray-200 p-4 text-center md:flex-row">
@@ -29,9 +30,9 @@
 
             <div class="mt-8 flex flex-col justify-evenly md:flex-row">
                 <div>
-                    @if (HighestBidAmount != 0)
+                    @if (HighestBid != null)
                     {
-                        <p>Highest bid at </p> <span class="font-bold">$@HighestBidAmount</span>
+                        <p>Highest bid at </p> <span class="font-bold">$@HighestBid.Amount</span>
                     }
                     else
                     {
@@ -83,35 +84,12 @@
 
 
 @code {
-    // [Parameter]
-    // public Listing CurrentListing { get; set; }
-    private decimal HighestBidAmount { get; set; } = 0;
+    [Parameter]
+    public int CurrentListingID { get; set; }
 
-    // Currenly using sample data as currently no page uses the component
-    public Listing CurrentListing = new Listing
-        {
-            Name = "Bananas",
-            Description = "Bananas. Use them in yoghurt, ice cream, or whatever. Your choice.",
-            AuctionEnd = new DateTime(2024, 05, 29, 12, 00, 00),
-            ApplicationUserID = "cc6-819e-4cfa-adc0-30e8",
-            ApplicationUser = new ApplicationUser
-            {
-                Address = "Teststreet 234",
-                FullName = "Jack Boyd",
-                Id = "test-users-id",
-                PhoneNumber = "852358725",
-                EmailConfirmed = true,
-                PhoneNumberConfirmed = true,
-                TwoFactorEnabled = false,
-                LockoutEnabled = false,
-                AccessFailedCount = 0
-            },
-            GameCategory = GameCategory.Fantasy,
-            ImagePath = "images/bananas.jpg",
-            StartingPrice = 33,
-            ID = 1,
-            Platform = Platform.PlayStation
-        };
+    public Listing CurrentListing { get; set; }
+
+    private Bid HighestBid { get; set; }
 
     private string GetTimeDifference(DateTime endDate)
     {
@@ -133,7 +111,8 @@
 
     protected override void OnInitialized()
     {
-        HighestBidAmount = BidHelper.GetHighestBidAmountFromListingID(CurrentListing.ID, dbContext);
-        Console.WriteLine("1");
+        CurrentListing = ListingHelper.GetListingFromListingID(CurrentListingID, dbContext);
+        CurrentListing.ApplicationUser = AccountHelper.GetAccountFromUserID(CurrentListing.ApplicationUserID, dbContext);
+        HighestBid = BidHelper.GetHighestBidFromListingID(CurrentListingID, dbContext);
     }
 }

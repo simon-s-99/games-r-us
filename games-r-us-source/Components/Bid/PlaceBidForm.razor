@@ -3,6 +3,7 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject ApplicationDbContext dbContext;
+@rendermode InteractiveServer
 
 <AuthorizeView Context="authorizeViewContext">
     <Authorized>
@@ -37,7 +38,7 @@
     private void HandleSubmit()
     {
         decimal highestBid = GetHighestBidAmountForCurrentListing(ListingID);
-        if (highestBid >= bid.Amount)
+        if (highestBid >= this.bid.Amount)
         {
             ErrorMessage = "Bid amount is too low.";
             return;

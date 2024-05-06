@@ -27,14 +27,14 @@ helping mitigate issues associated with having a DbContext that is too long-live
 <AuthorizeView>
     <Authorized>
         @* Button to show the modal for creating a new listing *@
-        <button @onclick="ShowModal" class="rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-600">Create a listing</button>
+        <button @onclick="ShowModal" class="bg-gray-500 px-4 py-2 text-white rounded hover:bg-gray-600">Create a listing</button>
     </Authorized>
 </AuthorizeView>
 
 @if (IsVisible)
 {
-    <div class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75">
-        <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+    <div class="inset-0 bg-gray-800 fixed flex items-center justify-center bg-opacity-75">
+        <div class="bg-white p-6 w-full max-w-md rounded-lg shadow-lg">
 
             @* Editform used in blazor for creating a listing  *@
             <EditForm Model="@listing" OnValidSubmit="HandleValidSubmit">
@@ -43,15 +43,15 @@ helping mitigate issues associated with having a DbContext that is too long-live
                 <div class="relative text-center">
                     @if (base64Image != null)
                     {
-                        <img src="@base64Image" alt="Listing Image" class="mx-auto h-48 w-48 rounded-md object-cover">
-                        <label class="border-2 m-auto block rounded-l bg-white bg-clip-border text-gray-500 transition w-full[padding:0.375rem_0.75rem]">
+                        <img src="@base64Image" alt="Listing Image" class="h-48 w-48 mx-auto rounded-md object-cover">
+                        <label class="bg-white text-gray-500 m-auto block rounded-l border-2 bg-clip-border transition w-full[padding:0.375rem_0.75rem]">
                             Change Image
                             <InputFile class="hidden" OnChange="@LoadFiles" accept=".png, .jpg, .jpeg, .img" />
                         </label>
                     }
                     else
                     {
-                        <label class="form-control mt-4 inline-block cursor-pointer rounded-full bg-gray-300 p-2 text-sm text-black hover:bg-gray-400">
+                        <label class="form-control mt-4 bg-gray-300 p-2 text-black inline-block cursor-pointer rounded-full text-sm hover:bg-gray-400">
                             Add Image
                             <InputFile class="hidden" OnChange="@LoadFiles" accept=".png, .jpg, .jpeg, .img" />
                         </label>
@@ -61,33 +61,33 @@ helping mitigate issues associated with having a DbContext that is too long-live
 
                 @* Rest of the input fields *@
                 <div class="mt-4 text-center">
-                    <h3 class="leading-6 text-lg font-medium text-gray-900">Create a Listing</h3>
+                    <h3 class="text-gray-900 text-lg font-medium leading-6">Create a Listing</h3>
 
                     <DataAnnotationsValidator />
                     <ValidationSummary />
                     <ul class="mt-3 space-y-4">
                         <li>
-                            <label class="block text-sm font-medium text-gray-700">Name:</label>
+                            <label class="text-gray-700 block text-sm font-medium">Name:</label>
                             <InputText id="name" @bind-Value="listing.Name" class="input-field mt-1 block w-full"
                                        placeholder="Name of your listing" min="1" />
                         </li>
                         <li>
-                            <label class="block text-sm font-medium text-gray-700">Starting price:</label>
+                            <label class="text-gray-700 block text-sm font-medium">Starting price:</label>
                             <InputNumber id="startingPrice" @bind-Value="listing.StartingPrice" class="input-field mt-1 block w-full"
                                          placeholder="Starting Price" min="1" />
                         </li>
                         <li>
-                            <label class="block text-sm font-medium text-gray-700">Description:</label>
+                            <label class="text-gray-700 block text-sm font-medium">Description:</label>
                             <InputTextArea id="description" @bind-Value="listing.Description" class="input-field mt-1 block w-full"
                                            placeholder="Description" maxlength="100" />
                         </li>
                         <li>
-                            <label class="block text-sm font-medium text-gray-700">End date for Auction:</label>
+                            <label class="text-gray-700 block text-sm font-medium">End date for Auction:</label>
                             <input type="datetime-local" id="auctionEnd" @bind="listing.AuctionEnd" class="input-field mt-1 block w-full"
                                    min="@DateTime.Now.ToString("yyy-MM-ddTHH:mm")" /> @* Disables the user from setting a negative date  *@
                         </li>
                         <li>
-                            <label class="block text-sm font-medium text-gray-700">Platform:</label>
+                            <label class="text-gray-700 block text-sm font-medium">Platform:</label>
                             <InputSelect id="platform" @bind-Value="listing.Platform" class="input-field mt-1 block w-full">
                                 @* generate options for platforms *@
                                 @foreach (var platform in Enum.GetValues(typeof(Platform)))
@@ -97,7 +97,7 @@ helping mitigate issues associated with having a DbContext that is too long-live
                             </InputSelect>
                         </li>
                         <li>
-                            <label class="block text-sm font-medium text-gray-700">Game Category:</label>
+                            <label class="text-gray-700 block text-sm font-medium">Game Category:</label>
                             <InputSelect id="gameCategory" @bind-Value="listing.GameCategory" class="input-field mt-1 block w-full">
 
                                 <option value="null">None</option> @* None as an option in case the listing is a console *@
@@ -109,8 +109,8 @@ helping mitigate issues associated with having a DbContext that is too long-live
                             </InputSelect>
                         </li>
                     </ul>
-                    <button type="submit" @onclick="SubmitAndRefresh" class="mt-4 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700">Submit</button>
-                    <button type="button" @onclick="ShowConfirmCancel" class="ml-2 mt-4 rounded bg-red-500 px-4 py-2 font-bold text-white hover:bg-red-700">Cancel</button>
+                    <button type="submit" @onclick="SubmitAndRefresh" class="mt-4 bg-blue-500 px-4 py-2 text-white rounded font-bold hover:bg-blue-700">Submit</button>
+                    <button type="button" @onclick="ShowConfirmCancel" class="ml-2 mt-4 bg-red-500 px-4 py-2 text-white rounded font-bold hover:bg-red-700">Cancel</button>
                     @* </EditForm> *@
                 </div>
             </EditForm>
@@ -119,12 +119,12 @@ helping mitigate issues associated with having a DbContext that is too long-live
 
     @if (showConfirmation)
     {
-        <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-            <div class="flex flex-col items-center rounded bg-white p-4">
+        <div class="inset-0 bg-black fixed flex items-center justify-center bg-opacity-50">
+            <div class="bg-white p-4 flex flex-col items-center rounded">
                 <h2 class="mb-4 text-lg">Are you sure you want to cancel?</h2>
-                <div class="flex justify-center space-x-4">
-                    <button class="rounded bg-green-500 px-4 py-2 text-white" @onclick="ConfirmCancel">Yes</button>
-                    <button class="rounded bg-red-500 px-4 py-2 text-white" @onclick="HideConfirmCancel">No</button>
+                <div class="space-x-4 flex justify-center">
+                    <button class="bg-green-500 px-4 py-2 text-white rounded" @onclick="ConfirmCancel">Yes</button>
+                    <button class="bg-red-500 px-4 py-2 text-white rounded" @onclick="HideConfirmCancel">No</button>
                 </div>
             </div>
         </div>
@@ -137,23 +137,23 @@ helping mitigate issues associated with having a DbContext that is too long-live
 {
     int index = 0;
     <div class="mt-4 px-4">
-        <h2 class="text-lg font-semibold text-gray-800">Listings:</h2>
-        <div class="grid-cols-1 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <h2 class="text-gray-800 text-lg font-semibold">Listings:</h2>
+        <div class="gap-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             @foreach (var listing in listings)
             {
-                <div class="overflow-hidden rounded-lg bg-white shadow-lg">
+                <div class="bg-white overflow-hidden rounded-lg shadow-lg">
                     @* "Object-contain"" scales down the image for a better fit *@
                     <img class="h-64 w-full object-contain" src="@listing.ImagePath" alt="Image of listing">
                     <div class="p-4">
-                        <h3 class="text-md font-semibold text-gray-900">@listing.Name</h3>
+                        <h3 class="text-md text-gray-900 font-semibold">@listing.Name</h3>
                         <p class="text-gray-500">@listing.Description</p>
                     </div>
-                    <div class="border-t border-gray-200 bg-gray-100 px-4 pb-4 pt-3">
-                        <div class="text-xs font-bold uppercase tracking-wide text-gray-600">Price</div>
+                    <div class="border-gray-200 bg-gray-100 px-4 pb-4 pt-3 border-t">
+                        <div class="text-gray-600 text-xs font-bold uppercase tracking-wide">Price</div>
                         @* Align each index with it's' corresponding price with the use of index *@
-                        <div class="text-lg text-gray-900">@prices[index] kr</div>
-                        <div class="mt-2 text-xs font-bold uppercase tracking-wide text-gray-600">Time Remaining</div>
-                        <div class="text-lg text-gray-900">@GetTimeDifference(listing.AuctionEnd)</div>
+                        <div class="text-gray-900 text-lg">@prices[index] kr</div>
+                        <div class="mt-2 text-gray-600 text-xs font-bold uppercase tracking-wide">Time Remaining</div>
+                        <div class="text-gray-900 text-lg">@GetTimeDifference(listing.AuctionEnd)</div>
                     </div>
                 </div>
                 index++; // prepares to pair the next listing with it's corresponding price
@@ -275,21 +275,23 @@ helping mitigate issues associated with having a DbContext that is too long-live
                : listing.StartingPrice;
     }
 
-    private async Task SubmitForm()
-    {
-        try
-        {
-            string relativePath = await CaptureFile();
-            listing.ImagePath = relativePath;
-        }
-        catch (Exception ex)
-        {
-            errors.Add($"Error: {ex.Message}");
-        }
-    }
+    // private async Task SubmitForm()
+    // {
+    //     try
+    //     {
+    //         string relativePath = await CaptureFile();
+    //         listing.ImagePath = relativePath;
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         errors.Add($"Error: {ex.Message}");
+    //     }
+    // }
 
     private string currentImagePath;
 
+
+    //Combine Load, and CaptureFiles
     private async Task LoadFiles(InputFileChangeEventArgs e)
     {
         var imageFile = e.File;
@@ -314,14 +316,14 @@ helping mitigate issues associated with having a DbContext that is too long-live
                 isImageUploaded = true;
 
                 string fileName = Path.ChangeExtension(Path.GetRandomFileName(), Path.GetExtension(imageFile.Name));
-                string folderPath = Path.Combine(Environment.WebRootPath, "images"); // Pointing to the 'images' folder in wwwroot
-                Directory.CreateDirectory(folderPath); // Ensures directory exists
+                string folderPath = Path.Combine(Environment.WebRootPath, "images");
+                Directory.CreateDirectory(folderPath);
 
                 string fullPath = Path.Combine(folderPath, fileName);
                 await File.WriteAllBytesAsync(fullPath, buffer); // Saves the image to the server directory
 
-                string relativePath = Path.Combine("images", fileName); // Save only the relative path
-                listing.ImagePath = relativePath; // Save relative path to imagePath
+                string relativePath = Path.Combine("images", fileName); // Saves to the relative path
+                listing.ImagePath = relativePath; // Saves relative path to imagePath
                 currentImagePath = relativePath; // Updates the current image path
             }
             catch (Exception ex)
@@ -331,44 +333,87 @@ helping mitigate issues associated with having a DbContext that is too long-live
         }
     }
 
-    private async Task<string> CaptureFile()
-    {
-        if (file is null)
-        {
-            return "";
-        }
-        try
-        {
-            // Gets the extension of the file name the user passes in
-            // Gets random file name to avoid duplicates
-            string newFileName = Path.ChangeExtension(
-                Path.GetRandomFileName(),
-                Path.GetExtension(file.Name));
 
-            string path = Path.Combine(
-                config.GetValue<string>("FileStorage")!,
-                "Listings",
-                newFileName);
 
-            string relativePath = Path.Combine("Listings", newFileName);
+    // private async Task LoadFiles(InputFileChangeEventArgs e)
+    // {
+    //     var imageFile = e.File;
+    //     if (imageFile != null && imageFile.Size > 0)
+    //     {
+    //         MemoryStream ms = new MemoryStream();
+    //         try
+    //         {
+    //             // Clear the previous image from images folder if the user changes image while creating a listing
+    //             if (!string.IsNullOrEmpty(currentImagePath))
+    //             {
+    //                 var previousFilePath = Path.Combine(Environment.WebRootPath, currentImagePath);
+    //                 if (File.Exists(previousFilePath))
+    //                 {
+    //                     File.Delete(previousFilePath);
+    //                 }
+    //             }
 
-            Directory.CreateDirectory(Path.Combine(
-                config.GetValue<string>("FileStorage")!,
-            "Listings"));
+    //             await imageFile.OpenReadStream(maxFileSize).CopyToAsync(ms);
+    //             byte[] buffer = ms.ToArray();
+    //             base64Image = $"data:image/png;base64,{Convert.ToBase64String(buffer)}"; // For immediate display in UI
+    //             isImageUploaded = true;
 
-            // using closes by itself when reaching the end of the method
-            await using FileStream fs = new(@"C:\temp" + newFileName /* path */, FileMode.Create);
-            // copy the file to the currently open filestream
-            await file.OpenReadStream(maxFileSize).CopyToAsync(fs);
+    //             string fileName = Path.ChangeExtension(Path.GetRandomFileName(), Path.GetExtension(imageFile.Name));
+    //             string folderPath = Path.Combine(Environment.WebRootPath, "images"); // Pointing to the 'images' folder in wwwroot
+    //             Directory.CreateDirectory(folderPath); // Ensures directory exists
 
-            return relativePath;
-        }
-        catch (Exception ex)
-        {
-            errors.Add($"File: {file.Name} Error: {ex.Message}");
-            throw;
-        }
-    }
+    //             string fullPath = Path.Combine(folderPath, fileName);
+    //             await File.WriteAllBytesAsync(fullPath, buffer); // Saves the image to the server directory
+
+    //             string relativePath = Path.Combine("images", fileName); // Save only the relative path
+    //             listing.ImagePath = relativePath; // Save relative path to imagePath
+    //             currentImagePath = relativePath; // Updates the current image path
+    //         }
+    //         catch (Exception ex)
+    //         {
+    //             errors.Add($"Error uploading image: {ex.Message}");
+    //         }
+    //     }
+    // }
+
+    // private async Task<string> CaptureFile()
+    // {
+    //     if (file is null)
+    //     {
+    //         return "";
+    //     }
+    //     try
+    //     {
+    //         // Gets the extension of the file name the user passes in
+    //         // Gets random file name to avoid duplicates
+    //         string newFileName = Path.ChangeExtension(
+    //             Path.GetRandomFileName(),
+    //             Path.GetExtension(file.Name));
+
+    //         string path = Path.Combine(
+    //             config.GetValue<string>("FileStorage")!,
+    //             "Listings",
+    //             newFileName);
+
+    //         string relativePath = Path.Combine("Listings", newFileName);
+
+    //         Directory.CreateDirectory(Path.Combine(
+    //             config.GetValue<string>("FileStorage")!,
+    //         "Listings"));
+
+    //         // using closes by itself when reaching the end of the method
+    //         await using FileStream fs = new(@"C:\temp" + newFileName /* path */, FileMode.Create);
+    //         // copy the file to the currently open filestream
+    //         await file.OpenReadStream(maxFileSize).CopyToAsync(fs);
+
+    //         return relativePath;
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         errors.Add($"File: {file.Name} Error: {ex.Message}");
+    //         throw;
+    //     }
+    // }
 
     private bool IsVisible;
     private bool showConfirmation;

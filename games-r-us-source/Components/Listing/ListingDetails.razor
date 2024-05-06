@@ -3,134 +3,137 @@
 @using Components.Helpers;
 @inject ApplicationDbContext dbContext;
 
-<article class="font-[Kadwa] border-blue-800 bg-gray-200 p-4 m-auto flex h-fit w-1/2 flex-col rounded-2xl border-2 text-center md:flex-row">
-	<img class="mb-6 mr-2 rounded object-contain drop-shadow-2xl xl:object-cover md:w-1/2 md:mb-0" src="@CurrentListing.ImagePath" alt="@CurrentListing.Name" />
+<article class="font-[Kadwa] border-2 m-auto flex h-fit w-1/2 flex-col rounded-2xl border-blue-800 bg-gray-200 p-4 text-center md:flex-row">
+    <img class="mb-6 mr-2 rounded object-contain drop-shadow-2xl xl:object-cover md:w-1/2 md:mb-0" src="@CurrentListing.ImagePath" alt="@CurrentListing.Name" />
 
-	<div class="pl-2 md:w-1/2">
-		<span class="text-gray-800">
-			In
-		</span>
+    <div class="pl-2 md:w-1/2">
+        <span class="text-gray-800">
+            In
+        </span>
 
-		<!-- TODO: Add breadcrumb navigation when search/filter functionality works -->
-		<a class="text-blue-700 underline" href="#">
-			@CurrentListing.Platform
-		</a>
+        <!-- TODO: Add breadcrumb navigation when search/filter functionality works -->
+        <a class="text-blue-700 underline" href="#">
+            @CurrentListing.Platform
+        </a>
 
-		@if (CurrentListing.GameCategory != null)
-		{
-			<span class="text-gray-800"> > </span>
-			<a class="text-blue-700 underline" href="#">
-				@CurrentListing.GameCategory
-			</a>
-		}
+        @if (CurrentListing.GameCategory != null)
+        {
+            <span class="text-gray-800"> > </span>
+            <a class="text-blue-700 underline" href="#">
+                @CurrentListing.GameCategory
+            </a>
+        }
 
-		<div class="mt-10 flex h-1/2 flex-col justify-between">
-			<h3 class="text-2xl font-bold uppercase">@CurrentListing.Name</h3>
+        <div class="mt-10 flex h-1/2 flex-col justify-between">
+            <h3 class="text-2xl font-bold uppercase">@CurrentListing.Name</h3>
 
-			<div class="mt-8 flex flex-col justify-evenly md:flex-row">
-				<div>
-					@if (HighestBidAmount != 0)
-					{
-						<p>Highest bid at <span class="font-bold">@HighestBidAmount</span></p>
-					}
-					else
-					{
-						<p>Starting at </p>
+            <div class="mt-8 flex flex-col justify-evenly md:flex-row">
+                <div>
+                    @if (HighestBidAmount != 0)
+                    {
+                        <p>Highest bid at </p> <span class="font-bold">$@HighestBidAmount</span>
+                    }
+                    else
+                    {
+                        <p>Starting at </p>
 
-						<span class="font-bold">$@CurrentListing.StartingPrice</span>
-					}
-				</div>
+                        <span class="font-bold">$@CurrentListing.StartingPrice</span>
+                    }
+                </div>
 
-				<!-- Vertical divider -->
-				<div class="border-gray-400 hidden border-r-2 md:block"></div>
+                <!-- Vertical divider -->
+                <div class="border-r-2 hidden border-gray-400 md:block"></div>
 
-				<!-- Show tooltip on hover -->
-				<div class="mt-4 group relative inline-block cursor-help md:mt-0">
-					<p>Ends in</p><span class="border-black text-red-700 border-b-2 border-dotted">@GetTimeDifference(CurrentListing.AuctionEnd)</span>
-					<span class="-ml-[70%] bg-black text-white invisible absolute bottom-full left-1/2 w-fit text-nowrap rounded opacity-70 group-hover:visible">@CurrentListing.AuctionEnd</span>
-				</div>
-			</div>
+                <!-- Show tooltip on hover -->
+                <div class="group relative mt-4 inline-block cursor-help md:mt-0">
+                    <p>Ends in</p><span class="border-b-2 border-dotted border-black text-red-700">@GetTimeDifference(CurrentListing.AuctionEnd)</span>
+                    <span class="-ml-[70%] invisible absolute bottom-full left-1/2 w-fit text-nowrap rounded bg-black text-white opacity-70 group-hover:visible">@CurrentListing.AuctionEnd</span>
+                </div>
+            </div>
 
 
-			<section class="mt-8">
-				<!-- If description is too long, put it in a details element instead -->
-				@if (CurrentListing.Description != null && CurrentListing.Description.Length > 200)
-				{
-					<details class="text-left"><summary>Description</summary>@CurrentListing.Description</details>
-				}
-				else if (CurrentListing.Description != null)
-				{
-					<h4 class="font-bold">Description</h4>
-					<p class="text-left">@CurrentListing.Description</p>
-				}
-			</section>
+            <section class="mt-8">
+                <!-- If description is too long, put it in a details element instead -->
+                @if (CurrentListing.Description != null && CurrentListing.Description.Length > 200)
+                {
+                    <details class="text-left"><summary>Description</summary>@CurrentListing.Description</details>
+                }
+                else if (CurrentListing.Description != null)
+                {
+                    <h4 class="font-bold">Description</h4>
+                    <p class="text-left">@CurrentListing.Description</p>
+                }
+            </section>
 
-			<section class="mt-8">
-				<h4 class="font-bold">Seller</h4>
-				<p>
-					@CurrentListing.ApplicationUser.FullName
-				</p>
-				Phone:
-				<a class="text-blue-700 underline" href="tel:@CurrentListing.ApplicationUser.PhoneNumber">
-					@CurrentListing.ApplicationUser.PhoneNumber
-				</a>
-			</section>
-			<PlaceBidForm ListingID="@CurrentListing.ID" />
-		</div>
-	</div>
+            <section class="border-b-2 mb-4 mt-8 border-black pb-4">
+                <h4 class="font-bold">Seller</h4>
+                <p>
+                    @CurrentListing.ApplicationUser.FullName
+                </p>
+                Phone:
+                <a class="text-blue-700 underline" href="tel:@CurrentListing.ApplicationUser.PhoneNumber">
+                    @CurrentListing.ApplicationUser.PhoneNumber
+                </a>
+            </section>
+
+            <PlaceBidForm ListingID="CurrentListing.ID" />
+        </div>
+    </div>
 </article>
 
+
 @code {
-	// [Parameter]
-	// public Listing CurrentListing { get; set; }
-	private decimal HighestBidAmount { get; set; } = 0;
+    // [Parameter]
+    // public Listing CurrentListing { get; set; }
+    private decimal HighestBidAmount { get; set; } = 0;
 
-	// Currenly using sample data as currently no page uses the component
-	private Listing CurrentListing = new Listing
-		{
-			Name = "Bananas",
-			Description = "Bananas. Use them in yoghurt, ice cream, or whatever. Your choice.",
-			AuctionEnd = new DateTime(2024, 05, 29, 12, 00, 00),
-			ApplicationUserID = "cc6-819e-4cfa-adc0-30e8",
-			ApplicationUser = new ApplicationUser
-			{
-				Address = "Teststreet 234",
-				FullName = "Jack Boyd",
-				Id = "test-users-id",
-				PhoneNumber = "852358725",
-				EmailConfirmed = true,
-				PhoneNumberConfirmed = true,
-				TwoFactorEnabled = false,
-				LockoutEnabled = false,
-				AccessFailedCount = 0
-			},
-			GameCategory = GameCategory.Fantasy,
-			ImagePath = "images/bananas.jpg",
-			StartingPrice = 33,
-			ID = 1,
-			Platform = Platform.PlayStation
-		};
+    // Currenly using sample data as currently no page uses the component
+    private Listing CurrentListing = new Listing
+        {
+            Name = "Bananas",
+            Description = "Bananas. Use them in yoghurt, ice cream, or whatever. Your choice.",
+            AuctionEnd = new DateTime(2024, 05, 29, 12, 00, 00),
+            ApplicationUserID = "cc6-819e-4cfa-adc0-30e8",
+            ApplicationUser = new ApplicationUser
+            {
+                Address = "Teststreet 234",
+                FullName = "Jack Boyd",
+                Id = "test-users-id",
+                PhoneNumber = "852358725",
+                EmailConfirmed = true,
+                PhoneNumberConfirmed = true,
+                TwoFactorEnabled = false,
+                LockoutEnabled = false,
+                AccessFailedCount = 0
+            },
+            GameCategory = GameCategory.Fantasy,
+            ImagePath = "images/bananas.jpg",
+            StartingPrice = 33,
+            ID = 1,
+            Platform = Platform.PlayStation
+        };
 
-	private string GetTimeDifference(DateTime endDate)
-	{
-		TimeSpan timeDifference = endDate - DateTime.Today;
+    private string GetTimeDifference(DateTime endDate)
+    {
+        TimeSpan timeDifference = endDate - DateTime.Today;
 
-		if (timeDifference.TotalDays >= 7)
-		{
-			// Round down
-			double wholeWeeks = Math.Floor(timeDifference.TotalDays / 7);
+        if (timeDifference.TotalDays >= 7)
+        {
+            // Round down
+            double wholeWeeks = Math.Floor(timeDifference.TotalDays / 7);
 
-			// Get the rest value
-			double wholeDays = Math.Round(timeDifference.TotalDays % 7);
+            // Get the rest value
+            double wholeDays = Math.Round(timeDifference.TotalDays % 7);
 
-			return wholeWeeks + " weeks" + (wholeDays > 0 ? $", {wholeDays} days" : "");
-		}
+            return wholeWeeks + " weeks" + (wholeDays > 0 ? $", {wholeDays} days" : "");
+        }
 
-		return timeDifference.TotalDays + " days";
-	}
+        return timeDifference.TotalDays + " days";
+    }
 
-	protected override void OnInitialized()
-	{
-		HighestBidAmount = BidHelper.GetHighestBidAmountFromListingID(CurrentListing.ID, dbContext);
-	}
+    protected override void OnInitialized()
+    {
+        HighestBidAmount = BidHelper.GetHighestBidAmountFromListingID(CurrentListing.ID, dbContext);
+        Console.WriteLine("1");
+    }
 }

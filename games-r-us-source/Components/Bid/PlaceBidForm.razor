@@ -4,69 +4,70 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject ApplicationDbContext dbContext;
 
-<AuthorizeView>
-	<Authorized>
-		<p>@ErrorMessage</p>
-		<EditForm class="w-fit" Model=@bid OnSubmit=@HandleSubmit>
-			<div class="inline-block">
-				<label for="amount" class="block text-center">
-					New bid
-				</label>
-				<InputNumber id="amount" class="border-2 border-black" @bind-Value="@bid.Amount" />
-			</div>
-			<button class="border-2 rounded-l border-black bg-cyan-500" type="submit">Place bid</button>
-		</EditForm>
-	</Authorized>
-	<NotAuthorized>
-		<p>You need to be logged in to place a bid.</p>
-	</NotAuthorized>
+<AuthorizeView Context="authorizeViewContext">
+    <Authorized>
+        <p class="font-bold text-red-600">@ErrorMessage</p>
+        <EditForm class="m-auto w-fit" Model="@bid" OnSubmit="HandleSubmit" FormName="placeBidForm">
+            <label for="amount" class="block text-center">
+                New bid
+            </label>
+            <div class="border-2 flex flex-row border-black">
+                <InputNumber id="amount" class="flex-grow" @bind-Value="@bid.Amount" />
+                <button class="bg-green-500" type="submit">Place bid</button>
+            </div>
+        </EditForm>
+    </Authorized>
+    <NotAuthorized>
+        <p>You need to be logged in to place a bid.</p>
+    </NotAuthorized>
 </AuthorizeView>
 
 @code {
-	[Parameter]
-	public int ListingID { get; set; }
+    [Parameter]
+    public int ListingID { get; set; }
 
-	private string UserName { get; set; }
+    private string UserName { get; set; }
 
-	private string ErrorMessage { get; set; }
+    private string ErrorMessage { get; set; }
 
-	Bid bid = new Bid { Time = DateTime.Now };
+    Bid bid = new Bid { Time = DateTime.Now };
 
-	private void HandleSubmit()
-	{
-		decimal highestBid = GetHighestBidAmountForCurrentListing(ListingID);
+    private void HandleSubmit()
+    {
+        Console.WriteLine(bid.Amount);
+        decimal highestBid = GetHighestBidAmountForCurrentListing(ListingID);
+        Console.WriteLine(bid.Amount);
+        if (highestBid >= bid.Amount)
+        {
+            ErrorMessage = "Bid amount is too low.";
+            return;
+        }
 
-		if (highestBid >= bid.Amount)
-		{
-			ErrorMessage = "Bid amount is too low. Current highest bid: " + highestBid;
-			return;
-		}
+        bid.ListingID = ListingID;
+        bid.Listing = ListingHelper.GetListingFromListingID(ListingID, dbContext);
 
-		bid.ListingID = ListingID;
-		bid.Listing = ListingHelper.GetListingFromListingID(ListingID, dbContext);
+        ApplicationUser user = AccountHelper.GetAccountFromUserName(UserName, dbContext);
+        bid.ApplicationUserID = user.Id;
+        bid.ApplicationUser = user;
+        dbContext.Bids.Add(bid);
+        dbContext.SaveChanges();
+    }
 
-		ApplicationUser user = AccountHelper.GetAccountFromUserName(UserName, dbContext);
-		bid.ApplicationUserID = user.Id;
-		bid.ApplicationUser = user;
-		dbContext.Bids.Add(bid);
-		dbContext.SaveChanges();
-	}
+    protected override async Task OnInitializedAsync()
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authenticationState.User;
 
-	protected override async Task OnInitializedAsync()
-	{
-		var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-		var user = authenticationState.User;
+        // Get the user's email if they are authenticated
+        if (user.Identity.IsAuthenticated)
+        {
+            UserName = user.Identity.Name;
+        }
+    }
 
-		// Get the user's email if they are authenticated
-		if (user.Identity.IsAuthenticated)
-		{
-			UserName = user.Identity.Name;
-		}
-	}
-
-	private decimal GetHighestBidAmountForCurrentListing(int listingID)
-	{
-		decimal highestBidAmount = dbContext.Bids.Where(b => b.ListingID == listingID).Max(b => b.Amount);
-		return highestBidAmount;
-	}
+    private decimal GetHighestBidAmountForCurrentListing(int listingID)
+    {
+        decimal highestBidAmount = dbContext.Bids.Where(b => b.ListingID == listingID).Max(b => b.Amount);
+        return highestBidAmount;
+    }
 }

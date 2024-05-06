@@ -1,19 +1,16 @@
-﻿@* Used for EditForms, InputText, number, select etc *@
+﻿@page "/createListing"
+
+@* Used for EditForms, InputText, number, select etc *@
 @using Microsoft.AspNetCore.Components.Forms
 @using System.ComponentModel.DataAnnotations
 @using games_r_us_source.Data
 @using Microsoft.EntityFrameworkCore
 @rendermode InteractiveServer
 
-@* Used in CaptureFile *@
-@inject IConfiguration config
-
 @* Follwing three using/injects are needed for ApplicationUserID *@
 @using Microsoft.AspNetCore.Identity
 @inject UserManager<ApplicationUser> userManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
-
-
 
 @* It's generally recommended to use IDbContextFactory for Blazor Server applications because
 it gives you more control over the creation and disposal of DbContext instances,
@@ -26,7 +23,6 @@ helping mitigate issues associated with having a DbContext that is too long-live
 @* Used to fetch listings. Prices in particular *@
 @inject NavigationManager NavigationManager
 
-@page "/createListing"
 
 @* Error handling for "attacks"? eg scripts in input fields *@
 
@@ -51,14 +47,14 @@ helping mitigate issues associated with having a DbContext that is too long-live
                     @if (base64Image != null)
                     {
                         <img src="@base64Image" alt="Listing Image" class="h-48 w-48 mx-auto rounded-md object-cover">
-                        <label class="bg-white text-gray-500 m-auto block rounded-l border-2 bg-clip-border transition w-full[padding:0.375rem_0.75rem]">
+                        <label class="bg-white text-gray-500 m-auto block cursor-pointer rounded-l border-2 bg-clip-border transition hover:bg-gray-400 w-full[padding:0.375rem_0.75rem]">
                             Change Image
                             <InputFile class="hidden" OnChange="@LoadFiles" accept=".png, .jpg, .jpeg, .img" />
                         </label>
                     }
                     else
                     {
-                        <label class="form-control mt-4 bg-gray-300 p-2 text-black inline-block cursor-pointer rounded-full text-sm hover:bg-gray-400">
+                        <label class="px-3 py-1.5 text-gray-700 bg-white border-gray-300 mt-4 bg-gray-300 p-2 text-black m-auto block inline-block w-full cursor-pointer rounded rounded-full border text-base text-sm leading-6 transition-colors duration-150 ease-in-out hover:bg-gray-400">
                             Add Image
                             <InputFile class="hidden" OnChange="@LoadFiles" accept=".png, .jpg, .jpeg, .img" />
                         </label>
@@ -327,8 +323,8 @@ helping mitigate issues associated with having a DbContext that is too long-live
                 await File.WriteAllBytesAsync(fullPath, buffer); // Saves the image to the server directory
 
                 string relativePath = Path.Combine("images", fileName); // Saves to the relative path
-                listing.ImagePath = relativePath; 
-                currentImagePath = relativePath; 
+                listing.ImagePath = relativePath;
+                currentImagePath = relativePath;
             }
             catch (Exception ex)
             {
@@ -425,20 +421,3 @@ helping mitigate issues associated with having a DbContext that is too long-live
         }
     }
 }
-
-<style>
-    .form-control {
-        display: block;
-        width: 100%;
-        padding: 0.375rem 0.75rem;
-        font-size: 1rem;
-        line-height: 1.5;
-        color: #495057;
-        background-color: #fff;
-        background-clip: padding-box;
-        border: 1px solid #ced4da;
-        border-radius: 0.25rem;
-        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-        margin: auto;
-    }
-</style>

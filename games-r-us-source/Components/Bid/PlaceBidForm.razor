@@ -54,7 +54,7 @@
         }
 
         // If there is a highest bid and the logged in user already holds the highest bid
-        if (HighestBid is not null)
+        if (HighestBid is not null) // Avoids an exception
         {
             if (HighestBid.ApplicationUserID == user.Id)
             {
@@ -70,7 +70,7 @@
         }
 
         // If bid has no highest bid: check if bid is lower than starting price
-        if (HighestBid is null)
+        if (HighestBid is null) // Avoids an exception
         {
             if (this.bid.Amount <= CurrentListing.StartingPrice)
             {
@@ -80,7 +80,7 @@
         }
 
             // If a highest bid exists, if the current bid is lower than the highest bid
-        if (HighestBid is not null)
+        if (HighestBid is not null) // Avoids an exception
         {
             if (HighestBid.Amount >= this.bid.Amount)
             {

@@ -1,15 +1,16 @@
-﻿@using games_r_us_source.Data;
+﻿@using Microsoft.EntityFrameworkCore
+@using games_r_us_source.Data;
 @using games_r_us_source.Components.Helpers;
 @using Microsoft.AspNetCore.Components.Authorization
-@inject ApplicationDbContext dbContext;
-@inject AuthenticationStateProvider AuthenticationStateProvider;
 @rendermode InteractiveServer
+@inject IDbContextFactory<ApplicationDbContext> dbContextFactory;
+@inject AuthenticationStateProvider AuthenticationStateProvider;
 
 <AuthorizeView Context="authorizeViewContext">
     <Authorized>
         <p class="font-bold text-red-600">@ErrorMessage</p>
         <p class="font-bold text-green-600">@SuccessMessage</p>
-        <EditForm class="m-auto max-w-full" Model="@bid" OnValidSubmit="HandleSubmit" FormName="placeBidForm">
+        <EditForm class="m-auto max-w-full" Model="@bid" OnValidSubmit="HandleValidSubmit" FormName="placeBidForm">
             <DataAnnotationsValidator />
             <ValidationSummary />
             <label for="amount" class="block text-center">
@@ -41,8 +42,11 @@
     Bid bid = new Bid { Time = DateTime.Now };
 
     // Only runs if form contains expected data types
-    private void HandleSubmit(EditContext editContext)
+    private async Task HandleValidSubmit(EditContext editContext)
     {
+        // Automatically disposes the context after use
+        using var dbContext = dbContextFactory.CreateDbContext();
+
         // The if statements below require first querying the database
         ApplicationUser user = AccountHelper.GetAccountFromUserName(UserName, dbContext);
 
@@ -51,16 +55,6 @@
         {
             ErrorMessage = "You cannot make a bid on a listing that you authored.";
             return;
-        }
-
-        // If there is a highest bid and the logged in user already holds the highest bid
-        if (HighestBid is not null) // Avoids an exception
-        {
-            if (HighestBid.ApplicationUserID == user.Id)
-            {
-                ErrorMessage = "You already hold the highest bid.";
-                return;
-            }
         }
 
         if (this.bid.Amount <= 0)
@@ -94,12 +88,24 @@
 
         bid.ApplicationUserID = user.Id;
         bid.ApplicationUser = user;
-        dbContext.Bids.Add(bid);
-        dbContext.SaveChanges();
 
+        try
+        {
+            dbContext.Bids.Add(bid); // Adds the new listing to the database
+            await dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex)
+        {
+            Console.WriteLine($"Database update failed: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"An error occurred: {ex.Message}");
+        }
         ErrorMessage = "";
         SuccessMessage = $"Success! New bid at {bid.Amount} placed.";
     }
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -113,4 +119,5 @@
             UserName = user.Identity.Name;
         }
     }
+
 }

@@ -1,8 +1,9 @@
-﻿@using games_r_us_source.Data;
+﻿@using Microsoft.EntityFrameworkCore
+@using games_r_us_source.Data;
 @using games_r_us_source.Components.Bid;
 @using Components.Helpers;
 @rendermode InteractiveServer
-@inject ApplicationDbContext dbContext;
+@inject IDbContextFactory<ApplicationDbContext> dbContextFactory;
 
 <article class="font-[Kadwa] border-2 m-auto flex h-fit w-1/2 flex-col rounded-2xl border-blue-800 bg-gray-200 p-4 text-center md:flex-row">
     <img class="mb-6 mr-2 rounded object-contain drop-shadow-2xl xl:object-cover md:w-1/2 md:mb-0" src="@CurrentListing.ImagePath" alt="@CurrentListing.Name" />
@@ -109,10 +110,13 @@
 
     protected override void OnInitialized()
     {
-        // For testing purposes
-        CurrentListing = ListingHelper.GetListingFromListingID(4, dbContext);
-        CurrentListing.ApplicationUser = AccountHelper.GetAccountFromUserID(CurrentListing.ApplicationUserID, dbContext);
+        using (var dbContext = dbContextFactory.CreateDbContext())
+        {
+            // For testing purposes
+            CurrentListing = ListingHelper.GetListingFromListingID(4, dbContext);
+            CurrentListing.ApplicationUser = AccountHelper.GetAccountFromUserID(CurrentListing.ApplicationUserID, dbContext);
 
-        HighestBid = BidHelper.GetHighestBidFromListingID(CurrentListing.ID, dbContext);
+            HighestBid = BidHelper.GetHighestBidFromListingID(CurrentListing.ID, dbContext);
+        }
     }
 }

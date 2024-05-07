@@ -6,6 +6,7 @@ namespace games_r_us_source.Components.Helpers
     {
         public static ApplicationUser GetAccountFromUserName(string userName, ApplicationDbContext context)
         {
+            // userName, in this case, is the email the user used when signing up
             ApplicationUser account = context.ApplicationUsers.Where(a => a.Email == userName).FirstOrDefault();
             return account;
         }

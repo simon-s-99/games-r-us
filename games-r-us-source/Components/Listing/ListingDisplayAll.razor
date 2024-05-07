@@ -7,23 +7,23 @@
 {
     int index = 0;
     <div class="mt-4 px-4">
-        <h2 class="text-lg font-semibold text-gray-800">Listings:</h2>
-        <div class="grid-cols-1 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <h2 class="text-gray-800 text-lg font-semibold">Listings:</h2>
+        <div class="gap-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             @foreach (var listing in listings)
             {
-                <div class="overflow-hidden rounded-lg bg-white shadow-lg">
+                <div class="bg-white overflow-hidden rounded-lg shadow-lg">
                     @* "Object-contain"" scales down the image for a better fit *@
                     <img class="h-64 w-full object-contain" src="@listing.ImagePath" alt="Image of listing">
                     <div class="p-4">
-                        <h3 class="text-md font-semibold text-gray-900">@listing.Name</h3>
+                        <h3 class="text-md text-gray-900 font-semibold">@listing.Name</h3>
                         <p class="text-gray-500">@listing.Description</p>
                     </div>
-                    <div class="border-t border-gray-200 bg-gray-100 px-4 pb-4 pt-3">
-                        <div class="text-xs font-bold uppercase tracking-wide text-gray-600">Price</div>
+                    <div class="border-gray-200 bg-gray-100 px-4 pb-4 pt-3 border-t">
+                        <div class="text-gray-600 text-xs font-bold uppercase tracking-wide">Price</div>
                         @* Align each index with it's' corresponding price with the use of index *@
-                        <div class="text-lg text-gray-900">@prices[index] kr</div>
-                        <div class="mt-2 text-xs font-bold uppercase tracking-wide text-gray-600">Time Remaining</div>
-                        <div class="text-lg text-gray-900">@GetTimeDifference(listing.AuctionEnd)</div>
+                        <div class="text-gray-900 text-lg">@prices[index] kr</div>
+                        <div class="mt-2 text-gray-600 text-xs font-bold uppercase tracking-wide">Time Remaining</div>
+                        <div class="text-gray-900 text-lg">@GetTimeDifference(listing.AuctionEnd)</div>
                     </div>
                 </div>
                 index++; // prepares to pair the next listing with it's corresponding price
@@ -38,14 +38,58 @@
     // listings from the database, implement when doing pagination
     List<Listing> listings = new List<Listing>();
 
+
+    // Lifecycle method for blazor that is called after this component
+    // is initialized but before being rendered
     protected override async Task OnInitializedAsync()
     {
         using (ApplicationDbContext dbContext = dbContextFactory.CreateDbContext())
         {
-            listings = await dbContext.Listings
-                .Where(l => l == l)
-                .ToListAsync();
+            await LoadListingsAndPrices();
         }
+    }
+
+    private async Task<decimal> GetCurrentBid(int listingID)
+    {
+        using var dbContext = dbContextFactory.CreateDbContext();
+        var highestBid = await dbContext.Bids
+                            .Where(b => b.ListingID == listingID)
+                            .OrderByDescending(b => b.Amount)
+                            .FirstOrDefaultAsync();
+
+        var listing = await dbContext.Listings
+                            .FirstOrDefaultAsync(l => l.ID == listingID);
+
+        if (listing == null)
+        {
+            throw new InvalidOperationException($"No listing found with ID {listingID}.");
+        }
+
+        return highestBid != null && highestBid.Amount > listing.StartingPrice
+               ? highestBid.Amount
+               : listing.StartingPrice;
+    }
+
+    private List<decimal> prices = new(); //Display prices for listings
+
+    //fetch listings and their respecrtive prices
+    private async Task LoadListingsAndPrices() 
+    {
+        using (var dbContext = dbContextFactory.CreateDbContext())
+        {
+            var currentDate = DateTime.Now;
+            listings = await dbContext.Listings
+                .Where(l => l.AuctionEnd > currentDate) // Filter away expired listings
+                .ToListAsync();
+
+            prices.Clear(); // Clear old prices
+
+            var priceTasks = listings.Select(listing => GetCurrentBid(listing.ID)).ToList();
+            prices = (await Task.WhenAll(priceTasks)).ToList();
+
+        }
+
+        StateHasChanged(); // Updates UI after loading listings and prices
     }
 
     private string GetTimeDifference(DateTime endDate)

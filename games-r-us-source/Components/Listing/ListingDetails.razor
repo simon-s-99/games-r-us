@@ -55,11 +55,11 @@
 
             <section class="mt-8">
                 <!-- If description is too long, put it in a details element instead -->
-                @if (CurrentListing.Description != null && CurrentListing.Description.Length > 200)
+                @if (CurrentListing.Description is not null && CurrentListing.Description.Length > 200)
                 {
                     <details class="text-left"><summary>Description</summary>@CurrentListing.Description</details>
                 }
-                else if (CurrentListing.Description != null)
+                else if (CurrentListing.Description is not null)
                 {
                     <h4 class="font-bold">Description</h4>
                     <p class="text-left">@CurrentListing.Description</p>
@@ -77,16 +77,14 @@
                 </a>
             </section>
 
-            <PlaceBidForm CurrentListing="CurrentListing" HighestBid="HighestBid"/>
+            <PlaceBidForm CurrentListing="CurrentListing" HighestBid="HighestBid" />
         </div>
     </div>
 </article>
 
 
 @code {
-    [Parameter]
-    public int CurrentListingID { get; set; }
-
+    // [Parameter] <-- For testinng purposes
     public Listing CurrentListing { get; set; }
 
     private Bid? HighestBid { get; set; }
@@ -111,8 +109,10 @@
 
     protected override void OnInitialized()
     {
-        CurrentListing = ListingHelper.GetListingFromListingID(CurrentListingID, dbContext);
+        // For testing purposes
+        CurrentListing = ListingHelper.GetListingFromListingID(4, dbContext);
         CurrentListing.ApplicationUser = AccountHelper.GetAccountFromUserID(CurrentListing.ApplicationUserID, dbContext);
-        HighestBid = BidHelper.GetHighestBidFromListingID(CurrentListingID, dbContext);
+
+        HighestBid = BidHelper.GetHighestBidFromListingID(CurrentListing.ID, dbContext);
     }
 }

@@ -19,7 +19,6 @@
 
   <ItemGroup>
     <Folder Include="Components\Listing\" />
-    <Folder Include="Components\Bid\" />
     <Folder Include="wwwroot\images\" />
   </ItemGroup>
 

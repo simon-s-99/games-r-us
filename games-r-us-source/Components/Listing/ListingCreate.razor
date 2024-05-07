@@ -1,4 +1,4 @@
-﻿@page "/createListing"
+﻿@page "/listing/create"
 
 @* Used for EditForms, InputText, number, select etc *@
 @using Microsoft.AspNetCore.Components.Forms
@@ -25,19 +25,21 @@ helping mitigate issues associated with having a DbContext that is too long-live
 
 
 @* Error handling for "attacks"? eg scripts in input fields *@
-
+@* We should do our image upload in a different way, curently the user can upload 
+    images to wwwroot which is really unsafe. 
+*@
 
 <AuthorizeView>
     <Authorized>
         @* Button to show the modal for creating a new listing *@
-        <button @onclick="ShowModal" class="bg-gray-500 px-4 py-2 text-white rounded hover:bg-gray-600">Create a listing</button>
+        <button @onclick="ShowModal" class="rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-600">Create a listing</button>
     </Authorized>
 </AuthorizeView>
 
 @if (IsVisible)
 {
-    <div class="inset-0 bg-gray-800 fixed flex items-center justify-center bg-opacity-75">
-        <div class="bg-white p-6 w-full max-w-md rounded-lg shadow-lg">
+    <div class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75">
+        <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
 
             @* Editform used in blazor for creating a listing  *@
             <EditForm Model="@listing" OnValidSubmit="HandleValidSubmit">
@@ -46,51 +48,50 @@ helping mitigate issues associated with having a DbContext that is too long-live
                 <div class="relative text-center">
                     @if (base64Image != null)
                     {
-                        <img src="@base64Image" alt="Listing Image" class="h-48 w-48 mx-auto rounded-md object-cover">
-                        <label class="bg-white text-gray-500 m-auto block cursor-pointer rounded-l border-2 bg-clip-border transition hover:bg-gray-400 w-full[padding:0.375rem_0.75rem]">
+                        <img src="@base64Image" alt="Listing Image" class="mx-auto h-48 w-48 rounded-md object-cover">
+                        <label class="border-2 m-auto block cursor-pointer rounded-l bg-white bg-clip-border text-gray-500 transition hover:bg-gray-400 w-full[padding:0.375rem_0.75rem]">
                             Change Image
                             <InputFile class="hidden" OnChange="@LoadFiles" accept=".png, .jpg, .jpeg, .img" />
                         </label>
                     }
                     else
                     {
-                        <label class="px-3 py-1.5 text-gray-700 bg-white border-gray-300 mt-4 bg-gray-300 p-2 text-black m-auto block inline-block w-full cursor-pointer rounded rounded-full border text-base text-sm leading-6 transition-colors duration-150 ease-in-out hover:bg-gray-400">
+                        <label class="leading-6 m-auto mt-4 block inline-block w-full cursor-pointer rounded rounded-full border border-gray-300 bg-white bg-gray-300 p-2 px-3 py-1.5 text-base text-sm text-gray-700 text-black transition-colors duration-150 ease-in-out hover:bg-gray-400">
                             Add Image
                             <InputFile class="hidden" OnChange="@LoadFiles" accept=".png, .jpg, .jpeg, .img" />
                         </label>
                     }
                 </div>
 
-
                 @* Rest of the input fields *@
                 <div class="mt-4 text-center">
-                    <h3 class="text-gray-900 text-lg font-medium leading-6">Create a Listing</h3>
+                    <h3 class="leading-6 text-lg font-medium text-gray-900">Create a Listing</h3>
 
                     <DataAnnotationsValidator />
                     <ValidationSummary />
                     <ul class="mt-3 space-y-4">
-                        <li>
-                            <label class="text-gray-700 block text-sm font-medium">Name:</label>
+                        <li> @* Input for name *@
+                            <label class="block text-sm font-medium text-gray-700">Name:</label>
                             <InputText id="name" @bind-Value="listing.Name" class="input-field mt-1 block w-full"
                                        placeholder="Name of your listing" min="1" />
                         </li>
-                        <li>
-                            <label class="text-gray-700 block text-sm font-medium">Starting price:</label>
+                        <li> @* Input for starting price *@
+                            <label class="block text-sm font-medium text-gray-700">Starting price:</label>
                             <InputNumber id="startingPrice" @bind-Value="listing.StartingPrice" class="input-field mt-1 block w-full"
                                          placeholder="Starting Price" min="1" />
                         </li>
-                        <li>
-                            <label class="text-gray-700 block text-sm font-medium">Description:</label>
+                        <li> @* Input for description *@
+                            <label class="block text-sm font-medium text-gray-700">Description:</label>
                             <InputTextArea id="description" @bind-Value="listing.Description" class="input-field mt-1 block w-full"
                                            placeholder="Description" maxlength="100" />
                         </li>
-                        <li>
-                            <label class="text-gray-700 block text-sm font-medium">End date for Auction:</label>
+                        <li> @* Input for end date *@
+                            <label class="block text-sm font-medium text-gray-700">End date for Auction:</label>
                             <input type="datetime-local" id="auctionEnd" @bind="listing.AuctionEnd" class="input-field mt-1 block w-full"
                                    min="@DateTime.Now.ToString("yyy-MM-ddTHH:mm")" /> @* Disables the user from setting a negative date  *@
                         </li>
-                        <li>
-                            <label class="text-gray-700 block text-sm font-medium">Platform:</label>
+                        <li> @* Platform input (xbox, gamecube, etc.) *@
+                            <label class="block text-sm font-medium text-gray-700">Platform:</label>
                             <InputSelect id="platform" @bind-Value="listing.Platform" class="input-field mt-1 block w-full">
                                 @* generate options for platforms *@
                                 @foreach (var platform in Enum.GetValues(typeof(Platform)))
@@ -99,8 +100,8 @@ helping mitigate issues associated with having a DbContext that is too long-live
                                 }
                             </InputSelect>
                         </li>
-                        <li>
-                            <label class="text-gray-700 block text-sm font-medium">Game Category:</label>
+                        <li> @* Game category (fps, indie, etc.) *@
+                            <label class="block text-sm font-medium text-gray-700">Game Category:</label>
                             <InputSelect id="gameCategory" @bind-Value="listing.GameCategory" class="input-field mt-1 block w-full">
 
                                 <option value="null">None</option> @* None as an option in case the listing is a console *@
@@ -111,63 +112,30 @@ helping mitigate issues associated with having a DbContext that is too long-live
                                 }
                             </InputSelect>
                         </li>
-                    </ul>
-                    <button type="submit" @onclick="SubmitAndRefresh" class="mt-4 bg-blue-500 px-4 py-2 text-white rounded font-bold hover:bg-blue-700">Submit</button>
-                    <button type="button" @onclick="ShowConfirmCancel" class="ml-2 mt-4 bg-red-500 px-4 py-2 text-white rounded font-bold hover:bg-red-700">Cancel</button>
-                    @* </EditForm> *@
+                    </ul> @* Submit and cancel buttons *@
+                    <button type="submit" @onclick="SubmitAndRefresh" class="mt-4 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700">Submit</button>
+                    <button type="button" @onclick="ShowConfirmCancel" class="ml-2 mt-4 rounded bg-red-500 px-4 py-2 font-bold text-white hover:bg-red-700">Cancel</button>       
                 </div>
             </EditForm>
         </div>
     </div>
-
-    @if (showConfirmation)
+   
+    @if (showConfirmation) @* If the user presses "cancel" we show this confirmation modal *@
     {
-        <div class="inset-0 bg-black fixed flex items-center justify-center bg-opacity-50">
-            <div class="bg-white p-4 flex flex-col items-center rounded">
+        <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+            <div class="flex flex-col items-center rounded bg-white p-4">
                 <h2 class="mb-4 text-lg">Are you sure you want to cancel?</h2>
-                <div class="space-x-4 flex justify-center">
-                    <button class="bg-green-500 px-4 py-2 text-white rounded" @onclick="ConfirmCancel">Yes</button>
-                    <button class="bg-red-500 px-4 py-2 text-white rounded" @onclick="HideConfirmCancel">No</button>
+                <div class="flex justify-center space-x-4">
+                    <button class="rounded bg-green-500 px-4 py-2 text-white" @onclick="ConfirmCancel">Yes</button>
+                    <button class="rounded bg-red-500 px-4 py-2 text-white" @onclick="HideConfirmCancel">No</button>
                 </div>
             </div>
         </div>
     }
-
-}
-
-@* Display the listings here *@
-@if (listings.Any())
-{
-    int index = 0;
-    <div class="mt-4 px-4">
-        <h2 class="text-gray-800 text-lg font-semibold">Listings:</h2>
-        <div class="gap-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            @foreach (var listing in listings)
-            {
-                <div class="bg-white overflow-hidden rounded-lg shadow-lg">
-                    @* "Object-contain"" scales down the image for a better fit *@
-                    <img class="h-64 w-full object-contain" src="@listing.ImagePath" alt="Image of listing">
-                    <div class="p-4">
-                        <h3 class="text-md text-gray-900 font-semibold">@listing.Name</h3>
-                        <p class="text-gray-500">@listing.Description</p>
-                    </div>
-                    <div class="border-gray-200 bg-gray-100 px-4 pb-4 pt-3 border-t">
-                        <div class="text-gray-600 text-xs font-bold uppercase tracking-wide">Price</div>
-                        @* Align each index with it's' corresponding price with the use of index *@
-                        <div class="text-gray-900 text-lg">@prices[index] kr</div>
-                        <div class="mt-2 text-gray-600 text-xs font-bold uppercase tracking-wide">Time Remaining</div>
-                        <div class="text-gray-900 text-lg">@GetTimeDifference(listing.AuctionEnd)</div>
-                    </div>
-                </div>
-                index++; // prepares to pair the next listing with it's corresponding price
-            }
-        </div>
-    </div>
 }
 
 
 @code {
-
     // Placeholder for a new or existing listing to be edited or created
     Listing listing = new Listing { AuctionEnd = DateTime.Now.AddDays(7) };
 
@@ -186,7 +154,7 @@ helping mitigate issues associated with having a DbContext that is too long-live
     private string base64Image; // For immediate display in our ui
     private string serverImagePath; // Path where the image is stored
 
-    // When creating a listing we submit it the the cb and refresh all listings
+    // When creating a listing we submit it the the database and refresh all listings
     private async Task SubmitAndRefresh()
     {
         await HandleValidSubmit();

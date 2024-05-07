@@ -18,8 +18,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Components\Listing\" />
-    <Folder Include="Migrations\" />
     <Folder Include="wwwroot\images\" />
   </ItemGroup>
 

@@ -159,15 +159,9 @@ helping mitigate issues associated with having a DbContext that is too long-live
 
     private string base64Image; // For immediate display in our ui
     private string serverImagePath; // Path where the image is stored
-
-    // When creating a listing we submit it the the database and refresh all listings
-    // private async Task SubmitAndRefresh()
-    // {
-    //     await HandleValidSubmit();
-    //     // await LoadListingsAndPrices();
-    //     StateHasChanged();
-    // }
+    private string currentImagePath;
     private DateTime lastSubmissionTime = DateTime.MinValue;
+
 
     private async Task HandleValidSubmit()
     {
@@ -193,13 +187,34 @@ helping mitigate issues associated with having a DbContext that is too long-live
 
         try
         {
+            // We send the images to a temp storage in case they won't be needed later. Example: if the user changes image
+
+            //path to the permanent storage directory for images
+            string permanentFolderPath = Path.Combine(Environment.WebRootPath, "images");
+
+            // path to the image currently in temporary storage
+            string sourcePath = Path.Combine(Environment.WebRootPath, "temp_images", currentImagePath);
+
+            // destination path for the image once it is confirmed for permanent storage.
+            string destinationPath = Path.Combine(permanentFolderPath, currentImagePath);
+
+            // Move the uploaded image from temporary to permanent storage upon successful listing creation
+            if (File.Exists(sourcePath))
+            {
+                Directory.CreateDirectory(permanentFolderPath); 
+                File.Move(sourcePath, destinationPath);
+            }
+
+            // Update listing with the path of the permanently stored image
+            listing.ImagePath = Path.Combine("images", currentImagePath);
+
             dbContext.Listings.Add(listing); // Adds the new listing to the database
             await dbContext.SaveChangesAsync();
 
             CloseModal();
             Console.WriteLine("Listing created successfully.");
+
             // Force reload the page to update the newly added listing
-            // This makes the "SubmitAndRefresh method obsolete
             NavigationManager.NavigateTo("/", forceLoad: false);
         }
         catch (DbUpdateException ex)
@@ -212,9 +227,7 @@ helping mitigate issues associated with having a DbContext that is too long-live
         }
     }
 
-    private string currentImagePath;
-
-    // Combine Load, and CaptureFiles
+    // Method to handle images
     private async Task LoadFiles(InputFileChangeEventArgs e)
     {
         var imageFile = e.File;
@@ -223,32 +236,30 @@ helping mitigate issues associated with having a DbContext that is too long-live
             MemoryStream ms = new MemoryStream();
             try
             {
-                // Clear the previous image from images folder if the user changes image while creating a listing
+                // Create the existence of a temporary storage directory for images
+                string tempFolderPath = Path.Combine(Environment.WebRootPath, "temp_images");
+                Directory.CreateDirectory(tempFolderPath); // Ensure the directory exists
+
+
+                // Delete previous image if the user changes image before submitting
                 if (!string.IsNullOrEmpty(currentImagePath))
                 {
-                    var previousFilePath = Path.Combine(Environment.WebRootPath, currentImagePath);
+                    var previousFilePath = Path.Combine(tempFolderPath, currentImagePath);
                     if (File.Exists(previousFilePath))
                     {
-                        File.Delete(previousFilePath);
+                        File.Delete(previousFilePath); // Delete the image if it isn't used for a listing
                     }
                 }
 
                 await imageFile.OpenReadStream(maxFileSize).CopyToAsync(ms);
                 byte[] buffer = ms.ToArray();
-                base64Image = $"data:image/png;base64,{Convert.ToBase64String(buffer)}"; // For immediate display in UI
-                isImageUploaded = true;
+                base64Image = $"data:image/png;base64,{Convert.ToBase64String(buffer)}";
 
-                // Creating a unique file name to avoid conflicts
                 string fileName = Path.ChangeExtension(Path.GetRandomFileName(), Path.GetExtension(imageFile.Name));
-                string folderPath = Path.Combine(Environment.WebRootPath, "images");
-                Directory.CreateDirectory(folderPath);
+                string fullPath = Path.Combine(tempFolderPath, fileName);
+                await File.WriteAllBytesAsync(fullPath, buffer); // Save in temporary directory
 
-                string fullPath = Path.Combine(folderPath, fileName);
-                await File.WriteAllBytesAsync(fullPath, buffer); // Saves the image to the server directory
-
-                string relativePath = Path.Combine("images", fileName); // Saves to the relative path
-                listing.ImagePath = relativePath;
-                currentImagePath = relativePath;
+                currentImagePath = fileName;
             }
             catch (Exception ex)
             {
@@ -256,54 +267,6 @@ helping mitigate issues associated with having a DbContext that is too long-live
             }
         }
     }
-
-    // private List<decimal> prices = new();
-
-    // private async Task LoadListingsAndPrices()
-    // {
-    //     using (var dbContext = dbContextFactory.CreateDbContext())
-    //     {
-    //         var currentDate = DateTime.Now;
-    //         listings = await dbContext.Listings
-    //             .Where(l => l.AuctionEnd > currentDate) // Filter away expired listings
-    //             .ToListAsync();
-
-    //         prices.Clear();
-    //         var priceTasks = listings.Select(listing => GetCurrentBid(listing.ID)).ToList();
-    //         prices = (await Task.WhenAll(priceTasks)).ToList();
-    //     }
-    //     StateHasChanged(); // Ensures UI is updated after prices are loaded
-    // }
-
-    // Lifecycle method for blazor that is called after this component
-    // is initialized but before being rendered.
-    // protected override async Task OnInitializedAsync()
-    // {
-    //     // Let the task of fetching the price complete, else it displays "System.Runtime.CompilerServices" at "price"
-    //     // await LoadListingsAndPrices();
-    // }
-
-    // Fetch the current bid of the respective listing
-    // private async Task<decimal> GetCurrentBid(int listingID)
-    // {
-    //     using var dbContext = dbContextFactory.CreateDbContext();
-    //     var highestBid = await dbContext.Bids
-    //                         .Where(b => b.ListingID == listingID)
-    //                         .OrderByDescending(b => b.Amount)
-    //                         .FirstOrDefaultAsync();
-
-    //     var listing = await dbContext.Listings
-    //                         .FirstOrDefaultAsync(l => l.ID == listingID);
-
-    //     if (listing == null)
-    //     {
-    //         throw new InvalidOperationException($"No listing found with ID {listingID}.");
-    //     }
-
-    //     return highestBid != null && highestBid.Amount > listing.StartingPrice
-    //            ? highestBid.Amount
-    //            : listing.StartingPrice;
-    // }
 
     private bool IsVisible;
     private bool showConfirmation;

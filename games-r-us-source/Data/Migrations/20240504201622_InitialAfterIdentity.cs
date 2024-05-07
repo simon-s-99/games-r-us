@@ -53,21 +53,7 @@ namespace games_r_us_source.Migrations
                     ApplicationUserID = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Time = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Bids", x => x.ID);
-                    table.ForeignKey(
-                        name: "FK_Bids_Listings_ListingID",
-                        column: x => x.ListingID,
-                        principalTable: "Listings",
-                        principalColumn: "ID");
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Bids_ListingID",
-                table: "Bids",
-                column: "ListingID");
         }
 
         /// <inheritdoc />

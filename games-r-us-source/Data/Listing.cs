@@ -56,7 +56,7 @@ namespace games_r_us_source.Data
 
         public string? ImagePath { get; set; }
 
-        [MaxLength(1000, ErrorMessage = "Description cannot exceed 1000 characters")]
+        [MaxLength(1024, ErrorMessage = "Description cannot exceed 1024 characters")]
         public string? Description { get; set; }
 
         public DateTime AuctionEnd { get; set; }

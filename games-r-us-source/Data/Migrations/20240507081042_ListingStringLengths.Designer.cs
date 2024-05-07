@@ -12,8 +12,8 @@ using games_r_us_source.Data;
 namespace games_r_us_source.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240506162309_first")]
-    partial class first
+    [Migration("20240507081042_ListingStringLengths")]
+    partial class ListingStringLengths
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

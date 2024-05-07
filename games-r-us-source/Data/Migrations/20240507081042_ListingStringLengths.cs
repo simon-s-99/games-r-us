@@ -5,7 +5,7 @@
 namespace games_r_us_source.Migrations
 {
     /// <inheritdoc />
-    public partial class first : Migration
+    public partial class ListingStringLengths : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

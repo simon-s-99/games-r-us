@@ -1,0 +1,100 @@
+﻿@using Microsoft.EntityFrameworkCore
+@using games_r_us_source.Data
+@inject IDbContextFactory<ApplicationDbContext> dbContextFactory
+
+@* Display the listings here *@
+@if (listings.Any())
+{
+    int index = 0;
+    <div class="mt-4 px-4">
+        <h2 class="text-lg font-semibold text-gray-800">Listings:</h2>
+        <div class="grid-cols-1 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            @foreach (var listing in listings)
+            {
+                <div class="overflow-hidden rounded-lg bg-white shadow-lg">
+                    @* "Object-contain"" scales down the image for a better fit *@
+                    <img class="h-64 w-full object-contain" src="@listing.ImagePath" alt="Image of listing">
+                    <div class="p-4">
+                        <h3 class="text-md font-semibold text-gray-900">@listing.Name</h3>
+                        <p class="text-gray-500">@listing.Description</p>
+                    </div>
+                    <div class="border-t border-gray-200 bg-gray-100 px-4 pb-4 pt-3">
+                        <div class="text-xs font-bold uppercase tracking-wide text-gray-600">Price</div>
+                        @* Align each index with it's' corresponding price with the use of index *@
+                        <div class="text-lg text-gray-900">@prices[index] kr</div>
+                        <div class="mt-2 text-xs font-bold uppercase tracking-wide text-gray-600">Time Remaining</div>
+                        <div class="text-lg text-gray-900">@GetTimeDifference(listing.AuctionEnd)</div>
+                    </div>
+                </div>
+                index++; // prepares to pair the next listing with it's corresponding price
+            }
+        </div>
+    </div>
+}
+
+@code {
+    // [PAGINATION COMMENT (issue #8 on github)] 
+    // this will need to be restricted later to only get a certain amount of
+    // listings from the database, implement when doing pagination
+    List<Listing> listings = new List<Listing>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        using (ApplicationDbContext dbContext = dbContextFactory.CreateDbContext())
+        {
+            listings = await dbContext.Listings
+                .Where(l => l == l)
+                .ToListAsync();
+        }
+    }
+
+    private string GetTimeDifference(DateTime endDate)
+    {
+        TimeSpan timeDifference = endDate - DateTime.Now;
+
+        if (timeDifference.TotalDays >= 7)
+        {
+            int weeks = (int)(timeDifference.TotalDays / 7);
+            int days = (int)(timeDifference.TotalDays % 7); // Get remaining days after full weeks
+            if (days > 0)
+                return $"{weeks} weeks and {days} days";
+            else
+                return $"{weeks} weeks";
+        }
+        else if (timeDifference.TotalDays >= 1)
+        {
+            int days = (int)timeDifference.TotalDays;
+            int hours = timeDifference.Hours;
+            if (hours > 0)
+                return $"{days} days and {hours} hours";
+            else
+                return $"{days} days";
+        }
+        else if (timeDifference.TotalHours >= 1)
+        {
+            int hours = (int)timeDifference.TotalHours;
+            int minutes = timeDifference.Minutes;
+            if (minutes > 0)
+                return $"{hours} hours and {minutes} minutes";
+            else
+                return $"{hours} hours";
+        }
+        else if (timeDifference.TotalMinutes >= 1)
+        {
+            int minutes = (int)timeDifference.TotalMinutes;
+            int seconds = timeDifference.Seconds;
+            if (seconds > 0)
+                return $"{minutes} minutes and {seconds} seconds";
+            else
+                return $"{minutes} minutes";
+        }
+        else if (timeDifference.TotalSeconds >= 1)
+        {
+            return $"{(int)Math.Floor(timeDifference.TotalSeconds)} seconds";
+        }
+        else
+        {
+            return "Auction ended";
+        }
+    }
+}

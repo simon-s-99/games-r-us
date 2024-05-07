@@ -145,11 +145,6 @@ helping mitigate issues associated with having a DbContext that is too long-live
     // Placeholder for a new or existing listing to be edited or created
     Listing listing = new Listing { AuctionEnd = DateTime.Now.AddDays(7) };
 
-    // List to store and display existing listings fetched from the database
-    private List<Listing> listings = new List<Listing>();
-
-    private bool isImageUploaded = false;
-
     // file size set to 3MB
     private long maxFileSize = 1024 * 1024 * 3;
     private int maxAllowedFiles = 1; // In case we ever want to allow more than one image
@@ -158,7 +153,6 @@ helping mitigate issues associated with having a DbContext that is too long-live
     private IBrowserFile? file; // Holds a reference to the uploaded file
 
     private string base64Image; // For immediate display in our ui
-    private string serverImagePath; // Path where the image is stored
     private string currentImagePath;
     private DateTime lastSubmissionTime = DateTime.MinValue;
 
@@ -289,8 +283,6 @@ helping mitigate issues associated with having a DbContext that is too long-live
     {
         listing = new Listing { AuctionEnd = DateTime.Now.AddDays(7), StartingPrice = 1 };
         base64Image = null;
-        serverImagePath = null;
-        isImageUploaded = false;
         errors.Clear();
         IsVisible = true;
     }
@@ -299,8 +291,6 @@ helping mitigate issues associated with having a DbContext that is too long-live
     {
         listing = new Listing { AuctionEnd = DateTime.Now.AddDays(7), StartingPrice = 1 };
         base64Image = null;
-        serverImagePath = null;
-        isImageUploaded = false;
         errors.Clear();
         IsVisible = false;
     }

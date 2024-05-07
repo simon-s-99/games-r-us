@@ -1,33 +1,38 @@
 ﻿@page "/listing/edit"
 
+@using Microsoft.AspNetCore.Components.Forms
+@using System.ComponentModel.DataAnnotations
 @using Microsoft.EntityFrameworkCore
 @using System
 @using System.Linq
-@* @using System.Net.Http
-@using System.Text *@
+@using Microsoft.AspNetCore.Identity
 @using games_r_us_source.Components
 @using games_r_us_source.Data
 @* @using Microsoft.AspNetCore.Components.Forms *@
 
 @* Enables onclick functions *@
 @rendermode InteractiveServer
-@* @inject IConfiguration config *@
-@inject ApplicationDbContext dbContext
 
-@* change name ?*@
-@inject ApplicationUser applicationUser
+@* Used to redirect user to home page *@
+@inject NavigationManager NavigationManager
 
+@* Used in LoadFiles *@
+@inject IWebHostEnvironment Environment
 
-
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserManager<ApplicationUser> userManager
 @inject IDbContextFactory<ApplicationDbContext> dbContextFactory
 
+@* @inject IConfiguration config *@
 
 <AuthorizeView>
     <Authorized>
         @* Button to show the modal when editing a listing *@
-        @* <button @onclick="ShowModal" class="" >Edit listing</button> *@
+        <button @onclick="ShowModal" class="bg-gray-300 px-4 py-2 text-black rounded-xl font-bold hover:bg-gray-400">Edit listing</button>
     </Authorized>
 </AuthorizeView>
+
+
 
 @if (IsVisible)
 {
@@ -71,9 +76,18 @@
                         </li>
                         <li>
                             @* Input for starting price *@
+                            @if (!DisablePrice)
+                            {
                             <label class="text-gray-700 block text-sm font-medium">Starting price:</label>
                             <InputNumber id="startingPrice" @bind-Value="listing.StartingPrice" class="input-field mt-1 block w-full"
-                                         placeholder="Starting Price" min="1" />
+                                placeholder="Starting Price" min="1" />
+                            }
+                            else @*If there has been a bid made the user cannot edit StartinPrice*@
+                            {
+                                <label class="text-gray-700 block text-sm font-medium">Starting price:</label>
+                                <InputNumber id="startingPrice" @bind-Value="listing.StartingPrice" class="input-field mt-1 block w-full"
+                                              min="1" disabled />
+                            }
                         </li>
                         <li>
                             @* Input for description *@
@@ -82,11 +96,12 @@
                                            placeholder="Description" maxlength="100" />
                         </li>
                         <li>
-                            @* Input for end date *@
+                            @* Uneditable end date *@
                             <label class="text-gray-700 block text-sm font-medium">End date for Auction:</label>
                             <input type="datetime-local" id="auctionEnd" @bind="listing.AuctionEnd" class="input-field mt-1 block w-full"
-                                   min="@DateTime.Now.ToString("yyy-MM-ddTHH:mm")" /> @* Disables the user from setting a negative date  *@
+                                   min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" disabled />
                         </li>
+
                         <li>
                             @* Platform input (xbox, gamecube, etc.) *@
                             <label class="text-gray-700 block text-sm font-medium">Platform:</label>
@@ -136,7 +151,6 @@
 
 
 @code {
-
     // There should be a button in the right corner that says "edit" and when pressed shows the layout as createListings or ListingsDetails
     // All the fields should then be editable except AuctionEnd and StartingPrice (if there has been a bid made)
     // There should be a cancel button that when pressed prompt the user if they really want to cancel their edit
@@ -148,8 +162,16 @@
     //
 
     // Fetch the listings so we can display it's current details like: name,image etc to show in the edit menu
+
+    [Parameter]
+    public int ListingID { get; set; }
+    private Listing listing; // remove?
+
+    private bool DisablePrice = false; // if true the user can edit the starting price (if no bids were made)
+
     protected override async Task OnInitializedAsync()
     {
+        using var dbContext = dbContextFactory.CreateDbContext();
         listing = await dbContext.Listings.FindAsync(ListingID);
 
         if (listing == null)
@@ -158,7 +180,6 @@
         }
     }
 
-    private bool isImageUploaded = false;
 
     // file size set to 3MB
     private long maxFileSize = 1024 * 1024 * 3;
@@ -297,20 +318,16 @@
 
     public void ShowModal()
     {
-        listing = new Listing { AuctionEnd = DateTime.Now.AddDays(7), StartingPrice = 1 };
         base64Image = null;
         serverImagePath = null;
-        isImageUploaded = false;
         errors.Clear();
         IsVisible = true;
     }
 
     public void CloseModal()
     {
-        listing = new Listing { AuctionEnd = DateTime.Now.AddDays(7), StartingPrice = 1 };
         base64Image = null;
         serverImagePath = null;
-        isImageUploaded = false;
         errors.Clear();
         IsVisible = false;
     }

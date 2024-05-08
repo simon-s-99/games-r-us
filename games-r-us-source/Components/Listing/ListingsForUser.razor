@@ -1,0 +1,44 @@
+﻿@using Microsoft.EntityFrameworkCore
+@using games_r_us_source.Data
+@inject ApplicationDbContext dbContext
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@rendermode InteractiveServer
+
+@if (listings == null)
+{
+    <button @onclick="ViewMyListings" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">View My Listings</button>
+}
+else if (listings.Any())
+{
+    <ul>
+        @foreach (var listing in listings)
+        {
+            <li>
+                <a href="@($"listingdetails/{listing.ID}")">@listing.Name</a> - @listing.Description
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p>No listings found.</p>
+}
+
+@code {
+    private List<Listing> listings;
+
+    private async Task ViewMyListings()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var userId = user.Identity.Name;
+
+            listings = await dbContext.Listings
+                .Where(l => l.ApplicationUserID == userId)
+                .ToListAsync();
+        }
+    }
+}

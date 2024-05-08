@@ -20,10 +20,29 @@
 @inject UserManager<ApplicationUser> userManager
 @inject IDbContextFactory<ApplicationDbContext> dbContextFactory
 
+        @* Button to show the modal when editing a listing *@
+      @*   <button @onclick="ShowModal" class="bg-gray-300 px-4 py-2 text-black rounded-xl font-bold hover:bg-gray-400">Edit listing</button> *@
 <AuthorizeView>
     <Authorized>
-        @* Button to show the modal when editing a listing *@
-        <button @onclick="ShowModal" class="bg-gray-300 px-4 py-2 text-black rounded-xl font-bold hover:bg-gray-400">Edit listing</button>
+        @if (listings.Any())
+        {
+            <div class="mt-4 px-4">
+                <h2 class="text-gray-800 text-lg font-semibold">Your Listings:</h2>
+                <div class="gap-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                    @foreach (var listing in listings)
+                    {
+                        <div class="bg-white overflow-hidden rounded-lg shadow-lg">
+                            <img class="h-64 w-full object-contain" src="@listing.ImagePath" alt="Image of listing">
+                            <div class="p-4">
+                                <h3 class="text-md text-gray-900 font-semibold">@listing.Name</h3>
+                                <p class="text-gray-500">@listing.Description</p>
+                                <button @onclick="() => ShowModal(listing.ID)" class="bg-gray-300 px-4 py-2 text-black rounded-xl font-bold hover:bg-gray-400">Edit</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
     </Authorized>
 </AuthorizeView>
 
@@ -66,7 +85,7 @@
                             @* Input for name *@
                             <label class="text-gray-700 block text-sm font-medium">Name:</label>
                             <InputText id="name" @bind-Value="listing.Name" class="input-field mt-1 block w-full"
-                                       placeholder="@listing" min="1" />
+                                       placeholder="@listing.Name" min="1" />
                             <ValidationMessage For="@(() => listing.Name)" class="text-red-500 text-xs mt-1" />
                         </li>
                         <li>
@@ -74,7 +93,7 @@
                             @if (!DisablePrice)
                             {
                                 <InputNumber id="startingPrice" @bind-Value="listing.StartingPrice" class="input-field mt-1 block w-full"
-                                             placeholder="Starting Price" min="1" />
+                                             placeholder="@listing.StartingPrice" min="1" />
                                 <ValidationMessage For="@(() => listing.StartingPrice)" class="text-red-500 text-xs mt-1" />
                             }
                             else  // If there has been a bid made, the user cannot edit the starting price
@@ -89,7 +108,7 @@
                             @* Input for description *@
                             <label class="text-gray-700 block text-sm font-medium">Description:</label>
                             <InputTextArea id="description" @bind-Value="listing.Description" class="input-field mt-1 block w-full"
-                                           placeholder="Description" maxlength="100" />
+                                           placeholder="@listing.Description" maxlength="100" />
                         </li>
                         <li>
                             @* Uneditable end date *@
@@ -143,7 +162,6 @@
         </div>
     }
 
-
     @if (!string.IsNullOrEmpty(successMessage))
     {
         <div class="inset-0 bg-black fixed flex items-center justify-center bg-opacity-50">
@@ -160,6 +178,48 @@
     [Parameter]
     public int ListingID { get; set; }
     private Listing listing;
+
+    private List<Listing> listings = new List<Listing>(); // temp code for testing
+    private List<decimal> prices = new();
+
+    // For testing purposes
+    private async Task LoadListingsAndPrices()
+    {
+        using (var dbContext = dbContextFactory.CreateDbContext())
+        {
+            var currentDate = DateTime.Now;
+            listings = await dbContext.Listings
+                .Where(l => l.AuctionEnd > currentDate) // Filter away expired listings
+                .ToListAsync();
+
+            prices.Clear(); // Clear old prices
+            var priceTasks = listings.Select(listing => GetCurrentBid(listing.ID)).ToList();
+            prices = (await Task.WhenAll(priceTasks)).ToList();
+
+        }
+
+        StateHasChanged(); // Updates UI after loading listings and prices
+    }
+
+    // For testing purposes
+    private async Task<decimal> GetCurrentBid(int listingID)
+    {
+        using var dbContext = dbContextFactory.CreateDbContext();
+        // check for any bids on the listing and get the highest if available. Nullable in case there are no bids
+        var highestBid = await dbContext.Bids.Where(b => b.ListingID == listingID).MaxAsync(b => (decimal?)b.Amount);
+        if (highestBid == null)
+        {
+            var startingPrice = await dbContext.Listings
+            .Where(l => l.ID == listingID)
+            .Select(l => l.StartingPrice)
+            .FirstOrDefaultAsync();
+
+            return startingPrice;
+        }
+
+        return highestBid.Value;
+    }
+
 
     // file size set to 3MB
     private long maxFileSize = 1024 * 1024 * 3;
@@ -178,8 +238,42 @@
     private bool showConfirmation;
     private string successMessage = ""; //Clears successMessage
 
+    private void EditListing(int listingId)
+    {
+        NavigationManager.NavigateTo($"/listing/edit/{listingId}");
+    }
 
 
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadListingsAndPrices();
+        await GetUserListings(ListingID);
+    }
+
+
+    private async Task GetUserListings(int listingID)
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var userID = userManager.GetUserId(user);
+            using (var dbContext = dbContextFactory.CreateDbContext())
+            {
+                listings = await dbContext.Listings
+                                          .Where(l => l.ApplicationUserID == userID && l.AuctionEnd >= DateTime.Now)
+                                          .ToListAsync();
+            }
+        }
+        else
+        {
+            listings = new List<Listing>();
+        }
+
+        await ShowModal(listingID);
+        StateHasChanged();
+    }
 
     private async Task LoadListingDetails()
     {
@@ -255,8 +349,6 @@
             StateHasChanged();
             await Task.Delay(2000); // Display the successMessage for two seconds
 
-            CloseModal(); // Close the editModal
-
             // Force reload the page to update the newly added listing
             NavigationManager.NavigateTo("/", forceLoad: false);
         }
@@ -268,6 +360,8 @@
         {
             Console.WriteLine($"An error occurred: {ex.Message}");
         }
+
+        CloseModal(); // Close the editModal
     }
 
     // Method to handle images
@@ -325,12 +419,22 @@
         errors.Clear();
     }
 
-    public void ShowModal()
+    public async Task ShowModal(int listingId)
     {
+        // Fetch the listing from the database
+        using (var dbContext = dbContextFactory.CreateDbContext())
+        {
+            listing = await dbContext.Listings.FirstOrDefaultAsync(l => l.ID == listingId);
+
+            if (listing == null)
+            {
+                Console.WriteLine("Listing not found.");
+                IsVisible = false;
+                return;
+            }
+        }
+
         successMessage = "";
-        base64Image = null;
-        serverImagePath = null;
-        errors.Clear();
         IsVisible = true;
     }
 

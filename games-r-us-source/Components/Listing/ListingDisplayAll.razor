@@ -37,7 +37,7 @@
     // this will need to be restricted later to only get a certain amount of
     // listings from the database, implement when doing pagination
     List<Listing> listings = new List<Listing>();
-
+    private List<decimal> prices = new(); //Display prices for listings
 
     // Lifecycle method for blazor that is called after this component
     // is initialized but before being rendered
@@ -52,25 +52,20 @@
     private async Task<decimal> GetCurrentBid(int listingID)
     {
         using var dbContext = dbContextFactory.CreateDbContext();
-        var highestBid = await dbContext.Bids
-                            .Where(b => b.ListingID == listingID)
-                            .OrderByDescending(b => b.Amount)
-                            .FirstOrDefaultAsync();
-
-        var listing = await dbContext.Listings
-                            .FirstOrDefaultAsync(l => l.ID == listingID);
+        // Fetch listing by ID
+        var listing = await dbContext.Listings.FirstOrDefaultAsync(l => l.ID == listingID);
 
         if (listing == null)
         {
             throw new InvalidOperationException($"No listing found with ID {listingID}.");
         }
 
-        return highestBid != null && highestBid.Amount > listing.StartingPrice
-               ? highestBid.Amount
-               : listing.StartingPrice;
-    }
+        // check for any bids on the listing and get the highest if available. Nullable in case there are no bids
+        var highestBid = await dbContext.Bids.Where(b => b.ListingID == listingID).MaxAsync(b => (decimal?)b.Amount);
 
-    private List<decimal> prices = new(); //Display prices for listings
+        //Return highestBid or the listing's startingPrice
+        return highestBid ?? listing.StartingPrice;
+    }
 
     //fetch listings and their respecrtive prices
     private async Task LoadListingsAndPrices() 

@@ -159,6 +159,9 @@ helping mitigate issues associated with having a DbContext that is too long-live
     private string currentImagePath;
     private DateTime lastSubmissionTime = DateTime.MinValue;
 
+    private bool IsVisible;
+    private bool showConfirmation;
+
 
     private async Task HandleValidSubmit()
     {
@@ -166,14 +169,12 @@ helping mitigate issues associated with having a DbContext that is too long-live
 
         if (string.IsNullOrWhiteSpace(listing.Name))
         {
-            Console.WriteLine("Name is required.");
             return;
         }
 
         // Used to avoid duplicates
         if ((currentTime - lastSubmissionTime).TotalSeconds < 3)
         {
-            Console.WriteLine("You must wait 3 seconds before creating another listing.");
             return;
         }
 
@@ -283,8 +284,6 @@ helping mitigate issues associated with having a DbContext that is too long-live
         }
     }
 
-    private bool IsVisible;
-    private bool showConfirmation;
 
     private void ShowConfirmCancel() => showConfirmation = true;
 

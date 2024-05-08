@@ -1,0 +1,43 @@
+﻿@using Microsoft.EntityFrameworkCore
+@using Data;
+@using Components;
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IDbContextFactory<ApplicationDbContext> dbContextFactory;
+@inject AuthenticationStateProvider AuthorizationStateProvider;
+
+<AuthorizeView>
+    <Authorized>
+        <h3>Bidding History</h3>
+        <main>
+
+        </main>
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    private List<Bid> Bids { get; set; }
+    private string UserName { get; set; }
+
+    protected override void OnInitialized()
+    {
+        using (var dbContext = dbContextFactory.CreateDbContext())
+        {
+            ApplicationUser user = ApplicationUserHelper.
+            Bids = dbContext.Bids.Where(b => b.ApplicationUserID)
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Get the logged in user
+        var authenticationState = await AuthorizationStateProvider.GetAuthenticationStateAsync();
+        var user = authenticationState.User;
+
+        // Get the user's email if they are authenticated
+        if (user.Identity.IsAuthenticated)
+        {
+            UserName = user.Identity.Name;
+        }
+    }
+
+}

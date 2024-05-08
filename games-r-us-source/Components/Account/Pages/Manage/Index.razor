@@ -21,13 +21,8 @@
         <EditForm Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync" method="post">
             <DataAnnotationsValidator />
             <ValidationSummary class="text-danger" role="alert" />
-            @* <div class="form-floating mb-3">
-                <input type="text" value="@username" class="form-control" placeholder="Please choose your username." disabled />
-                <label for="username" class="form-label">Username</label>
-            </div> *@
             <div class="form-floating mb-3">
                 <InputText @bind-Value="Input.FullName" class="form-control" placeholder="Please enter you full name." />
-                @* <input type="text" bind-Value="@fullName" class="form-control" placeholder="Please enter you full name." /> *@
                 <label for="fullName" class="form-label">Full name</label>
             </div>
             <div class="form-floating mb-3">
@@ -42,7 +37,6 @@
 
 @code {
     private ApplicationUser user = default!;
-    //private string? username;
     private string? fullName;
     private string? phoneNumber;
 

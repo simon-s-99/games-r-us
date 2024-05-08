@@ -64,7 +64,7 @@
         using (var dbContext = dbContextFactory.CreateDbContext())
         {
             fullName = dbContext.ApplicationUsers.Find(user.Id).FullName;
-            Input.FullName ??= fullName; // set queriedFullName to inputFullName if it is not null
+            Input.FullName ??= fullName; // set Input.FullName to fullName if it is not null
         }
 
         Input.PhoneNumber ??= phoneNumber;

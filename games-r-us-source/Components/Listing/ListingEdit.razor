@@ -3,12 +3,9 @@
 @using Microsoft.AspNetCore.Components.Forms
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.EntityFrameworkCore
-@using System
-@using System.Linq
 @using Microsoft.AspNetCore.Identity
 @using games_r_us_source.Components
 @using games_r_us_source.Data
-@* @using Microsoft.AspNetCore.Components.Forms *@
 
 @* Enables onclick functions *@
 @rendermode InteractiveServer
@@ -22,8 +19,6 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject UserManager<ApplicationUser> userManager
 @inject IDbContextFactory<ApplicationDbContext> dbContextFactory
-
-@* @inject IConfiguration config *@
 
 <AuthorizeView>
     <Authorized>

@@ -2,6 +2,7 @@
 @using games_r_us_source.Data
 @inject ApplicationDbContext dbContext
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
 @if (listings == null)
@@ -14,7 +15,7 @@ else if (listings.Any())
         @foreach (var listing in listings)
         {
             <li>
-                <a href="@($"listingdetails/{listing.ID}")">@listing.Name</a> - @listing.Description
+                <a @onclick="() => NavigateToListingDetails(listing.ID)">@listing.Name</a> - @listing.Description
             </li>
         }
     </ul>
@@ -26,6 +27,11 @@ else
 
 @code {
     private List<Listing> listings;
+
+    private void NavigateToListingDetails(int listingId)
+    {
+        NavigationManager.NavigateTo($"listingdetails/{listingId}");
+    }
 
     private async Task ViewMyListings()
     {

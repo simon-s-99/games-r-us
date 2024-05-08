@@ -52,19 +52,21 @@
     private async Task<decimal> GetCurrentBid(int listingID)
     {
         using var dbContext = dbContextFactory.CreateDbContext();
-        // Fetch listing by ID
-        var listing = await dbContext.Listings.FirstOrDefaultAsync(l => l.ID == listingID);
-
-        if (listing == null)
-        {
-            throw new InvalidOperationException($"No listing found with ID {listingID}.");
-        }
 
         // check for any bids on the listing and get the highest if available. Nullable in case there are no bids
         var highestBid = await dbContext.Bids.Where(b => b.ListingID == listingID).MaxAsync(b => (decimal?)b.Amount);
 
-        //Return highestBid or the listing's startingPrice
-        return highestBid ?? listing.StartingPrice;
+        if (highestBid == null)
+        {
+            var startingPrice = await dbContext.Listings
+            .Where(l => l.ID == listingID)
+            .Select(l => l.StartingPrice)
+            .FirstOrDefaultAsync();   
+
+            return startingPrice;
+        }
+
+        return highestBid.Value;
     }
 
     //fetch listings and their respecrtive prices

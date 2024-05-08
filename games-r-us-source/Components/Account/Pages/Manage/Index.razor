@@ -2,12 +2,14 @@
 
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
 @using games_r_us_source.Data
 
 @inject UserManager<ApplicationUser> UserManager
 @inject SignInManager<ApplicationUser> SignInManager
 @inject IdentityUserAccessor UserAccessor
 @inject IdentityRedirectManager RedirectManager
+@inject IDbContextFactory<ApplicationDbContext> dbContextFactory
 
 <PageTitle>Profile</PageTitle>
 
@@ -19,9 +21,14 @@
         <EditForm Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync" method="post">
             <DataAnnotationsValidator />
             <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
+            @* <div class="form-floating mb-3">
                 <input type="text" value="@username" class="form-control" placeholder="Please choose your username." disabled />
                 <label for="username" class="form-label">Username</label>
+            </div> *@
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.FullName" class="form-control" placeholder="Please enter you full name." />
+                @* <input type="text" bind-Value="@fullName" class="form-control" placeholder="Please enter you full name." /> *@
+                <label for="fullName" class="form-label">Full name</label>
             </div>
             <div class="form-floating mb-3">
                 <InputText @bind-Value="Input.PhoneNumber" class="form-control" placeholder="Please enter your phone number." />
@@ -35,7 +42,8 @@
 
 @code {
     private ApplicationUser user = default!;
-    private string? username;
+    //private string? username;
+    private string? fullName;
     private string? phoneNumber;
 
     [CascadingParameter]
@@ -47,8 +55,17 @@
     protected override async Task OnInitializedAsync()
     {
         user = await UserAccessor.GetRequiredUserAsync(HttpContext);
-        username = await UserManager.GetUserNameAsync(user);
         phoneNumber = await UserManager.GetPhoneNumberAsync(user);
+        //username = await UserManager.GetUserNameAsync(user);
+        // i wanted to create a method like this ^ to handle getting the users fullname
+        // but creating an extension for UserManager was a little tricky (future improvement?)
+        // - simon-s-99
+
+        using (var dbContext = dbContextFactory.CreateDbContext())
+        {
+            fullName = dbContext.ApplicationUsers.Find(user.Id).FullName;
+            Input.FullName ??= fullName; // set queriedFullName to inputFullName if it is not null
+        }
 
         Input.PhoneNumber ??= phoneNumber;
     }
@@ -64,6 +81,17 @@
             }
         }
 
+        // only update post in database if name has actually been changed
+        if (Input.FullName != fullName)
+        {
+            using (var dbContext = dbContextFactory.CreateDbContext())
+            {
+                var userEntity = dbContext.ApplicationUsers.Find(user.Id);
+                userEntity.FullName = Input.FullName;
+                dbContext.SaveChangesAsync();
+            }
+        }
+
         await SignInManager.RefreshSignInAsync(user);
         RedirectManager.RedirectToCurrentPageWithStatus("Your profile has been updated", HttpContext);
     }
@@ -73,5 +101,7 @@
         [Phone]
         [Display(Name = "Phone number")]
         public string? PhoneNumber { get; set; }
+
+        public string? FullName { get; set; } // needed for comparison purposes 
     }
 }

@@ -20,8 +20,8 @@
 @inject UserManager<ApplicationUser> userManager
 @inject IDbContextFactory<ApplicationDbContext> dbContextFactory
 
-        @* Button to show the modal when editing a listing *@
-      @*   <button @onclick="ShowModal" class="bg-gray-300 px-4 py-2 text-black rounded-xl font-bold hover:bg-gray-400">Edit listing</button> *@
+@* Button to show the modal when editing a listing *@
+@*   <button @onclick="ShowModal" class="bg-gray-300 px-4 py-2 text-black rounded-xl font-bold hover:bg-gray-400">Edit listing</button> *@
 <AuthorizeView>
     <Authorized>
         @if (listings.Any())
@@ -170,9 +170,13 @@
             </div>
         </div>
     }
+    @foreach (var error in errors)
+    {
+        <div class="alert alert-danger">@error</div>
+    }
 }
 
-
+Image not showing
 
 @code {
     [Parameter]
@@ -237,12 +241,6 @@
     private bool IsVisible;
     private bool showConfirmation;
     private string successMessage = ""; //Clears successMessage
-
-    private void EditListing(int listingId)
-    {
-        NavigationManager.NavigateTo($"/listing/edit/{listingId}");
-    }
-
 
     protected override async Task OnInitializedAsync()
     {
@@ -309,6 +307,22 @@
 
         lastSubmissionTime = currentTime;
         using var dbContext = dbContextFactory.CreateDbContext();
+        var existingListing = await dbContext.Listings.FindAsync(listing.ID);
+
+        if (existingListing != null)
+        {
+            existingListing.Name = listing.Name;
+            existingListing.Description = listing.Description;
+            existingListing.StartingPrice = listing.StartingPrice;
+            existingListing.ImagePath = listing.ImagePath;
+            existingListing.Platform = listing.Platform;
+            existingListing.AuctionEnd = listing.AuctionEnd;
+            existingListing.GameCategory = listing.GameCategory;
+
+            await dbContext.SaveChangesAsync();
+            NavigationManager.NavigateTo("/", forceLoad: true);
+            successMessage = "Changes saved successfully";
+        }
 
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;

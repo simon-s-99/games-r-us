@@ -68,7 +68,6 @@ helping mitigate issues associated with having a DbContext that is too long-live
                     <h3 class="text-gray-900 text-lg font-medium leading-6">Create a Listing</h3>
 
                     <DataAnnotationsValidator />
-                    <ValidationSummary />
                     <ul class="mt-3 space-y-4">
                         <li>
                             @* Input for name *@
@@ -152,7 +151,7 @@ helping mitigate issues associated with having a DbContext that is too long-live
     // file size set to 3MB
     private long maxFileSize = 1024 * 1024 * 3;
     private int maxAllowedFiles = 1; // In case we ever want to allow more than one image
-    private List<string> errors = new(); //displays errors in the UI
+    /* private List<string> errors = new(); */ //displays errors in the UI
 
     private IBrowserFile? file; // Holds a reference to the uploaded file
 
@@ -164,6 +163,13 @@ helping mitigate issues associated with having a DbContext that is too long-live
     private async Task HandleValidSubmit()
     {
         var currentTime = DateTime.Now;
+
+        if (string.IsNullOrWhiteSpace(listing.Name))
+        {
+            Console.WriteLine("Name is required.");
+            return;
+        }
+
         // Used to avoid duplicates
         if ((currentTime - lastSubmissionTime).TotalSeconds < 3)
         {
@@ -264,7 +270,7 @@ helping mitigate issues associated with having a DbContext that is too long-live
             }
             catch (Exception ex)
             {
-                errors.Add($"Error uploading image: {ex.Message}");
+                // errors.Add($"Error uploading image: {ex.Message}");
                 base64Image = null;
                 currentImagePath = null;
             }
@@ -291,14 +297,14 @@ helping mitigate issues associated with having a DbContext that is too long-live
     {
         showConfirmation = false;
         IsVisible = false;
-        errors.Clear();
+        // errors.Clear();
     }
 
     public void ShowModal()
     {
         listing = new Listing { AuctionEnd = DateTime.Now.AddDays(7), StartingPrice = 1 };
         base64Image = null;
-        errors.Clear();
+        // errors.Clear();
         IsVisible = true;
     }
 
@@ -306,7 +312,7 @@ helping mitigate issues associated with having a DbContext that is too long-live
     {
         listing = new Listing { AuctionEnd = DateTime.Now.AddDays(7), StartingPrice = 1 };
         base64Image = null;
-        errors.Clear();
+        // errors.Clear();
         IsVisible = false;
     }
 }

@@ -74,19 +74,22 @@ helping mitigate issues associated with having a DbContext that is too long-live
                             @* Input for name *@
                             <label class="text-gray-700 block text-sm font-medium">Name:</label>
                             <InputText id="name" @bind-Value="listing.Name" class="input-field mt-1 block w-full"
-                                       placeholder="Name of your listing" min="1" />
+                                       placeholder="Name of your listing" min="1" max="50" />
+                            <ValidationMessage For="@(() => listing.Name)" class="text-red-500 text-xs mt-1" />
                         </li>
                         <li>
                             @* Input for starting price *@
                             <label class="text-gray-700 block text-sm font-medium">Starting price:</label>
                             <InputNumber id="startingPrice" @bind-Value="listing.StartingPrice" class="input-field mt-1 block w-full"
                                          placeholder="Starting Price" min="1" />
+                            <ValidationMessage For="@(() => listing.StartingPrice)" class="text-red-500 text-xs mt-1" />
                         </li>
                         <li>
                             @* Input for description *@
                             <label class="text-gray-700 block text-sm font-medium">Description:</label>
                             <InputTextArea id="description" @bind-Value="listing.Description" class="input-field mt-1 block w-full"
-                                           placeholder="Description" maxlength="100" />
+                                           placeholder="Description" maxlength="1000" />
+                            <ValidationMessage For="@(() => listing.Description)" class="text-red-500 text-xs mt-1" />
                         </li>
                         <li>
                             @* Input for end date *@
@@ -144,6 +147,7 @@ helping mitigate issues associated with having a DbContext that is too long-live
 @code {
     // Placeholder for a new or existing listing to be edited or created
     Listing listing = new Listing { AuctionEnd = DateTime.Now.AddDays(7) };
+    private List<Listing> listings = new List<Listing>();
 
     // file size set to 3MB
     private long maxFileSize = 1024 * 1024 * 3;
@@ -161,9 +165,9 @@ helping mitigate issues associated with having a DbContext that is too long-live
     {
         var currentTime = DateTime.Now;
         // Used to avoid duplicates
-        if ((currentTime - lastSubmissionTime).TotalSeconds < 5)
+        if ((currentTime - lastSubmissionTime).TotalSeconds < 3)
         {
-            Console.WriteLine("You must wait 5 seconds before creating another listing.");
+            Console.WriteLine("You must wait 3 seconds before creating another listing.");
             return;
         }
 
@@ -181,6 +185,8 @@ helping mitigate issues associated with having a DbContext that is too long-live
 
         try
         {
+            if (!string.IsNullOrEmpty(currentImagePath))
+            {              
             // We send the images to a temp storage in case they won't be needed later. Example: if the user changes image
 
             //path to the permanent storage directory for images
@@ -195,12 +201,13 @@ helping mitigate issues associated with having a DbContext that is too long-live
             // Move the uploaded image from temporary to permanent storage upon successful listing creation
             if (File.Exists(sourcePath))
             {
-                Directory.CreateDirectory(permanentFolderPath); 
+                Directory.CreateDirectory(permanentFolderPath);
                 File.Move(sourcePath, destinationPath);
             }
 
             // Update listing with the path of the permanently stored image
             listing.ImagePath = Path.Combine("images", currentImagePath);
+            }
 
             dbContext.Listings.Add(listing); // Adds the new listing to the database
             await dbContext.SaveChangesAsync();
@@ -258,7 +265,15 @@ helping mitigate issues associated with having a DbContext that is too long-live
             catch (Exception ex)
             {
                 errors.Add($"Error uploading image: {ex.Message}");
+                base64Image = null;
+                currentImagePath = null;
             }
+
+        }
+        else
+        {
+            base64Image = null;
+            currentImagePath = null;
         }
     }
 

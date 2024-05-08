@@ -25,5 +25,8 @@ namespace games_r_us_source.Data
 
         // time bid was placed
         public DateTime Time { get; set; }
+
+        [NotMapped]
+        public bool WasHighestBid { get; set; }
     }
 }

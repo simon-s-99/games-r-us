@@ -1,30 +1,119 @@
 ﻿@using Microsoft.EntityFrameworkCore
 @using Data;
-@using Components;
+@using Components.Helpers;
 @using Microsoft.AspNetCore.Components.Authorization
 @inject IDbContextFactory<ApplicationDbContext> dbContextFactory;
 @inject AuthenticationStateProvider AuthorizationStateProvider;
+@rendermode InteractiveServer
 
 <AuthorizeView>
     <Authorized>
         <h3>Bidding History</h3>
-        <main>
+        <main class="text-center *:list-none">
+            <ul class="grid-cols-4 grid font-bold">
+                <li>
+                    <button type="button" @onclick="() => OrderBids(SortingOrder.Amount)">Amount 
+                        @DrawArrowIcon(SortingOrder.Amount)
+                        <img src="~/images/up-arrow-icon.svg" alt='Up arrow icon' />
+                    </button>
+                </li>
+                <li>
+                    <button type="button" @onclick="() => OrderBids(SortingOrder.WasHighestBid)">Status 
+                        @DrawArrowIcon(SortingOrder.WasHighestBid)
+                    </button>
+                </li>
+                <li>
+                    <button type="button" @onclick="() => OrderBids(SortingOrder.Listing)">Listing 
+                        @DrawArrowIcon(SortingOrder.Listing)
+                    </button>
+                </li>
+                <li>
+                    <button type="button" @onclick="() => OrderBids(SortingOrder.Time)">Time 
+                        @DrawArrowIcon(SortingOrder.Time)
+                    </button>
+                </li>
+            </ul>
+            @if (Bids.Any())
+            {
+                foreach (Bid bid in Bids)
+                {
+                    using (var dbContext = dbContextFactory.CreateDbContext())
+                    {
+                        // Check if bid was the highest bid for associated listing
+                        bid.WasHighestBid = bid.ID == BidHelper.GetHighestBidFromListingID(bid.ListingID, dbContext).ID;
+                    }
 
+                    string style = bid.WasHighestBid ? "bg-green-500 grid-cols-4 grid *:p-4" : "bg-red-500 grid-cols-4 grid *:p-4";
+
+                    <ul class=@style>
+                        <li>$@bid.Amount</li>
+                        @if (bid.WasHighestBid)
+                        {
+                            <li>Won</li>
+                        }
+                        else
+                        {
+                            <li>Lost</li>
+                        }
+                        <li>@bid.ListingID</li>
+                        <li>@bid.Time</li>
+                    </ul>
+                }
+            }
         </main>
     </Authorized>
 </AuthorizeView>
 
 @code {
-    private List<Bid> Bids { get; set; }
+    private List<Bid?> Bids { get; set; } = new List<Bid?>();
     private string UserName { get; set; }
+    private bool OrderByDescending { get; set; } = true;
 
-    protected override void OnInitialized()
+    // Only for determining which arrow to show
+    private SortingOrder? SelectedSortingOrder { get; set; } = null;
+
+    private enum SortingOrder
     {
-        using (var dbContext = dbContextFactory.CreateDbContext())
+        Amount,
+        WasHighestBid,
+        Listing,
+        Time
+    };
+
+    private void OrderBids(SortingOrder sortingOrder)
+    {
+        SelectedSortingOrder = sortingOrder;
+        OrderByDescending = !OrderByDescending;
+
+        // Dynamically get the property of the bid object to order by
+        var order = typeof(Bid).GetProperty(sortingOrder.ToString());
+
+        if (OrderByDescending)
         {
-            ApplicationUser user = ApplicationUserHelper.
-            Bids = dbContext.Bids.Where(b => b.ApplicationUserID)
+            // Order by the specified sorting order
+            // b in this case is the Bid object, we are essentially doing "b.sortingOrder"
+            Bids = Bids.OrderByDescending(b => order.GetValue(b)).ToList();
         }
+        else
+        {
+            Bids = Bids.OrderBy(b => order.GetValue(b)).ToList();
+        }
+
+        StateHasChanged();
+    }
+
+    private MarkupString? DrawArrowIcon(SortingOrder sortingOrder)
+    {
+        if (sortingOrder == SelectedSortingOrder)
+        {
+            MarkupString arrowIcon = OrderByDescending ? 
+            (MarkupString)"<img src='~/images/down-arrow-icon.svg' alt='Down arrow icon' />" : 
+            (MarkupString)"<img src='~/images/up-arrow-icon.svg' alt='Up arrow icon' />";
+
+            return arrowIcon;
+        }
+
+        return null;
     }
 
     protected override async Task OnInitializedAsync()
@@ -37,6 +126,13 @@
         if (user.Identity.IsAuthenticated)
         {
             UserName = user.Identity.Name;
+        }
+
+        using (var dbContext = dbContextFactory.CreateDbContext())
+        {
+            ApplicationUser loggedInUser = ApplicationUserHelper.GetAccountFromUserName(UserName, dbContext);
+
+            Bids = dbContext.Bids.Where(b => b.ApplicationUserID == loggedInUser.Id).ToList();
         }
     }
 

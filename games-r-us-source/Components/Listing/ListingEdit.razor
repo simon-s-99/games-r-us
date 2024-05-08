@@ -143,6 +143,7 @@
         </div>
     }
 
+
     @if (!string.IsNullOrEmpty(successMessage))
     {
         <div class="inset-0 bg-black fixed flex items-center justify-center bg-opacity-50">
@@ -160,7 +161,27 @@
     public int ListingID { get; set; }
     private Listing listing;
 
-    protected override async Task OnInitializedAsync()
+    // file size set to 3MB
+    private long maxFileSize = 1024 * 1024 * 3;
+    private int maxAllowedFiles = 1; // In case we ever want to allow more than one image
+    private List<string> errors = new(); //displays errors in the UI
+
+    private IBrowserFile? file; // Holds a reference to the uploaded file
+
+    private string base64Image; // For immediate display in our ui
+    private string serverImagePath; // Path where the image is stored
+    private string currentImagePath;
+    private DateTime lastSubmissionTime = DateTime.MinValue;
+    private bool DisablePrice = false; // if true the user can edit the starting price (if no bids were made)
+
+    private bool IsVisible;
+    private bool showConfirmation;
+    private string successMessage = ""; //Clears successMessage
+
+
+
+
+    private async Task LoadListingDetails()
     {
         // fetch listings by ID
         using var dbContext = dbContextFactory.CreateDbContext();
@@ -176,29 +197,19 @@
         DisablePrice = await dbContext.Bids.AnyAsync(b => b.ListingID == ListingID);
     }
 
-
-    // file size set to 3MB
-    private long maxFileSize = 1024 * 1024 * 3;
-    private int maxAllowedFiles = 1; // In case we ever want to allow more than one image
-    private List<string> errors = new(); //displays errors in the UI
-
-    private IBrowserFile? file; // Holds a reference to the uploaded file
-
-    private string base64Image; // For immediate display in our ui
-    private string serverImagePath; // Path where the image is stored
-    private string currentImagePath;
-    private DateTime lastSubmissionTime = DateTime.MinValue;
-
-    private bool DisablePrice = false; // if true the user can edit the starting price (if no bids were made)
-
-
     private async Task HandleValidSubmit()
     {
         var currentTime = DateTime.Now;
-        // Used to avoid duplicates
-        if ((currentTime - lastSubmissionTime).TotalSeconds < 5)
+
+        if (string.IsNullOrWhiteSpace(listing.Name))
         {
-            Console.WriteLine("You must wait 5 seconds before creating another listing.");
+            return;
+        }
+
+        // Used to avoid duplicates
+        if ((currentTime - lastSubmissionTime).TotalSeconds < 3)
+        {
+            Console.WriteLine("You must wait 3 seconds before creating another listing.");
             return;
         }
 
@@ -300,10 +311,6 @@
         }
     }
 
-    private bool IsVisible;
-    private bool showConfirmation;
-    private string successMessage = "";
-
     private void ShowConfirmCancel() => showConfirmation = true;
 
     private void HideConfirmCancel()
@@ -320,7 +327,7 @@
 
     public void ShowModal()
     {
-        successMessage = ""; //Clears successMessage
+        successMessage = "";
         base64Image = null;
         serverImagePath = null;
         errors.Clear();

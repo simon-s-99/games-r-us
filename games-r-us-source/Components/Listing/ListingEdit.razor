@@ -68,22 +68,24 @@
                             <label class="text-gray-700 block text-sm font-medium">Name:</label>
                             <InputText id="name" @bind-Value="listing.Name" class="input-field mt-1 block w-full"
                                        placeholder="@listing" min="1" />
+                            <ValidationMessage For="@(() => listing.Name)" class="text-red-500 text-xs mt-1" />
                         </li>
                         <li>
-                            @* Input for starting price *@
+                            <label class="text-gray-700 block text-sm font-medium">Starting price:</label>
                             @if (!DisablePrice)
                             {
-                            <label class="text-gray-700 block text-sm font-medium">Starting price:</label>
-                            <InputNumber id="startingPrice" @bind-Value="listing.StartingPrice" class="input-field mt-1 block w-full"
-                                placeholder="Starting Price" min="1" />
-                            }
-                            else @*If there has been a bid made the user cannot edit StartinPrice*@
-                            {
-                                <label class="text-gray-700 block text-sm font-medium">Starting price:</label>
                                 <InputNumber id="startingPrice" @bind-Value="listing.StartingPrice" class="input-field mt-1 block w-full"
-                                              min="1" disabled />
+                                             placeholder="Starting Price" min="1" />
+                                <ValidationMessage For="@(() => listing.StartingPrice)" />
+                            }
+                            else  // If there has been a bid made, the user cannot edit the starting price
+                            {
+                                <InputNumber id="startingPrice" @bind-Value="listing.StartingPrice" class="input-field mt-1 block w-full"
+                                             min="1" disabled />
+                                <p class="text-red-500 mt-2 text-xs italic">Cannot change starting price after a bid has been made.</p>
                             }
                         </li>
+
                         <li>
                             @* Input for description *@
                             <label class="text-gray-700 block text-sm font-medium">Description:</label>
@@ -141,38 +143,38 @@
             </div>
         </div>
     }
+
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div class="inset-0 bg-black fixed flex items-center justify-center bg-opacity-50">
+            <div class="bg-white p-4 flex flex-col items-center rounded">
+                <h3 class="mb-4 text-lg">@successMessage</h3>
+            </div>
+        </div>
+    }
 }
 
 
 
 @code {
-    // There should be a button in the right corner that says "edit" and when pressed shows the layout as createListings or ListingsDetails
-    // All the fields should then be editable except AuctionEnd and StartingPrice (if there has been a bid made)
-    // There should be a cancel button that when pressed prompt the user if they really want to cancel their edit
-    // The edit listing should have the same error handling as CreateListing and similar methods such as for images etc.
-    // Does Blazor have a convenient way to call on methods from other razor pages?
-    // When the user is done and pressed "save changes" there should be a promt saying "changes saved successfully" or something along those lines
-    // When this is done the new changes should also be saved and overwritten in the database.
-    // If the image was changed the old image should also be deleted
-    //
-
-    // Fetch the listings so we can display it's current details like: name,image etc to show in the edit menu
-
     [Parameter]
     public int ListingID { get; set; }
-    private Listing listing; // remove?
-
-    private bool DisablePrice = false; // if true the user can edit the starting price (if no bids were made)
+    private Listing listing;
 
     protected override async Task OnInitializedAsync()
     {
+        // fetch listings by ID
         using var dbContext = dbContextFactory.CreateDbContext();
-        listing = await dbContext.Listings.FindAsync(ListingID);
+        listing = await dbContext.Listings.FirstOrDefaultAsync(l => l.ID == ListingID);
 
         if (listing == null)
         {
-            Console.WriteLine("Listing not found"); 
+            Console.WriteLine("Listing not found");
+            return;
         }
+
+        // check for bids if the listing exists
+        DisablePrice = await dbContext.Bids.AnyAsync(b => b.ListingID == ListingID);
     }
 
 
@@ -187,6 +189,8 @@
     private string serverImagePath; // Path where the image is stored
     private string currentImagePath;
     private DateTime lastSubmissionTime = DateTime.MinValue;
+
+    private bool DisablePrice = false; // if true the user can edit the starting price (if no bids were made)
 
 
     private async Task HandleValidSubmit()
@@ -237,8 +241,11 @@
             dbContext.Listings.Add(listing); // Adds the new listing to the database
             await dbContext.SaveChangesAsync();
 
-            CloseModal();
-            Console.WriteLine("Listing created successfully.");
+            successMessage = "Changes saved successfully";
+            StateHasChanged();
+            await Task.Delay(2000); // Display the successMessage for two seconds
+
+            CloseModal(); // Close the editModal
 
             // Force reload the page to update the newly added listing
             NavigationManager.NavigateTo("/", forceLoad: false);
@@ -296,6 +303,7 @@
 
     private bool IsVisible;
     private bool showConfirmation;
+    private string successMessage = "";
 
     private void ShowConfirmCancel() => showConfirmation = true;
 
@@ -313,6 +321,7 @@
 
     public void ShowModal()
     {
+        successMessage = ""; //Clears successMessage
         base64Image = null;
         serverImagePath = null;
         errors.Clear();
@@ -321,6 +330,7 @@
 
     public void CloseModal()
     {
+        successMessage = "";
         base64Image = null;
         serverImagePath = null;
         errors.Clear();

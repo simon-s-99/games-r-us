@@ -48,7 +48,7 @@
         using var dbContext = dbContextFactory.CreateDbContext();
 
         // The if statements below require first querying the database
-        ApplicationUser user = AccountHelper.GetAccountFromUserName(UserName, dbContext);
+        ApplicationUser user = ApplicationUserHelper.GetAccountFromUserName(UserName, dbContext);
 
         // If logged in user authored the listing in question
         if (CurrentListing.ApplicationUser.Id == user.Id)
@@ -62,6 +62,9 @@
             ErrorMessage = "Amount cannot be less than or equal to zero.";
             return;
         }
+
+        // Get highest bid again to make sure it wasn't trumped after first getting the highest bid
+        HighestBid = BidHelper.GetHighestBidFromListingID(CurrentListing.ID, dbContext);
 
         // If bid has no highest bid: check if bid is lower than starting price
         if (HighestBid is null) // Avoids an exception

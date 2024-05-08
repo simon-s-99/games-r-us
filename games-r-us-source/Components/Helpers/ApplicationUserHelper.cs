@@ -2,7 +2,7 @@
 
 namespace games_r_us_source.Components.Helpers
 {
-    public class AccountHelper
+    public class ApplicationUserHelper
     {
         public static ApplicationUser GetAccountFromUserName(string userName, ApplicationDbContext context)
         {

@@ -12,8 +12,8 @@ using games_r_us_source.Data;
 namespace games_r_us_source.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240504201622_InitialAfterIdentity")]
-    partial class InitialAfterIdentity
+    [Migration("20240508104859_AfterNotMapped")]
+    partial class AfterNotMapped
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -252,8 +252,6 @@ namespace games_r_us_source.Migrations
 
                     b.HasKey("ID");
 
-                    b.HasIndex("ListingID");
-
                     b.ToTable("Bids");
                 });
 
@@ -345,17 +343,6 @@ namespace games_r_us_source.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("games_r_us_source.Data.Bid", b =>
-                {
-                    b.HasOne("games_r_us_source.Data.Listing", "Listing")
-                        .WithMany()
-                        .HasForeignKey("ListingID")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("Listing");
                 });
 #pragma warning restore 612, 618
         }

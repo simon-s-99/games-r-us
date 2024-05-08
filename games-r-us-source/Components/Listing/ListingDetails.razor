@@ -114,7 +114,7 @@
         {
             // For testing purposes
             CurrentListing = ListingHelper.GetListingFromListingID(4, dbContext);
-            CurrentListing.ApplicationUser = AccountHelper.GetAccountFromUserID(CurrentListing.ApplicationUserID, dbContext);
+            CurrentListing.ApplicationUser = ApplicationUserHelper.GetAccountFromUserID(CurrentListing.ApplicationUserID, dbContext);
 
             HighestBid = BidHelper.GetHighestBidFromListingID(CurrentListing.ID, dbContext);
         }

@@ -1,0 +1,50 @@
+﻿@using games_r_us_source.Data
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Identity
+
+@inject UserManager<ApplicationUser> userManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IDbContextFactory<ApplicationDbContext> dbContextFactory
+
+@rendermode InteractiveServer
+
+
+<div class=""> 
+    <InputText class="" @bind-Value="searchText" @bind-Value:event="oninput" placeholder="Search..." maxlength="50" />
+         <select @bind="selectedPlatform">
+            <option value="All platforms"></option>
+
+            @*Here the user selects which platform they want to search for*@
+        @foreach (var platform in Enum.GetValues(typeof(Platform)))
+        {
+            <option value="@platform"> @platform.ToString()</option>
+        }
+        </select>
+
+        <select @bind="selectedCategory">
+        <option value="">All Categories</option>
+
+        @*Here the user selects which category they want to search for*@
+        @foreach (var category in Enum.GetValues(typeof(GameCategory)))
+        {
+            <option value="@category"> @category.ToString() </option>
+        }
+        </select> @*Search button*@
+        <button @onclick="ApplyFilters">Search</button>
+</div>
+
+
+
+
+@code {
+    private string searchText = "";
+    private Platform selectedPlatform;
+    private GameCategory? selectedCategory = null;
+
+
+
+    private async Task ApplyFilters()
+    {
+        
+    }
+}

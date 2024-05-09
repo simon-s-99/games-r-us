@@ -12,8 +12,8 @@ using games_r_us_source.Data;
 namespace games_r_us_source.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240504201622_InitialAfterIdentity")]
-    partial class InitialAfterIdentity
+    [Migration("20240507081042_ListingStringLengths")]
+    partial class ListingStringLengths
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -273,7 +273,8 @@ namespace games_r_us_source.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1024)
+                        .HasColumnType("nvarchar(1024)");
 
                     b.Property<int?>("GameCategory")
                         .HasColumnType("int");
@@ -283,7 +284,8 @@ namespace games_r_us_source.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("Platform")
                         .HasColumnType("int");

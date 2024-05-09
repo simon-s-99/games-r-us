@@ -2,6 +2,10 @@
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Identity
 
+@*Used for live search updates*@
+@using System.Timers
+
+
 @inject UserManager<ApplicationUser> userManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IDbContextFactory<ApplicationDbContext> dbContextFactory
@@ -9,42 +13,113 @@
 @rendermode InteractiveServer
 
 
-<div class=""> 
-    <InputText class="" @bind-Value="searchText" @bind-Value:event="oninput" placeholder="Search..." maxlength="50" />
-         <select @bind="selectedPlatform">
-            <option value="All platforms"></option>
-
-            @*Here the user selects which platform they want to search for*@
-        @foreach (var platform in Enum.GetValues(typeof(Platform)))
-        {
-            <option value="@platform"> @platform.ToString()</option>
-        }
-        </select>
-
-        <select @bind="selectedCategory">
-        <option value="">All Categories</option>
-
-        @*Here the user selects which category they want to search for*@
-        @foreach (var category in Enum.GetValues(typeof(GameCategory)))
-        {
-            <option value="@category"> @category.ToString() </option>
-        }
-        </select> @*Search button*@
-        <button @onclick="ApplyFilters">Search</button>
+<div class="py-6 px-4 mx-auto max-w-4xl sm:px-6 lg:px-8">
+    <div class="gap-4 flex">
+        <div class="flex-1">
+            <InputText class="form-input border-gray-300 w-full rounded-lg shadow-sm" @bind-Value="searchText"
+                       @bind-Value:event="oninput" placeholder="Search..." maxlength="50" />
+        </div>
+        <div class="w-48">
+            <select @bind="selectedPlatform" class="form-select border-gray-300 w-full rounded-lg shadow-sm">
+                <option value="">All Platforms</option>
+                @foreach (var platform in Enum.GetValues(typeof(Platform)))
+                {
+                    <option value="@platform">@platform.ToString()</option>
+                }
+            </select>
+        </div>
+        <div class="w-48">
+            <select @bind="selectedCategory" class="form-select border-gray-300 w-full rounded-lg shadow-sm">
+                <option value="">All Categories</option>
+                @foreach (var category in Enum.GetValues(typeof(GameCategory)))
+                {
+                    <option value="@category">@category.ToString()</option>
+                }
+            </select>
+        </div>  @*Search with the selected search terms*@
+        <button @onclick="SubmitSearch" class="bg-gray-500 text-white py-2 px-4 rounded-lg font-bold hover:bg-gray-700">
+            Search
+        </button>
+    </div>
 </div>
-
-
 
 
 @code {
     private string searchText = "";
-    private Platform selectedPlatform;
+    private Platform? selectedPlatform;
     private GameCategory? selectedCategory = null;
+    private List<Listing> listings = new List<Listing>();
+    private Timer debounceTimer;
 
-
-
-    private async Task ApplyFilters()
+    protected override void OnInitialized()
     {
-        
+        debounceTimer = new Timer(200); // Debounce interval set to 200ms
+        debounceTimer.AutoReset = false; // Ensures that the timer only runs once after the interval
+        debounceTimer.Elapsed += HandleDebounceElapsed;
+    }
+
+    private async Task OnInputChanged(ChangeEventArgs e)
+    {
+        searchText = e.Value.ToString() ?? string.Empty;
+        debounceTimer.Stop();
+        debounceTimer.Start();
+        // await SubmitSearch();
+    }
+
+    private async void HandleDebounceElapsed(object sender, ElapsedEventArgs e)
+    {
+        await InvokeAsync(async () =>
+        {
+            await ApplyFilters(searchText, selectedPlatform, selectedCategory);
+        });
+    }
+
+    public void Dispose()
+    {
+        debounceTimer?.Stop();
+        debounceTimer?.Dispose();
+    }
+
+
+    private async Task ApplyFilters(string searchText, Platform? platform, GameCategory? category)
+    {
+        using (var dbContext = dbContextFactory.CreateDbContext())
+        {
+            var query = dbContext.Listings.AsQueryable();
+
+            // Get input from search, and fetch similar listings names, and descriptions
+            if (!string.IsNullOrEmpty(searchText))
+            {
+                query = query.Where(l => EF.Functions
+                .Like(l.Name, $"%{searchText}%") ||
+                EF.Functions.Like(l.Description, $"%{searchText}%"));
+            }
+
+            if (platform.HasValue)
+            {
+                query = query.Where(l => l.Platform == platform.Value);
+            }
+
+            if (category.HasValue)
+            {
+                query = query.Where(l => l.GameCategory == category.Value);
+            }
+
+            listings = await query.ToListAsync();
+
+        }
+    }
+
+    private async Task SubmitSearch()
+    {
+        try
+        {
+            await ApplyFilters(searchText, selectedPlatform, selectedCategory);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Following error occured: {ex.Message}");
+        }
     }
 }

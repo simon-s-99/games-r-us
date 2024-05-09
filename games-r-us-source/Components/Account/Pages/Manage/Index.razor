@@ -13,32 +13,33 @@
 
 <PageTitle>Profile</PageTitle>
 
-<h3>Profile</h3>
 <StatusMessage />
 
-<div class="row">
-    <div class="col-md-6">
-        <EditForm Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync" method="post">
-            <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.FullName" class="form-control" placeholder="Please enter you full name." />
-                <label for="fullName" class="form-label">Full name</label>
-            </div>
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.PhoneNumber" class="form-control" placeholder="Please enter your phone number." />
-                <label for="phone-number" class="form-label">Phone number</label>
-                <ValidationMessage For="() => Input.PhoneNumber" class="text-danger" />
-            </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
-        </EditForm>
-    </div>
+<div class="">
+    <p class="mb-3 mt-3">
+        Email: <span class="bg-gray-200 pl-1 pr-1">@email</span>
+    </p>
+    <EditForm Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync" method="post">
+        <DataAnnotationsValidator />
+        <ValidationSummary class="text-danger" role="alert" />
+        <div class="form-floating mb-3">
+            <label for="phone-number" class="form-label">Phone number: </label>
+            <InputText @bind-Value="Input.PhoneNumber" class="border border-black" placeholder="Enter phone number..." />
+            <ValidationMessage For="() => Input.PhoneNumber" class="text-danger" />
+        </div>
+        <div class="form-floating mb-3">
+            <label for="fullName" class="form-label">Full name: </label>
+            <InputText @bind-Value="Input.FullName" class="border border-black" placeholder="Enter full name..." />
+        </div>
+        <button type="submit" class="rounded-xl bg-green-500 px-3 py-2 hover:bg-green-300">Save</button>
+    </EditForm>
 </div>
 
 @code {
     private ApplicationUser user = default!;
-    private string? fullName;
+    private string? email;
     private string? phoneNumber;
+    private string? fullName;
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
@@ -50,6 +51,7 @@
     {
         user = await UserAccessor.GetRequiredUserAsync(HttpContext);
         phoneNumber = await UserManager.GetPhoneNumberAsync(user);
+        email = await UserManager.GetEmailAsync(user);
         //username = await UserManager.GetUserNameAsync(user);
         // i wanted to create a method like this ^ to handle getting the users fullname
         // but creating an extension for UserManager was a little tricky (future improvement?)

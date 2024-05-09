@@ -8,31 +8,35 @@
 
 <AuthorizeView>
     <Authorized>
-        <h3>Bidding History</h3>
-        <main class="text-center *:list-none">
+        <h3 class="mb-4 block text-center text-2xl font-bold">Bidding History</h3>
+        <main class="border-2 rounded border-black text-center *:list-none">
             <ul class="grid-cols-4 grid font-bold">
                 <li>
-                    <button type="button" @onclick="() => OrderBids(SortingOrder.Amount)">Amount 
+                    <button class="uppercase tracking-wide" type="button" @onclick="() => OrderBids(SortingOrder.Amount)">
+                        Amount
                         @DrawArrowIcon(SortingOrder.Amount)
-                        <img src="~/images/up-arrow-icon.svg" alt='Up arrow icon' />
                     </button>
                 </li>
-                <li>
-                    <button type="button" @onclick="() => OrderBids(SortingOrder.WasHighestBid)">Status 
+                <li class="border-l-[1px] border-r-[1px] border-black">
+                    <button class="uppercase tracking-wide" type="button" @onclick="() => OrderBids(SortingOrder.WasHighestBid)">
+                        Status
                         @DrawArrowIcon(SortingOrder.WasHighestBid)
                     </button>
                 </li>
-                <li>
-                    <button type="button" @onclick="() => OrderBids(SortingOrder.Listing)">Listing 
+                <li class="border-r-[1px] border-black">
+                    <button class="uppercase tracking-wide" type="button" @onclick="() => OrderBids(SortingOrder.Listing)">
+                        Listing
                         @DrawArrowIcon(SortingOrder.Listing)
                     </button>
                 </li>
                 <li>
-                    <button type="button" @onclick="() => OrderBids(SortingOrder.Time)">Time 
+                    <button class="uppercase tracking-wide" type="button" @onclick="() => OrderBids(SortingOrder.Time)">
+                        Time
                         @DrawArrowIcon(SortingOrder.Time)
                     </button>
                 </li>
             </ul>
+
             @if (Bids.Any())
             {
                 foreach (Bid bid in Bids)
@@ -43,25 +47,28 @@
                         bid.WasHighestBid = bid.ID == BidHelper.GetHighestBidFromListingID(bid.ListingID, dbContext).ID;
                     }
 
-                    string style = bid.WasHighestBid ? "bg-green-500 grid-cols-4 grid *:p-4" : "bg-red-500 grid-cols-4 grid *:p-4";
+                    string style = bid.WasHighestBid ? "bg-green-300 grid-cols-4 grid *:p-4" : "bg-red-300 grid-cols-4 grid *:p-4";
 
                     <ul class=@style>
                         <li>$@bid.Amount</li>
                         @if (bid.WasHighestBid)
                         {
-                            <li>Won</li>
+                            <li class="border-l-[1px] border-r-[1px] border-black">Won</li>
                         }
                         else
                         {
-                            <li>Lost</li>
+                            <li class="border-l-[1px] border-r-[1px] border-black">Lost</li>
                         }
-                        <li>@bid.ListingID</li>
+                        <li class="border-r-[1px] border-black">@bid.ListingID</li>
                         <li>@bid.Time</li>
                     </ul>
                 }
             }
         </main>
     </Authorized>
+    <NotAuthorized>
+        <p>Log in to view your bidding history.</p>
+    </NotAuthorized>
 </AuthorizeView>
 
 @code {
@@ -104,11 +111,12 @@
 
     private MarkupString? DrawArrowIcon(SortingOrder sortingOrder)
     {
+        // Return image element based on currently selected sorting order
         if (sortingOrder == SelectedSortingOrder)
         {
-            MarkupString arrowIcon = OrderByDescending ? 
-            (MarkupString)"<img src='~/images/down-arrow-icon.svg' alt='Down arrow icon' />" : 
-            (MarkupString)"<img src='~/images/up-arrow-icon.svg' alt='Up arrow icon' />";
+            MarkupString arrowIcon = OrderByDescending ?
+            (MarkupString)"<img class='inline' src='images/down-arrow-icon.svg' alt='Down arrow icon' />" :
+            (MarkupString)"<img class='inline' src='images/up-arrow-icon.svg' alt='Up arrow icon' />";
 
             return arrowIcon;
         }
@@ -122,10 +130,15 @@
         var authenticationState = await AuthorizationStateProvider.GetAuthenticationStateAsync();
         var user = authenticationState.User;
 
+
         // Get the user's email if they are authenticated
         if (user.Identity.IsAuthenticated)
         {
             UserName = user.Identity.Name;
+        }
+        else
+        {
+            return;
         }
 
         using (var dbContext = dbContextFactory.CreateDbContext())

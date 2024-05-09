@@ -249,8 +249,6 @@ namespace games_r_us_source.Migrations
 
                     b.HasKey("ID");
 
-                    b.HasIndex("ListingID");
-
                     b.ToTable("Bids");
                 });
 
@@ -270,7 +268,8 @@ namespace games_r_us_source.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1024)
+                        .HasColumnType("nvarchar(1024)");
 
                     b.Property<int?>("GameCategory")
                         .HasColumnType("int");
@@ -280,7 +279,8 @@ namespace games_r_us_source.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("Platform")
                         .HasColumnType("int");
@@ -342,17 +342,6 @@ namespace games_r_us_source.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("games_r_us_source.Data.Bid", b =>
-                {
-                    b.HasOne("games_r_us_source.Data.Listing", "Listing")
-                        .WithMany()
-                        .HasForeignKey("ListingID")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("Listing");
                 });
 #pragma warning restore 612, 618
         }

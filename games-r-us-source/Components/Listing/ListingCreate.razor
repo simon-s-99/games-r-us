@@ -1,0 +1,317 @@
+﻿@page "/listing/create"
+
+@* Used for EditForms, InputText, number, select etc *@
+@using Microsoft.AspNetCore.Components.Forms
+@using System.ComponentModel.DataAnnotations
+@using games_r_us_source.Data
+@using Microsoft.EntityFrameworkCore
+@rendermode InteractiveServer
+
+@* Follwing three using/injects are needed for ApplicationUserID *@
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> userManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+@* It's generally recommended to use IDbContextFactory for Blazor Server applications because
+it gives you more control over the creation and disposal of DbContext instances,
+helping mitigate issues associated with having a DbContext that is too long-lived. *@
+@inject IDbContextFactory<ApplicationDbContext> dbContextFactory
+
+@* Used in LoadFiles *@
+@inject IWebHostEnvironment Environment
+
+@* Used to fetch listings. Prices in particular *@
+@inject NavigationManager NavigationManager
+
+
+@* Error handling for "attacks"? eg scripts in input fields *@
+@* We should do our image upload in a different way, curently the user can upload
+    images to wwwroot which is really unsafe.
+*@
+
+<AuthorizeView>
+    <Authorized>
+        @* Button to show the modal for creating a new listing *@
+        <button @onclick="ShowModal" class="bg-gray-500 px-4 py-2 text-white rounded hover:bg-gray-600">Create a listing</button>
+    </Authorized>
+</AuthorizeView>
+
+@if (IsVisible)
+{
+    <div class="inset-0 bg-gray-800 fixed flex items-center justify-center bg-opacity-75">
+        <div class="bg-white p-6 w-full max-w-md rounded-lg shadow-lg">
+
+            @* Editform used in blazor for creating a listing  *@
+            <EditForm Model="@listing" OnValidSubmit="HandleValidSubmit">
+
+                @* Here the user uploads their image *@
+                <div class="relative text-center">
+                    @if (base64Image != null)
+                    {
+                        <img src="@base64Image" alt="Listing Image" class="h-48 w-48 mx-auto rounded-md object-cover">
+                        <label class="bg-white text-gray-500 m-auto block cursor-pointer rounded-l border-2 bg-clip-border transition hover:bg-gray-400 w-full[padding:0.375rem_0.75rem]">
+                            Change Image
+                            <InputFile class="hidden" OnChange="@LoadFiles" accept=".png, .jpg, .jpeg, .img" />
+                        </label>
+                    }
+                    else
+                    {
+                        <label class="mt-4 border-gray-300 bg-white bg-gray-300 p-2 px-3 py-1.5 text-gray-700 text-black m-auto block inline-block w-full cursor-pointer rounded rounded-full border text-base text-sm leading-6 transition-colors duration-150 ease-in-out hover:bg-gray-400">
+                            Add Image
+                            <InputFile class="hidden" OnChange="@LoadFiles" accept=".png, .jpg, .jpeg, .img" />
+                        </label>
+                    }
+                </div>
+
+                @* Rest of the input fields *@
+                <div class="mt-4 text-center">
+                    <h3 class="text-gray-900 text-lg font-medium leading-6">Create a Listing</h3>
+
+                    <DataAnnotationsValidator />
+                    <ul class="mt-3 space-y-4">
+                        <li>
+                            @* Input for name *@
+                            <label class="text-gray-700 block text-sm font-medium">Name:</label>
+                            <InputText id="name" @bind-Value="listing.Name" class="input-field mt-1 block w-full"
+                                       placeholder="Name of your listing" min="1" max="50" />
+                            <ValidationMessage For="@(() => listing.Name)" class="text-red-500 text-xs mt-1" />
+                        </li>
+                        <li>
+                            @* Input for starting price *@
+                            <label class="text-gray-700 block text-sm font-medium">Starting price:</label>
+                            <InputNumber id="startingPrice" @bind-Value="listing.StartingPrice" class="input-field mt-1 block w-full"
+                                         placeholder="Starting Price" min="1" />
+                            <ValidationMessage For="@(() => listing.StartingPrice)" class="text-red-500 text-xs mt-1" />
+                        </li>
+                        <li>
+                            @* Input for description *@
+                            <label class="text-gray-700 block text-sm font-medium">Description:</label>
+                            <InputTextArea id="description" @bind-Value="listing.Description" class="input-field mt-1 block w-full"
+                                           placeholder="Description" maxlength="1000" />
+                            <ValidationMessage For="@(() => listing.Description)" class="text-red-500 text-xs mt-1" />
+                        </li>
+                        <li>
+                            @* Input for end date *@
+                            <label class="text-gray-700 block text-sm font-medium">End date for Auction:</label>
+                            <input type="datetime-local" id="auctionEnd" @bind="listing.AuctionEnd" class="input-field mt-1 block w-full"
+                                   min="@DateTime.Now.ToString("yyy-MM-ddTHH:mm")" /> @* Disables the user from setting a negative date  *@
+                        </li>
+                        <li>
+                            @* Platform input (xbox, gamecube, etc.) *@
+                            <label class="text-gray-700 block text-sm font-medium">Platform:</label>
+                            <InputSelect id="platform" @bind-Value="listing.Platform" class="input-field mt-1 block w-full">
+                                @* generate options for platforms *@
+                                @foreach (var platform in Enum.GetValues(typeof(Platform)))
+                                {
+                                    <option value="@platform">@platform</option>
+                                }
+                            </InputSelect>
+                        </li>
+                        <li>
+                            @* Game category (fps, indie, etc.) *@
+                            <label class="text-gray-700 block text-sm font-medium">Game Category:</label>
+                            <InputSelect id="gameCategory" @bind-Value="listing.GameCategory" class="input-field mt-1 block w-full">
+
+                                <option value="null">None</option> @* None as an option in case the listing is a console *@
+
+                                @foreach (var category in Enum.GetValues(typeof(GameCategory)))
+                                {
+                                    <option value="@category">@category</option>
+                                }
+                            </InputSelect>
+                        </li>
+                    </ul> @* Submit and cancel buttons *@
+                    <button type="submit" @onclick="HandleValidSubmit" class="mt-4 bg-blue-500 px-4 py-2 text-white rounded font-bold hover:bg-blue-700">Submit</button>
+                    <button type="button" @onclick="ShowConfirmCancel" class="ml-2 mt-4 bg-red-500 px-4 py-2 text-white rounded font-bold hover:bg-red-700">Cancel</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+
+    @if (showConfirmation) @* If the user presses "cancel" we show this confirmation modal *@
+    {
+        <div class="inset-0 bg-black fixed flex items-center justify-center bg-opacity-50">
+            <div class="bg-white p-4 flex flex-col items-center rounded">
+                <h2 class="mb-4 text-lg">Are you sure you want to cancel?</h2>
+                <div class="space-x-4 flex justify-center">
+                    <button class="bg-green-500 px-4 py-2 text-white rounded" @onclick="ConfirmCancel">Yes</button>
+                    <button class="bg-red-500 px-4 py-2 text-white rounded" @onclick="HideConfirmCancel">No</button>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+
+@code {
+    // Placeholder for a new or existing listing to be edited or created
+    Listing listing = new Listing { AuctionEnd = DateTime.Now.AddDays(7) };
+    private List<Listing> listings = new List<Listing>();
+
+    // file size set to 3MB
+    private long maxFileSize = 1024 * 1024 * 3;
+    private int maxAllowedFiles = 1; // In case we ever want to allow more than one image
+    /* private List<string> errors = new(); */ //displays errors in the UI
+
+    private IBrowserFile? file; // Holds a reference to the uploaded file
+
+    private string base64Image; // For immediate display in our ui
+    private string currentImagePath;
+    private DateTime lastSubmissionTime = DateTime.MinValue;
+
+    private bool IsVisible;
+    private bool showConfirmation;
+
+
+    private async Task HandleValidSubmit()
+    {
+        var currentTime = DateTime.Now;
+
+        if (string.IsNullOrWhiteSpace(listing.Name))
+        {
+            return;
+        }
+
+        // Used to avoid duplicates
+        if ((currentTime - lastSubmissionTime).TotalSeconds < 3)
+        {
+            return;
+        }
+
+        lastSubmissionTime = currentTime;
+        using var dbContext = dbContextFactory.CreateDbContext();
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var userID = userManager.GetUserId(user); // makes sure user isn't null
+            listing.ApplicationUserID = userID;
+        }
+
+        try
+        {
+            if (!string.IsNullOrEmpty(currentImagePath))
+            {              
+            // We send the images to a temp storage in case they won't be needed later. Example: if the user changes image
+
+            //path to the permanent storage directory for images
+            string permanentFolderPath = Path.Combine(Environment.WebRootPath, "images");
+
+            // path to the image currently in temporary storage
+            string sourcePath = Path.Combine(Environment.WebRootPath, "temp_images", currentImagePath);
+
+            // destination path for the image once it is confirmed for permanent storage.
+            string destinationPath = Path.Combine(permanentFolderPath, currentImagePath);
+
+            // Move the uploaded image from temporary to permanent storage upon successful listing creation
+            if (File.Exists(sourcePath))
+            {
+                Directory.CreateDirectory(permanentFolderPath);
+                File.Move(sourcePath, destinationPath);
+            }
+
+            // Update listing with the path of the permanently stored image
+            listing.ImagePath = Path.Combine("images", currentImagePath);
+            }
+
+            dbContext.Listings.Add(listing); // Adds the new listing to the database
+            await dbContext.SaveChangesAsync();
+
+            CloseModal();
+            Console.WriteLine("Listing created successfully.");
+
+            // Force reload the page to update the newly added listing
+            NavigationManager.NavigateTo("/", forceLoad: false);
+        }
+        catch (DbUpdateException ex)
+        {
+            Console.WriteLine($"Database update failed: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"An error occurred: {ex.Message}");
+        }
+    }
+
+    // Method to handle images
+    private async Task LoadFiles(InputFileChangeEventArgs e)
+    {
+        var imageFile = e.File;
+        if (imageFile != null && imageFile.Size > 0)
+        {
+            MemoryStream ms = new MemoryStream();
+            try
+            {
+                // Create the existence of a temporary storage directory for images
+                string tempFolderPath = Path.Combine(Environment.WebRootPath, "temp_images");
+                Directory.CreateDirectory(tempFolderPath); // Ensure the directory exists
+
+
+                // Delete previous image if the user changes image before submitting
+                if (!string.IsNullOrEmpty(currentImagePath))
+                {
+                    var previousFilePath = Path.Combine(tempFolderPath, currentImagePath);
+                    if (File.Exists(previousFilePath))
+                    {
+                        File.Delete(previousFilePath); // Delete the image if it isn't used for a listing
+                    }
+                }
+
+                await imageFile.OpenReadStream(maxFileSize).CopyToAsync(ms);
+                byte[] buffer = ms.ToArray();
+                base64Image = $"data:image/png;base64,{Convert.ToBase64String(buffer)}";
+
+                string fileName = Path.ChangeExtension(Path.GetRandomFileName(), Path.GetExtension(imageFile.Name));
+                string fullPath = Path.Combine(tempFolderPath, fileName);
+                await File.WriteAllBytesAsync(fullPath, buffer); // Save in temporary directory
+
+                currentImagePath = fileName;
+            }
+            catch (Exception ex)
+            {
+                // errors.Add($"Error uploading image: {ex.Message}");
+                base64Image = null;
+                currentImagePath = null;
+            }
+
+        }
+        else
+        {
+            base64Image = null;
+            currentImagePath = null;
+        }
+    }
+
+
+    private void ShowConfirmCancel() => showConfirmation = true;
+
+    private void HideConfirmCancel()
+    {
+        showConfirmation = false;
+    }
+
+    private void ConfirmCancel()
+    {
+        showConfirmation = false;
+        IsVisible = false;
+        // errors.Clear();
+    }
+
+    public void ShowModal()
+    {
+        listing = new Listing { AuctionEnd = DateTime.Now.AddDays(7), StartingPrice = 1 };
+        base64Image = null;
+        // errors.Clear();
+        IsVisible = true;
+    }
+
+    public void CloseModal()
+    {
+        listing = new Listing { AuctionEnd = DateTime.Now.AddDays(7), StartingPrice = 1 };
+        base64Image = null;
+        // errors.Clear();
+        IsVisible = false;
+    }
+}

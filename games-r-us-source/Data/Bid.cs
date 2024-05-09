@@ -11,6 +11,7 @@ namespace games_r_us_source.Data
         public int ListingID { get; set; }
 
         // sets ListingID to null if the related listing is deleted
+        [NotMapped]
         [DeleteBehavior(DeleteBehavior.NoAction)]
         public Listing Listing { get; set; }
 

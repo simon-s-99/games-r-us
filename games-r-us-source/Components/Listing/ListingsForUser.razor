@@ -1,6 +1,6 @@
 ﻿@using Microsoft.EntityFrameworkCore
 @using games_r_us_source.Data
-@inject ApplicationDbContext dbContext
+@inject IDbContextFactory<ApplicationDbContext> ContextFactory
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
@@ -42,6 +42,7 @@ else
         {
             var userId = user.Identity.Name;
 
+            await using var dbContext = ContextFactory.CreateDbContext();
             listings = await dbContext.Listings
                 .Where(l => l.ApplicationUserID == userId)
                 .ToListAsync();

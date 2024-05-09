@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using games_r_us_source.Data;
 
@@ -11,9 +12,11 @@ using games_r_us_source.Data;
 namespace games_r_us_source.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240507081042_ListingStringLengths")]
+    partial class ListingStringLengths
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -249,6 +252,8 @@ namespace games_r_us_source.Migrations
 
                     b.HasKey("ID");
 
+                    b.HasIndex("ListingID");
+
                     b.ToTable("Bids");
                 });
 
@@ -342,6 +347,17 @@ namespace games_r_us_source.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("games_r_us_source.Data.Bid", b =>
+                {
+                    b.HasOne("games_r_us_source.Data.Listing", "Listing")
+                        .WithMany()
+                        .HasForeignKey("ListingID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Listing");
                 });
 #pragma warning restore 612, 618
         }

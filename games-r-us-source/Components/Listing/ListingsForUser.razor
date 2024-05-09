@@ -14,15 +14,15 @@ else if (listings.Any())
     <ul>
         @foreach (var listing in listings)
         {
-            <li>
-                <a @onclick="() => NavigateToListingDetails(listing.ID)">@listing.Name</a> - @listing.Description
+            <li class="mt-4">
+                <a @onclick="() => NavigateToListingDetails(listing.ID)" class="text-blue-500 hover:underline">@listing.Name</a>
             </li>
         }
     </ul>
 }
 else
 {
-    <p>No listings found.</p>
+    <p class="text-red-500 mt-4 p-2 bg-gray-200 border-red-500 max-w-[fit-content] inline-block rounded border font-bold">No listings found.</p>
 }
 
 @code {

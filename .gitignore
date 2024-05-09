@@ -403,6 +403,3 @@ games-r-us-source/tailwind.config.js
 
 games-r-us-source/package-lock.json
 games-r-us-source/package.json
-
-# Ignore ef migrations 
-/games-r-us-source/Migrations

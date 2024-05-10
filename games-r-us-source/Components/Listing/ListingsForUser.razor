@@ -1,15 +1,19 @@
 ﻿@using Microsoft.EntityFrameworkCore
 @using games_r_us_source.Data
+@using games_r_us_source.Components.Helpers
+@using games_r_us_source.Components.Listing
 @inject IDbContextFactory<ApplicationDbContext> ContextFactory
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
-@if (listings == null)
-{
-    <button @onclick="ViewMyListings" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">View My Listings</button>
-}
-else if (listings.Any())
+<AuthorizeView>
+    <Authorized>
+        <button @onclick="ViewMyListings" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">View My Listings</button>
+    </Authorized>
+</AuthorizeView>
+
+@if (listings != null && listings.Any())
 {
     <ul>
         @foreach (var listing in listings)
@@ -20,13 +24,14 @@ else if (listings.Any())
         }
     </ul>
 }
-else
+else if (listings != null && !listings.Any() && buttonClicked)
 {
     <p class="text-red-500 mt-4 p-2 bg-gray-200 border-red-500 max-w-[fit-content] inline-block rounded border font-bold">No listings found.</p>
 }
 
 @code {
     private List<Listing> listings;
+    private bool buttonClicked = false;
 
     private void NavigateToListingDetails(int listingId)
     {
@@ -35,17 +40,26 @@ else
 
     private async Task ViewMyListings()
     {
+        buttonClicked = true;
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
 
         if (user.Identity.IsAuthenticated)
         {
-            var userId = user.Identity.Name;
+            var userName = user.Identity.Name; // Assuming the username is the email
 
             await using var dbContext = ContextFactory.CreateDbContext();
-            listings = await dbContext.Listings
-                .Where(l => l.ApplicationUserID == userId)
-                .ToListAsync();
+
+            // Retrieve the user's account using the helper method
+            var userAccount = ApplicationUserHelper.GetAccountFromUserName(userName, dbContext);
+
+            if (userAccount != null)
+            {
+                // Now that we have the user's account, fetch listings associated with that account
+                listings = await dbContext.Listings
+                    .Where(l => l.ApplicationUserID == userAccount.Id)
+                    .ToListAsync();
+            }
         }
     }
 }

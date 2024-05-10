@@ -4,12 +4,11 @@
 @using games_r_us_source.Components.Listing
 @inject IDbContextFactory<ApplicationDbContext> ContextFactory
 @inject AuthenticationStateProvider AuthenticationStateProvider
-@inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
 <AuthorizeView>
     <Authorized>
-        <button @onclick="ViewMyListings" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">View My Listings</button>
+        <button @onclick="ViewMyListings" class="bg-blue-500 px-4 py-2 text-white rounded hover:bg-blue-600">View My Listings</button>
     </Authorized>
 </AuthorizeView>
 
@@ -19,23 +18,35 @@
         @foreach (var listing in listings)
         {
             <li class="mt-4">
-                <a @onclick="() => NavigateToListingDetails(listing.ID)" class="text-blue-500 hover:underline">@listing.Name</a>
+                <button type="button" @onclick="() => ShowListingDetails(listing)" class="text-blue-500 hover:underline">@listing.Name</button>
             </li>
         }
     </ul>
 }
 else if (listings != null && !listings.Any() && buttonClicked)
 {
-    <p class="text-red-500 mt-4 p-2 bg-gray-200 border-red-500 max-w-[fit-content] inline-block rounded border font-bold">No listings found.</p>
+    <p class="max-w-[fit-content] mt-4 border-red-500 bg-gray-200 p-2 text-red-500 inline-block rounded border font-bold">No listings found.</p>
+}
+@if (selectedListing != null)
+{
+    <ListingDetails CurrentListing="@selectedListing" />
 }
 
 @code {
-    private List<Listing> listings;
+    private List<Listing> listings { get; set; }
     private bool buttonClicked = false;
 
-    private void NavigateToListingDetails(int listingId)
+    private Listing? selectedListing { get; set; }
+
+    private void ShowListingDetails(Listing listing)
     {
-        NavigationManager.NavigateTo($"listingdetails/{listingId}");
+        if (listing != null)
+        {
+            selectedListing = listing;
+
+            StateHasChanged();
+        }
+        
     }
 
     private async Task ViewMyListings()

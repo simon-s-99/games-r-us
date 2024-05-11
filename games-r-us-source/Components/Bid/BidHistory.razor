@@ -18,9 +18,9 @@
                     </button>
                 </li>
                 <li class="border-l-[1px] border-r-[1px] border-black">
-                    <button class="uppercase tracking-wide" type="button" @onclick="() => OrderBids(SortingOrder.WasHighestBid)">
+                    <button class="uppercase tracking-wide" type="button" @onclick="() => OrderBids(SortingOrder.Status)">
                         Status
-                        @DrawArrowIcon(SortingOrder.WasHighestBid)
+                        @DrawArrowIcon(SortingOrder.Status)
                     </button>
                 </li>
                 <li class="border-r-[1px] border-black">
@@ -41,28 +41,39 @@
             {
                 foreach (Bid bid in Bids)
                 {
+                    Bid highestBid = new Bid();
+                    string style = String.Empty;
+
                     using (var dbContext = dbContextFactory.CreateDbContext())
                     {
+                        bid.Listing = ListingHelper.GetListingFromListingID(bid.ListingID, dbContext);
+
+                        highestBid = BidHelper.GetHighestBidFromListingID(bid.ListingID, dbContext);
+
                         // Check if bid was the highest bid for associated listing
-                        bid.WasHighestBid = bid.ID == BidHelper.GetHighestBidFromListingID(bid.ListingID, dbContext).ID;
-                    }
-
-                    string style = bid.WasHighestBid ? "bg-green-300 grid-cols-4 grid *:p-4" : "bg-red-300 grid-cols-4 grid *:p-4";
-
-                    <ul class=@style>
-                        <li>$@bid.Amount</li>
-                        @if (bid.WasHighestBid)
+                        if (bid.ID == highestBid.ID)
                         {
-                            <li class="border-l-[1px] border-r-[1px] border-black">Won</li>
+                            bid.Status = bid.Listing.AuctionEnd < DateTime.Today ? BidStatus.Won : BidStatus.Leading;
+                            style = bid.Listing.AuctionEnd < DateTime.Today ? "bg-green-300 grid-cols-4 grid *:p-4" : "bg-green-100 grid-cols-4 grid *:p-4";
                         }
                         else
                         {
-                            <li class="border-l-[1px] border-r-[1px] border-black">Lost</li>
+                            bid.Status = bid.Listing.AuctionEnd < DateTime.Today ? BidStatus.Lost : BidStatus.Losing;
+                            style = bid.Listing.AuctionEnd < DateTime.Today ? "bg-red-300 grid-cols-4 grid *:p-4" : "bg-red-100 grid-cols-4 grid *:p-4";
                         }
-                        <li class="border-r-[1px] border-black">@bid.ListingID</li>
+                    }
+
+                    <ul class=@style>
+                        <li>$@bid.Amount</li>
+                        <li class="border-l-[1px] border-r-[1px] border-black">@bid.Status.ToString()</li>
+                        <li class="border-r-[1px] border-black">@bid.Listing.Name</li>
                         <li>@bid.Time</li>
                     </ul>
                 }
+            }
+            else
+            {
+                <p>You have no placed bids.</p>
             }
         </main>
     </Authorized>
@@ -82,7 +93,7 @@
     private enum SortingOrder
     {
         Amount,
-        WasHighestBid,
+        Status,
         Listing,
         Time
     };
@@ -92,19 +103,34 @@
         SelectedSortingOrder = sortingOrder;
         OrderByDescending = !OrderByDescending;
 
-        // Dynamically get the property of the bid object to order by
-        var order = typeof(Bid).GetProperty(sortingOrder.ToString());
-
-        if (OrderByDescending)
+        if (sortingOrder != SortingOrder.Listing)
         {
-            // Order by the specified sorting order
-            // b in this case is the Bid object, we are essentially doing "b.sortingOrder"
-            Bids = Bids.OrderByDescending(b => order.GetValue(b)).ToList();
+            // Dynamically get the property of the bid object to order by
+            var order = typeof(Bid).GetProperty(sortingOrder.ToString());
+
+            if (OrderByDescending)
+            {
+                // Order by the specified sorting order
+                // b in this case is the Bid object, we are essentially doing "b.sortingOrder"
+                Bids = Bids.OrderByDescending(b => order.GetValue(b)).ToList();
+            }
+            else
+            {
+                Bids = Bids.OrderBy(b => order.GetValue(b)).ToList();
+            }
         }
         else
         {
-            Bids = Bids.OrderBy(b => order.GetValue(b)).ToList();
+            if (OrderByDescending)
+            {
+                Bids = Bids.OrderByDescending(b => b.Listing.Name).ToList();
+            }
+            else
+            {
+                Bids = Bids.OrderBy(b => b.Listing.Name).ToList();
+            }
         }
+
 
         StateHasChanged();
     }
@@ -115,8 +141,8 @@
         if (sortingOrder == SelectedSortingOrder)
         {
             MarkupString arrowIcon = OrderByDescending ?
-            (MarkupString)"<img class='inline' src='images/down-arrow-icon.svg' alt='Down arrow icon' />" :
-            (MarkupString)"<img class='inline' src='images/up-arrow-icon.svg' alt='Up arrow icon' />";
+            (MarkupString)"<img class='w-[15px] h-[15px] inline' src='images/down-arrow-icon.svg' alt='Down arrow icon' />" :
+            (MarkupString)"<img class='w-[15px] h-[15px] inline' src='images/up-arrow-icon.svg' alt='Up arrow icon' />";
 
             return arrowIcon;
         }

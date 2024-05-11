@@ -29,9 +29,10 @@
         @if (requirePassword)
         {
             <div class="form-floating mb-3">
-                <label for="password" class="">Password</label>
-                <InputText type="password" @bind-Value="Input.Password" class="border border-black" autocomplete="current-password" aria-required="true" placeholder="Enter your password." />
-                <ValidationMessage For="() => Input.Password" />
+                <label>Password: 
+                    <InputText type="password" @bind-Value="Input.Password" class="border border-black" autocomplete="current-password" aria-required="true" placeholder="Enter your password." />
+                    <ValidationMessage For="() => Input.Password" />
+                </label>
             </div>
         }
         <button class="mt-3 rounded-xl bg-red-500 px-3 py-2 hover:bg-red-400" type="submit">Delete data and close my account</button>

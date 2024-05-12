@@ -1,0 +1,41 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using games_r_us_source.Data
+
+@inject UserManager<ApplicationUser> UserManager
+@inject IdentityUserAccessor UserAccessor
+@inject IdentityRedirectManager RedirectManager
+@inject IDbContextFactory<ApplicationDbContext> DbContextFactory
+
+<AuthorizeView>
+	<Authorized>
+
+	</Authorized>
+	<NotAuthorized>
+
+	</NotAuthorized>
+</AuthorizeView>
+
+@code {
+	private ApplicationUser user = default!;
+	private string? phoneNumber;
+	private string? fullName;
+	private string? address;
+
+	[CascadingParameter]
+	private HttpContext HttpContext { get; set; } = default!;
+
+	protected override async Task OnInitializedAsync()
+	{
+		user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+		phoneNumber = await UserManager.GetPhoneNumberAsync(user);
+
+		using (var dbContext = DbContextFactory.CreateDbContext())
+		{
+			// this should not result in 2 separate queries to the database since 
+			// current context should still be tracking the entity 
+			fullName = dbContext.ApplicationUsers.Find(user.Id).FullName;
+			address = dbContext.ApplicationUsers.Find(user.Id).Address;
+		}
+	}
+}

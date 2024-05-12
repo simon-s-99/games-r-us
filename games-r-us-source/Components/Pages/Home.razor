@@ -2,20 +2,24 @@
 @using games_r_us_source.Components.Account
 @using games_r_us_source.Components.Account.CustomComponents
 @page "/"
+@rendermode InteractiveServer
 
 <PageTitle>Home</PageTitle>
 
 <h1>Hello, world!</h1>
 
-Welcome to your new app.
-
 <!-- Temporary for testing purposes -->
 <LoginLogoutButton />
 
 <!-- Temporary for testing purposes -->
+
 <ListingEdit />
 
 <!-- Temporary for testing purposes -->
+
+<ProfileButton />
+
+
 <ListingCreate />
 
 <!-- Only here as a template for how to show content if
@@ -35,4 +39,6 @@ Welcome to your new app.
 <ListingDisplayAll />
 
 <!-- Temporary for testing purposes -->
-<ListingDetails />
+@* <ListingDetails CurrentListing="@CurrentListing"/> *@
+<ListingDetails /> @* <-- For testing purposes*@
+

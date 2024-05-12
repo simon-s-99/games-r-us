@@ -23,17 +23,16 @@ namespace games_r_us_source
             builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
             builder.Services.AddAuthentication(options =>
-                {
-                    options.DefaultScheme = IdentityConstants.ApplicationScheme;
-                    options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
-                })
+            {
+                options.DefaultScheme = IdentityConstants.ApplicationScheme;
+                options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+            })
                 .AddGoogle(googleOptions =>
                 {
                     googleOptions.ClientId = builder.Configuration["Authentication:Google:ClientId"];
                     googleOptions.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
                 })
                 .AddIdentityCookies();
-
 
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
             // Add dbContextFactory aswell so that we can inject IDbContextFactory in our components 
@@ -42,17 +41,6 @@ namespace games_r_us_source
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(connectionString));
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-
-
-            // Added from Edit listing
-            builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)),
-    ServiceLifetime.Scoped);
-            ;
-
-
 
             builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>()

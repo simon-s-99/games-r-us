@@ -1,0 +1,17 @@
+﻿<AuthorizeView>
+	<Authorized>
+		<NavLink class="rounded-3xl border border-black bg-emerald-300 px-4 py-2 hover:bg-gray-200" href="Account/Manage">
+			<span class="text-3xl font-bold text-black">@(context.User.Identity.Name[0])</span>
+		</NavLink>
+	</Authorized>
+	<NotAuthorized>
+		@* Display anonymous profile image here *@
+		<NavLink href="/Account/Login">
+			<img src="./userlogo.png" alt="User image not logged in" />
+		</NavLink>
+	</NotAuthorized>
+</AuthorizeView>
+
+@code {
+
+}

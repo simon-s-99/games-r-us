@@ -21,14 +21,14 @@
 @inject IDbContextFactory<ApplicationDbContext> dbContextFactory
 
 @* Button to show the modal when editing a listing *@
-  <button @onclick="() => ShowModal(ListingDetails.ID)" class="bg-gray-300 px-4 py-2 text-black rounded-xl font-bold hover:bg-gray-400">Edit listing</button>
+  <button @onclick="() => ShowModal(ListingID)" class="bg-gray-300 px-4 py-2 text-black rounded-xl font-bold hover:bg-gray-400">Edit listing</button>
 
 
 
 @if (IsVisible)
 {
-    <div class="inset-0 bg-gray-800 fixed flex items-center justify-center bg-opacity-75">
-        <div class="bg-white p-6 w-full max-w-md rounded-lg shadow-lg">
+    <div class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75">
+        <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
 
             @* Editform used in blazor for editing a listing  *@
             <EditForm Model="@listing" OnValidSubmit="HandleValidSubmit">
@@ -37,15 +37,15 @@
                 <div class="relative text-center">
                     @if (base64Image != null)
                     {
-                        <img src="@base64Image" alt="Listing Image" class="h-48 w-48 mx-auto rounded-md object-cover">
-                        <label class="bg-white text-gray-500 m-auto block cursor-pointer rounded-l border-2 bg-clip-border transition hover:bg-gray-400 w-full[padding:0.375rem_0.75rem]">
+                        <img src="@base64Image" alt="Listing Image" class="mx-auto h-48 w-48 rounded-md object-cover">
+                        <label class="border-2 m-auto block cursor-pointer rounded-l bg-white bg-clip-border text-gray-500 transition hover:bg-gray-400 w-full[padding:0.375rem_0.75rem]">
                             Change Image
                             <InputFile class="hidden" OnChange="@LoadFiles" accept=".png, .jpg, .jpeg, .img" />
                         </label>
                     }
                     else
                     {
-                        <label class="mt-4 border-gray-300 bg-white bg-gray-300 p-2 px-3 py-1.5 text-gray-700 text-black m-auto block inline-block w-full cursor-pointer rounded rounded-full border text-base text-sm leading-6 transition-colors duration-150 ease-in-out hover:bg-gray-400">
+                        <label class="leading-6 m-auto mt-4 block inline-block w-full cursor-pointer rounded rounded-full border border-gray-300 bg-white bg-gray-300 p-2 px-3 py-1.5 text-base text-sm text-gray-700 text-black transition-colors duration-150 ease-in-out hover:bg-gray-400">
                             Add Image
                             <InputFile class="hidden" OnChange="@LoadFiles" accept=".png, .jpg, .jpeg, .img" />
                         </label>
@@ -54,19 +54,19 @@
 
                 @* Rest of the input fields *@
                 <div class="mt-4 text-center">
-                    <h3 class="text-gray-900 text-lg font-medium leading-6">Create a Listing</h3>
+                    <h3 class="leading-6 text-lg font-medium text-gray-900">Create a Listing</h3>
 
                     <DataAnnotationsValidator />
                     <ul class="mt-3 space-y-4">
                         <li>
                             @* Input for name *@
-                            <label class="text-gray-700 block text-sm font-medium">Name:</label>
+                            <label class="block text-sm font-medium text-gray-700">Name:</label>
                             <InputText id="name" @bind-Value="listing.Name" class="input-field mt-1 block w-full"
                                        placeholder="@listing.Name" min="1" />
                             <ValidationMessage For="@(() => listing.Name)" class="text-red-500 text-xs mt-1" />
                         </li>
                         <li>
-                            <label class="text-gray-700 block text-sm font-medium">Starting price:</label>
+                            <label class="block text-sm font-medium text-gray-700">Starting price:</label>
                             @if (!DisablePrice)
                             {
                                 <InputNumber id="startingPrice" @bind-Value="listing.StartingPrice" class="input-field mt-1 block w-full"
@@ -77,26 +77,26 @@
                             {
                                 <InputNumber id="startingPrice" @bind-Value="listing.StartingPrice" class="input-field mt-1 block w-full"
                                              min="1" disabled />
-                                <p class="text-red-500 mt-1 text-xs">Cannot change starting price after a bid has been made.</p>
+                                <p class="mt-1 text-xs text-red-500">Cannot change starting price after a bid has been made.</p>
                             }
                         </li>
 
                         <li>
                             @* Input for description *@
-                            <label class="text-gray-700 block text-sm font-medium">Description:</label>
+                            <label class="block text-sm font-medium text-gray-700">Description:</label>
                             <InputTextArea id="description" @bind-Value="listing.Description" class="input-field mt-1 block w-full"
                                            placeholder="@listing.Description" maxlength="100" />
                         </li>
                         <li>
                             @* Uneditable end date *@
-                            <label class="text-gray-700 block text-sm font-medium">End date for Auction:</label>
+                            <label class="block text-sm font-medium text-gray-700">End date for Auction:</label>
                             <input type="datetime-local" id="auctionEnd" @bind="listing.AuctionEnd" class="input-field mt-1 block w-full"
                                    min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" disabled />
                         </li>
 
                         <li>
                             @* Platform input (xbox, gamecube, etc.) *@
-                            <label class="text-gray-700 block text-sm font-medium">Platform:</label>
+                            <label class="block text-sm font-medium text-gray-700">Platform:</label>
                             <InputSelect id="platform" @bind-Value="listing.Platform" class="input-field mt-1 block w-full">
                                 @* generate options for platforms *@
                                 @foreach (var platform in Enum.GetValues(typeof(Platform)))
@@ -107,7 +107,7 @@
                         </li>
                         <li>
                             @* Game category (fps, indie, etc.) *@
-                            <label class="text-gray-700 block text-sm font-medium">Game Category:</label>
+                            <label class="block text-sm font-medium text-gray-700">Game Category:</label>
                             <InputSelect id="gameCategory" @bind-Value="listing.GameCategory" class="input-field mt-1 block w-full">
 
                                 <option value="null">None</option> @* None as an option in case the listing is a console *@
@@ -119,8 +119,8 @@
                             </InputSelect>
                         </li>
                     </ul> @* Submit and cancel buttons *@
-                    <button type="submit" @onclick="HandleValidSubmit" class="mt-4 bg-blue-500 px-4 py-2 text-white rounded font-bold hover:bg-blue-700">Save changes</button>
-                    <button type="button" @onclick="ShowConfirmCancel" class="ml-2 mt-4 bg-red-500 px-4 py-2 text-white rounded font-bold hover:bg-red-700">Cancel</button>
+                    <button type="submit" @onclick="HandleValidSubmit" class="mt-4 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700">Save changes</button>
+                    <button type="button" @onclick="ShowConfirmCancel" class="ml-2 mt-4 rounded bg-red-500 px-4 py-2 font-bold text-white hover:bg-red-700">Cancel</button>
                 </div>
             </EditForm>
         </div>
@@ -128,12 +128,12 @@
 
     @if (showConfirmation) @* If the user presses "cancel" we show this confirmation modal *@
     {
-        <div class="inset-0 bg-black fixed flex items-center justify-center bg-opacity-50">
-            <div class="bg-white p-4 flex flex-col items-center rounded">
+        <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+            <div class="flex flex-col items-center rounded bg-white p-4">
                 <h2 class="mb-4 text-lg">Are you sure you want to cancel?</h2>
-                <div class="space-x-4 flex justify-center">
-                    <button class="bg-green-500 px-4 py-2 text-white rounded" @onclick="ConfirmCancel">Yes</button>
-                    <button class="bg-red-500 px-4 py-2 text-white rounded" @onclick="HideConfirmCancel">No</button>
+                <div class="flex justify-center space-x-4">
+                    <button class="rounded bg-green-500 px-4 py-2 text-white" @onclick="ConfirmCancel">Yes</button>
+                    <button class="rounded bg-red-500 px-4 py-2 text-white" @onclick="HideConfirmCancel">No</button>
                 </div>
             </div>
         </div>
@@ -141,8 +141,8 @@
 
     @if (!string.IsNullOrEmpty(successMessage))
     {
-        <div class="inset-0 bg-black fixed flex items-center justify-center bg-opacity-50">
-            <div class="bg-white p-4 flex flex-col items-center rounded">
+        <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+            <div class="flex flex-col items-center rounded bg-white p-4">
                 <h3 class="mb-4 text-lg">@successMessage</h3>
             </div>
         </div>

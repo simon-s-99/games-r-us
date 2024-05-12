@@ -1,12 +1,19 @@
-﻿@using games_r_us_source.Components.Listing
+﻿@using Microsoft.EntityFrameworkCore
+@using games_r_us_source.Components.Listing
 @using games_r_us_source.Components.Account
 @using games_r_us_source.Components.Account.CustomComponents
-@page "/"
+@using games_r_us_source.Data
+@inject IDbContextFactory<ApplicationDbContext> test
 @rendermode InteractiveServer
+@page "/"
 
 <PageTitle>Home</PageTitle>
 
 <h1>Hello, world!</h1>
+
+<!-- Temporary for testing purposes -->
+@* <ListingDetails CurrentListing="@CurrentListing"/> *@
+<ListingDetails CurrentListing="@Helpers.ListingHelper.GetListingFromListingID(1, test.CreateDbContext())" /> @* <-- For testing purposes*@
 
 <!-- Temporary for testing purposes -->
 <LoginLogoutButton />
@@ -37,8 +44,3 @@
 </AuthorizeView>
 
 <ListingDisplayAll />
-
-<!-- Temporary for testing purposes -->
-@* <ListingDetails CurrentListing="@CurrentListing"/> *@
-<ListingDetails /> @* <-- For testing purposes*@
-

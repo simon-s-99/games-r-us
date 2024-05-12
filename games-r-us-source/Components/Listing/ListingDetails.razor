@@ -85,8 +85,16 @@
 
 
 @code {
-    // [Parameter] <-- For testinng purposes
+     [Parameter] //<-- For testinng purposes
     public Listing CurrentListing { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnEditRequested { get; set; }
+
+    private void EditListing()
+    {
+        OnEditRequested.InvokeAsync(CurrentListing.ID);
+    }
 
     private Bid? HighestBid { get; set; }
 

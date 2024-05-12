@@ -21,30 +21,7 @@
 @inject IDbContextFactory<ApplicationDbContext> dbContextFactory
 
 @* Button to show the modal when editing a listing *@
-@*   <button @onclick="ShowModal" class="bg-gray-300 px-4 py-2 text-black rounded-xl font-bold hover:bg-gray-400">Edit listing</button> *@
-<AuthorizeView>
-    <Authorized>
-        @if (listings.Any())
-        {
-            <div class="mt-4 px-4">
-                <h2 class="text-gray-800 text-lg font-semibold">Your Listings:</h2>
-                <div class="gap-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-                    @foreach (var listing in listings)
-                    {
-                        <div class="bg-white overflow-hidden rounded-lg shadow-lg">
-                            <img class="h-64 w-full object-contain" src="@listing.ImagePath" alt="Image of listing">
-                            <div class="p-4">
-                                <h3 class="text-md text-gray-900 font-semibold">@listing.Name</h3>
-                                <p class="text-gray-500">@listing.Description</p>
-                                <button @onclick="() => ShowModal(listing.ID)" class="bg-gray-300 px-4 py-2 text-black rounded-xl font-bold hover:bg-gray-400">Edit</button>
-                            </div>
-                        </div>
-                    }
-                </div>
-            </div>
-        }
-    </Authorized>
-</AuthorizeView>
+  <button @onclick="() => ShowModal(ListingDetails.ID)" class="bg-gray-300 px-4 py-2 text-black rounded-xl font-bold hover:bg-gray-400">Edit listing</button>
 
 
 
@@ -183,97 +160,8 @@ Image not showing
     public int ListingID { get; set; }
     private Listing listing;
 
-    private List<Listing> listings = new List<Listing>(); // temp code for testing
     private List<decimal> prices = new();
 
-    // For testing purposes
-    private async Task LoadListingsAndPrices()
-    {
-        using (var dbContext = dbContextFactory.CreateDbContext())
-        {
-            var currentDate = DateTime.Now;
-            listings = await dbContext.Listings
-                .Where(l => l.AuctionEnd > currentDate) // Filter away expired listings
-                .ToListAsync();
-
-            prices.Clear(); // Clear old prices
-            var priceTasks = listings.Select(listing => GetCurrentBid(listing.ID)).ToList();
-            prices = (await Task.WhenAll(priceTasks)).ToList();
-
-        }
-
-        StateHasChanged(); // Updates UI after loading listings and prices
-    }
-
-    // For testing purposes
-    private async Task<decimal> GetCurrentBid(int listingID)
-    {
-        using var dbContext = dbContextFactory.CreateDbContext();
-        // check for any bids on the listing and get the highest if available. Nullable in case there are no bids
-        var highestBid = await dbContext.Bids.Where(b => b.ListingID == listingID).MaxAsync(b => (decimal?)b.Amount);
-        if (highestBid == null)
-        {
-            var startingPrice = await dbContext.Listings
-            .Where(l => l.ID == listingID)
-            .Select(l => l.StartingPrice)
-            .FirstOrDefaultAsync();
-
-            return startingPrice;
-        }
-
-        return highestBid.Value;
-    }
-
-    // For testing purposes
-    private string GetTimeDifference(DateTime endDate)
-    {
-        TimeSpan timeDifference = endDate - DateTime.Now;
-
-        if (timeDifference.TotalDays >= 7)
-        {
-            int weeks = (int)(timeDifference.TotalDays / 7);
-            int days = (int)(timeDifference.TotalDays % 7); // Get remaining days after full weeks
-            if (days > 0)
-                return $"{weeks} weeks and {days} days";
-            else
-                return $"{weeks} weeks";
-        }
-        else if (timeDifference.TotalDays >= 1)
-        {
-            int days = (int)timeDifference.TotalDays;
-            int hours = timeDifference.Hours;
-            if (hours > 0)
-                return $"{days} days and {hours} hours";
-            else
-                return $"{days} days";
-        }
-        else if (timeDifference.TotalHours >= 1)
-        {
-            int hours = (int)timeDifference.TotalHours;
-            int minutes = timeDifference.Minutes;
-            if (minutes > 0)
-                return $"{hours} hours and {minutes} minutes";
-            else
-                return $"{hours} hours";
-        }
-        else if (timeDifference.TotalMinutes >= 1)
-        {
-            int minutes = (int)timeDifference.TotalMinutes;
-            int seconds = timeDifference.Seconds;
-            if (seconds > 0)
-                return $"{minutes} minutes and {seconds} seconds";
-            else
-                return $"{minutes} minutes";
-        }
-        else if (timeDifference.TotalSeconds >= 1)
-        {
-            return $"{(int)Math.Floor(timeDifference.TotalSeconds)} seconds";
-        }
-        else
-        {
-            return "Auction has ended";
-        }
-    }
 
     // file size set to 3MB
     private long maxFileSize = 1024 * 1024 * 3;
@@ -292,36 +180,6 @@ Image not showing
     private bool showConfirmation;
     private string successMessage = ""; //Clears successMessage
 
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadListingsAndPrices();
-        await GetUserListings(ListingID);
-    }
-
-
-    private async Task GetUserListings(int listingID)
-    {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-
-        if (user.Identity.IsAuthenticated)
-        {
-            var userID = userManager.GetUserId(user);
-            using (var dbContext = dbContextFactory.CreateDbContext())
-            {
-                listings = await dbContext.Listings
-                                          .Where(l => l.ApplicationUserID == userID && l.AuctionEnd >= DateTime.Now)
-                                          .ToListAsync();
-            }
-        }
-        else
-        {
-            listings = new List<Listing>();
-        }
-
-        await ShowModal(listingID);
-        StateHasChanged();
-    }
 
     private async Task LoadListingDetails()
     {

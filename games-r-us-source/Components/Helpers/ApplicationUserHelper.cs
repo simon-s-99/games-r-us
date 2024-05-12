@@ -19,7 +19,7 @@ namespace games_r_us_source.Components.Helpers
 
         public static bool IsUserListingOwner(string userName, Data.Listing listing, ApplicationDbContext context)
         {
-            ApplicationUser account = GetAccountFromUserID(userName, context);
+            ApplicationUser account = GetAccountFromUserName(userName, context);
 
             if (listing.ApplicationUserID == account.Id) { return true; }
 

@@ -100,204 +100,211 @@
 
 @code {
     private string searchText;
-private Platform? selectedPlatform;
-private GameCategory? selectedCategory = null;
-private Listing selectedListing;
+    private Platform? selectedPlatform;
+    private GameCategory? selectedCategory = null;
 
-[Parameter]
-public EventCallback<List<Listing>> OnListingsUpdated { get; set; }
-
-private List<Listing> listings = new List<Listing>();
-// private Timer debounceTimer;
-private int updateCounter = 0;
-
-private int Count { get; set; } = 5;
-List<string> EventType = new List<string>();
+    [Parameter]
+    public EventCallback<string> OnSearchTextChanged { get; set; }
+    [Parameter]
+    public EventCallback<Platform?> OnPlatformChanged { get; set; }
+    [Parameter]
+    public EventCallback<GameCategory?> OnCategoryChanged { get; set; }
 
 
-    protected override void OnInitialized()
+    [Parameter]
+    public string SearchText { get; set; }
+
+    [Parameter]
+    public Platform? SelectedPlatform { get; set; }
+
+    [Parameter]
+    public GameCategory? SelectedCategory { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnSearchChanged { get; set; }
+    [Parameter]
+    public EventCallback<List<Listing>> OnListingsFiltered { get; set; }
+
+
+
+    private Listing selectedListing;
+
+    [Parameter]
+    public EventCallback<List<Listing>> OnListingsUpdated { get; set; }
+
+    private List<Listing> listings = new List<Listing>();
+    // private Timer debounceTimer;
+    private int updateCounter = 0;
+
+    private int Count { get; set; } = 5;
+    List<string> EventType = new List<string>();
+
+
+    private async Task<IEnumerable<Listing>> SearchListings(string searchText)
     {
-        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
-
-        // Parse the query string
-        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("searchText", out var param))
+        using (var dbContext = dbContextFactory.CreateDbContext())
         {
-            searchText = param;
-            // Optionally, trigger a search based on the searchText
-            SubmitSearch();
+            return await dbContext.Listings
+                                  .Where(l => EF.Functions.Like(l.Name, $"%{searchText}%"))
+                                  .ToListAsync();
         }
     }
 
-    private void ApplySearch()
+    public static class JSInteropMethods
     {
-        // Navigate with query parameters
-        NavigationManager.NavigateTo($"/search?searchText={Uri.EscapeDataString(searchText)}", forceLoad: true);
-    }
-
-
-private async Task<IEnumerable<Listing>> SearchListings(string searchText)
-{
-    using (var dbContext = dbContextFactory.CreateDbContext())
-    {
-        return await dbContext.Listings
-                              .Where(l => EF.Functions.Like(l.Name, $"%{searchText}%"))
-                              .ToListAsync();
-    }
-}
-
-public static class JSInteropMethods
-{
-    [JSInvokable]
-    public static Task RefreshUI()
-    {
-        // This should be a reference to your component or a method that can trigger UI updates
-        // Example: MyComponent.Instance.StateHasChanged();
-        return Task.CompletedTask;
-    }
-}
-
-
-
-void StartCountdown()
-{
-    var timer = new System.Threading.Timer(TimeCallBack, null, 1000, 1000);
-}
-
-void TimeCallBack(object state)
-{
-    if (Count > 0)
-    {
-        Count--;
-        InvokeAsync(StateHasChanged);
-    }
-}
-
-protected override bool ShouldRender()
-{
-    EventType.Add("ShouldRender is called");
-    return true;
-}
-
-
-protected override async Task OnInitializedAsync()
-{
-
-    var connectionString = Configuration.GetConnectionString("DefaultConnection");
-    using (var connection = new Microsoft.Data.SqlClient.SqlConnection(connectionString))
-    {
-        await connection.OpenAsync();
-        listings = (await connection.QueryAsync<Listing>("SELECT * FROM Listings")).ToList();
-    }
-    // debounceTimer = new Timer(200); // Debounce interval set to 200ms
-    // debounceTimer.AutoReset = false; // Ensures that the timer only runs once after the interval
-    // debounceTimer.Elapsed += HandleDebounceElapsed;
-    StateHasChanged();
-
-}
-
-private async Task OnInputChanged(ChangeEventArgs e)
-{
-    searchText = e.Value.ToString() ?? string.Empty;
-    Console.WriteLine($"Search Text: {searchText}"); // Debugging output
-
-    // debounceTimer.Stop();
-    // debounceTimer.Start();
-    await SubmitSearch();
-    StateHasChanged();
-}
-
-private async void HandleDebounceElapsed(object sender, ElapsedEventArgs e)
-{
-    try
-    {
-        await InvokeAsync(async () =>
+        [JSInvokable]
+        public static Task RefreshUI()
         {
-            await ApplyFilters(searchText, selectedPlatform, selectedCategory);
-        });
+            // This should be a reference to your component or a method that can trigger UI updates
+            // Example: MyComponent.Instance.StateHasChanged();
+            return Task.CompletedTask;
+        }
     }
-    catch (Exception ex)
+
+
+
+    void StartCountdown()
     {
-        Console.WriteLine($"Error during HandleDebounceElapsed: {ex.Message}");
+        var timer = new System.Threading.Timer(TimeCallBack, null, 1000, 1000);
     }
-}
 
-
-public void Dispose()
-{
-    // debounceTimer?.Stop();
-    // debounceTimer?.Dispose();
-    StateHasChanged();
-}
-
-
-
-
-private async Task ApplyFilters(string searchText, Platform? platform, GameCategory? category)
-{
-    Console.WriteLine($"Applying filters: Text={searchText}, Platform={platform}, Category={category}"); // More Debugging output
-
-    using (var dbContext = dbContextFactory.CreateDbContext())
+    void TimeCallBack(object state)
     {
-        var query = dbContext.Listings.AsQueryable();
-
-        if (!string.IsNullOrEmpty(searchText))
+        if (Count > 0)
         {
-            // var nameParam = $"%{searchText}%";
-            // var descriptionParam = $"%{searchText}%";
+            Count--;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    protected override bool ShouldRender()
+    {
+        EventType.Add("ShouldRender is called");
+        return true;
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        var connectionString = Configuration.GetConnectionString("DefaultConnection");
+        using (var connection = new Microsoft.Data.SqlClient.SqlConnection(connectionString))
+        {
+            await connection.OpenAsync();
+            listings = (await connection.QueryAsync<Listing>("SELECT * FROM Listings")).ToList();
+        }
+        // debounceTimer = new Timer(200); // Debounce interval set to 200ms
+        // debounceTimer.AutoReset = false; // Ensures that the timer only runs once after the interval
+        // debounceTimer.Elapsed += HandleDebounceElapsed;
+        StateHasChanged();
+
+    }
+
+    private async Task OnInputChanged(ChangeEventArgs e)
+    {
+        searchText = e.Value.ToString() ?? string.Empty;
+        Console.WriteLine($"Search Text: {searchText}"); // Debugging output
+
+        // debounceTimer.Stop();
+        // debounceTimer.Start();
+        await SubmitSearch();
+        StateHasChanged();
+    }
+
+    private async void HandleDebounceElapsed(object sender, ElapsedEventArgs e)
+    {
+        try
+        {
+            await InvokeAsync(async () =>
+            {
+                await ApplyFilters(searchText, selectedPlatform, selectedCategory);
+            });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error during HandleDebounceElapsed: {ex.Message}");
+        }
+    }
+
+
+    public void Dispose()
+    {
+        // debounceTimer?.Stop();
+        // debounceTimer?.Dispose();
+        StateHasChanged();
+    }
+
+
+
+
+    private async Task ApplyFilters(string searchText, Platform? platform, GameCategory? category)
+    {
+        Console.WriteLine($"Applying filters: Text={searchText}, Platform={platform}, Category={category}"); // More Debugging output
+
+        using (var dbContext = dbContextFactory.CreateDbContext())
+        {
+            var query = dbContext.Listings.AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchText))
+            {
+                // var nameParam = $"%{searchText}%";
+                // var descriptionParam = $"%{searchText}%";
 
                 query = query.Where(l => EF.Functions
                 .Like(l.Name, $"%{searchText}%") ||
                 EF.Functions.Like(l.Description, $"%{searchText}%"));
 
-            // query = query.Where(l => EF.Functions.Like(l.Name, "%play%") || EF.Functions.Like(l.Description, "%play%"));
+                // query = query.Where(l => EF.Functions.Like(l.Name, "%play%") || EF.Functions.Like(l.Description, "%play%"));
 
 
 
-            Console.WriteLine($"Querying with searchText: %{searchText}%"); // For debugging
+                Console.WriteLine($"Querying with searchText: %{searchText}%"); // For debugging
+
+                listings = await query.ToListAsync();
+                InvokeAsync(StateHasChanged);
+
+            }
+
+            if (platform.HasValue) // HasValue since we're working with enums
+            {
+                query = query.Where(l => l.Platform == platform.Value);
+            }
+
+            if (category.HasValue)
+            {
+                query = query.Where(l => l.GameCategory == category.Value);
+            }
 
             listings = await query.ToListAsync();
-            InvokeAsync(StateHasChanged);
+            ForceRender();
 
+            StateHasChanged();
         }
+    }
 
-        if (platform.HasValue) // HasValue since we're working with enums
+    private void ForceRender()
+    {
+        updateCounter++; // Modify state to ensure component updates
+        StateHasChanged();
+    }
+
+    private async Task UpdateListings(List<Listing> newListing)
+    {
+        await OnListingsUpdated.InvokeAsync(newListing);
+    }
+
+    private async Task SubmitSearch()
+    {
+        try
         {
-            query = query.Where(l => l.Platform == platform.Value);
+            await ApplyFilters(searchText, selectedPlatform, selectedCategory);
         }
-
-        if (category.HasValue)
+        catch (Exception ex)
         {
-            query = query.Where(l => l.GameCategory == category.Value);
+            Console.WriteLine($"Following error occured: {ex.Message}");
         }
-
-        listings = await query.ToListAsync();
-        ForceRender();
 
         StateHasChanged();
     }
-}
-
-private void ForceRender()
-{
-    updateCounter++; // Modify state to ensure component updates
-    StateHasChanged();
-}
-
-private async Task UpdateListings(List<Listing> newListing)
-{
-    await OnListingsUpdated.InvokeAsync(newListing);
-}
-
-private async Task SubmitSearch()
-{
-    try
-    {
-        await ApplyFilters(searchText, selectedPlatform, selectedCategory);
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Following error occured: {ex.Message}");
-    }
-}
 }
 

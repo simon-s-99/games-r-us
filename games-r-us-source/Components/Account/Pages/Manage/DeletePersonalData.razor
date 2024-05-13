@@ -14,9 +14,9 @@
 
 <StatusMessage Message="@message" />
 
-<h3>Delete Personal Data</h3>
+<h3 class="text-l mt-3 font-semibold">Delete Personal Data</h3>
 
-<div class="alert alert-warning" role="alert">
+<div class="mt-3" role="alert">
     <p>
         <strong>Deleting this data will permanently remove your account, and this cannot be recovered.</strong>
     </p>
@@ -29,12 +29,13 @@
         @if (requirePassword)
         {
             <div class="form-floating mb-3">
-                <InputText type="password" @bind-Value="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Please enter your password." />
-                <label for="password" class="form-label">Password</label>
-                <ValidationMessage For="() => Input.Password" class="text-danger" />
+                <label>Password: 
+                    <InputText type="password" @bind-Value="Input.Password" class="border border-black" autocomplete="current-password" aria-required="true" placeholder="Enter your password." />
+                    <ValidationMessage For="() => Input.Password" />
+                </label>
             </div>
         }
-        <button class="w-100 btn btn-lg btn-danger" type="submit">Delete data and close my account</button>
+        <button class="mt-3 rounded-xl bg-red-500 px-3 py-2 hover:bg-red-400" type="submit">Delete data and close my account</button>
     </EditForm>
 </div>
 

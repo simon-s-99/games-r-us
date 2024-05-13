@@ -36,10 +36,11 @@ namespace games_r_us_source
 
 			var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-			// Add dbContextFactory aswell so that we can inject IDbContextFactory in our components 
-			builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
-				options.UseSqlServer(connectionString));
-			builder.Services.AddDbContext<ApplicationDbContext>(options =>
+            // Add dbContextFactory aswell so that we can inject IDbContextFactory in our components 
+            builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
+                options.UseSqlServer(connectionString));
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+
 				options.UseSqlServer(connectionString));
 			builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 

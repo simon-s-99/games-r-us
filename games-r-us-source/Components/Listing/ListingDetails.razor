@@ -92,6 +92,11 @@
 
     private string GetTimeDifference(DateTime endDate)
     {
+        if (DateTime.Now > endDate)
+        {
+            return "ended";
+        }
+
         TimeSpan timeDifference = endDate - DateTime.Today;
 
         if (timeDifference.TotalDays >= 7)

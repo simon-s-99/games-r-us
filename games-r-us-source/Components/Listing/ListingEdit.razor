@@ -48,7 +48,7 @@
                     @if (base64Image != null)
                     {
                         <img src="@base64Image" alt="New Listing Image" class="h-48 w-48 mx-auto rounded-md object-cover">
-                        <label class="bg-white text-gray-500 m-auto block w-full cursor-pointer rounded-l border-2 bg-clip-border transition hover:bg-gray-400">
+                        <label for="image" class="bg-white text-gray-500 m-auto block w-full cursor-pointer rounded-l border-2 bg-clip-border transition hover:bg-gray-400">
                             Change Image
                             <InputFile class="hidden" OnChange="@LoadFiles" accept=".png, .jpg, .jpeg, .img" />
                         </label>
@@ -56,14 +56,14 @@
                     else if (listing.ImagePath != null)
                     {
                         <img src="@listing.ImagePath" alt="Existing Listing Image" class="h-48 w-48 mx-auto rounded-md object-cover">
-                        <label class="bg-white text-gray-500 m-auto block w-full cursor-pointer rounded-l border-2 bg-clip-border transition hover:bg-gray-400">
+                        <label for="image" class="bg-white text-gray-500 m-auto block w-full cursor-pointer rounded-l border-2 bg-clip-border transition hover:bg-gray-400">
                             Change Image
                             <InputFile class="hidden" OnChange="@LoadFiles" accept=".png, .jpg, .jpeg, .img" />
                         </label>
                     }
                     else
                     {
-                        <label class="mt-4 border-gray-300 bg-white bg-gray-300 p-2 px-3 py-1.5 text-gray-700 text-black m-auto block inline-block w-full cursor-pointer rounded rounded-full border text-base text-sm leading-6 transition-colors duration-150 ease-in-out hover:bg-gray-400">
+                        <label for="image" class="mt-4 border-gray-300 bg-white bg-gray-300 p-2 px-3 py-1.5 text-gray-700 text-black m-auto block inline-block w-full cursor-pointer rounded rounded-full border text-base text-sm leading-6 transition-colors duration-150 ease-in-out hover:bg-gray-400">
                             Add Image
                             <InputFile class="hidden" OnChange="@LoadFiles" accept=".png, .jpg, .jpeg, .img" />
                         </label>
@@ -73,19 +73,19 @@
 
                 @* Rest of the input fields *@
                 <div class="mt-4 text-center">
-                    <h3 class="text-gray-900 text-lg font-medium leading-6">Create a Listing</h3>
+                    <h3 class="text-gray-900 text-lg font-medium leading-6">Edit listing</h3>
 
                     <DataAnnotationsValidator />
                     <ul class="mt-3 space-y-4">
                         <li>
                             @* Input for name *@
-                            <label class="text-gray-700 block text-sm font-medium">Name:</label>
+                            <label for="name" class="text-gray-700 block text-sm font-medium">Name:</label>
                             <InputText id="name" @bind-Value="listing.Name" class="input-field mt-1 block w-full"
                                        placeholder="@listing.Name" min="1" />
                             <ValidationMessage For="@(() => listing.Name)" class="text-red-500 text-xs mt-1" />
                         </li>
                         <li>
-                            <label class="text-gray-700 block text-sm font-medium">Starting price:</label>
+                            <label for="name" class="text-gray-700 block text-sm font-medium">Starting price:</label>
                             @if (!DisablePrice)
                             {
                                 <InputNumber id="startingPrice" @bind-Value="listing.StartingPrice" class="input-field mt-1 block w-full"
@@ -102,20 +102,20 @@
 
                         <li>
                             @* Input for description *@
-                            <label class="text-gray-700 block text-sm font-medium">Description:</label>
+                            <label for="description" class="text-gray-700 block text-sm font-medium">Description:</label>
                             <InputTextArea id="description" @bind-Value="listing.Description" class="input-field mt-1 block w-full"
                                            placeholder="@listing.Description" maxlength="100" />
                         </li>
                         <li>
                             @* Uneditable end date *@
-                            <label class="text-gray-700 block text-sm font-medium">End date for Auction:</label>
+                            <label for="description" class="text-gray-700 block text-sm font-medium">End date for Auction:</label>
                             <input type="datetime-local" id="auctionEnd" @bind="listing.AuctionEnd" class="input-field mt-1 block w-full"
                                    min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" disabled />
                         </li>
 
                         <li>
                             @* Platform input (xbox, gamecube, etc.) *@
-                            <label class="text-gray-700 block text-sm font-medium">Platform:</label>
+                            <label for="platform" class="text-gray-700 block text-sm font-medium">Platform:</label>
                             <InputSelect id="platform" @bind-Value="listing.Platform" class="input-field mt-1 block w-full">
                                 @* generate options for platforms *@
                                 @foreach (var platform in Enum.GetValues(typeof(Platform)))
@@ -126,7 +126,7 @@
                         </li>
                         <li>
                             @* Game category (fps, indie, etc.) *@
-                            <label class="text-gray-700 block text-sm font-medium">Game Category:</label>
+                            <label for="gameCategory" class="text-gray-700 block text-sm font-medium">Game Category:</label>
                             <InputSelect id="gameCategory" @bind-Value="listing.GameCategory" class="input-field mt-1 block w-full">
 
                                 <option value="null">None</option> @* None as an option in case the listing is a console *@
@@ -203,7 +203,7 @@
         // Check to prevent rapid successive submissions
         if ((currentTime - lastSubmissionTime).TotalSeconds < 3) 
         {
-            Console.WriteLine("Please wait 3 seconds before creating another listing.");
+            Console.WriteLine("Please wait 3 seconds before editing another listing.");
             return; 
         }
 

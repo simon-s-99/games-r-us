@@ -38,7 +38,7 @@
 @code {
     [Parameter]
     public int ListingID { get; set; }
-    
+
     private bool IsListingDeleted { get; set; } = false;
     private bool ConfirmationDialog { get; set; } = false;
     private bool IsOwner { get; set; } = false;
@@ -73,11 +73,12 @@
         {
             using (var dbContext = ContextFactory.CreateDbContext())
             {
-                dbContext.Listings.Remove(listing);
+                dbContext.Listings.Remove(new Listing { ID = ListingID });
                 await dbContext.SaveChangesAsync();
 
                 IsListingDeleted = true;
                 ConfirmationDialog = false;
+                NavigationManager.NavigateTo("/");
             }
         }
     }

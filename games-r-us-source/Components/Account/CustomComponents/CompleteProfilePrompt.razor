@@ -2,19 +2,17 @@
 @using Microsoft.EntityFrameworkCore
 @using games_r_us_source.Data
 
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject UserManager<ApplicationUser> UserManager
 @inject IdentityUserAccessor UserAccessor
 @inject IdentityRedirectManager RedirectManager
 @inject IDbContextFactory<ApplicationDbContext> DbContextFactory
 
-<AuthorizeView>
-	<Authorized>
+<!-- Empty html, just redirecting -->
 
-	</Authorized>
-	<NotAuthorized>
-
-	</NotAuthorized>
-</AuthorizeView>
+<!-- Just nest this component wherever/whenever you need to
+	redirect a user with an incomplete profile. 
+-->
 
 @code {
 	private ApplicationUser user = default!;
@@ -25,17 +23,30 @@
 	[CascadingParameter]
 	private HttpContext HttpContext { get; set; } = default!;
 
+	// Gets user phoneNr., fullName & address
+	// if any of them are set to NULL (i.e. an incomplete profile)
+	// send the user to the profile page 
 	protected override async Task OnInitializedAsync()
 	{
-		user = await UserAccessor.GetRequiredUserAsync(HttpContext);
-		phoneNumber = await UserManager.GetPhoneNumberAsync(user);
+		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
 
-		using (var dbContext = DbContextFactory.CreateDbContext())
+		if (HttpContext is not null && authState.User.Identity.IsAuthenticated)
 		{
-			// this should not result in 2 separate queries to the database since 
-			// current context should still be tracking the entity 
-			fullName = dbContext.ApplicationUsers.Find(user.Id).FullName;
-			address = dbContext.ApplicationUsers.Find(user.Id).Address;
+			user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+			phoneNumber = await UserManager.GetPhoneNumberAsync(user);
+
+			using (var dbContext = DbContextFactory.CreateDbContext())
+			{
+				// this should not result in 2 separate queries to the database since
+				// current context should still be tracking the entity
+				fullName = dbContext.ApplicationUsers.Find(user.Id).FullName;
+				address = dbContext.ApplicationUsers.Find(user.Id).Address;
+			}
+
+			if (phoneNumber is null || fullName is null || address is null)
+			{
+				RedirectManager.RedirectTo("/Account/Manage");
+			}
 		}
 	}
 }

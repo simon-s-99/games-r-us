@@ -30,6 +30,16 @@
     <div class="inset-0 bg-gray-800 fixed flex items-center justify-center bg-opacity-75">
         <div class="bg-white p-6 w-full max-w-md rounded-lg shadow-lg">
 
+            @* If the user has an image uploaded we show the "delete image" button *@
+            @if (base64Image != null || listing.ImagePath != null)
+            {
+                <button @onclick="RemoveImage"
+                        class="bg-red-500 text-white py-2 px-4 rounded-lg font-bold shadow transition duration-150 ease-in-out hover:bg-red-700">
+                    Remove Image
+                </button>
+
+            }
+
             @* Editform used in blazor for editing a listing  *@
             <EditForm Model="@listing" OnValidSubmit="HandleValidSubmit">
 
@@ -240,7 +250,7 @@
 
                 successMessage = "";
                 StateHasChanged();
-                
+
                 NavigationManager.NavigateTo($"/", forceLoad: true);
                 lastSubmissionTime = currentTime;
             }
@@ -258,7 +268,7 @@
             Console.WriteLine("No existing listing found with ID: " + listing.ID);
         }
     }
-    
+
 
     // Method to handle images
     private async Task LoadFiles(InputFileChangeEventArgs e)
@@ -342,4 +352,25 @@
         errors.Clear();
         IsVisible = false;
     }
+
+    private void RemoveImage()
+    {
+        base64Image = null;
+
+        // If there's a current image path in temporary storage, delete it
+        if (!string.IsNullOrEmpty(currentImagePath))
+        {
+            string tempFolderPath = Path.Combine(Environment.WebRootPath, "temp_images");
+            string fullPath = Path.Combine(tempFolderPath, currentImagePath);
+            if (File.Exists(fullPath))
+            {
+                File.Delete(fullPath);  // Delete the image file
+            }
+            currentImagePath = null;
+        }
+
+        listing.ImagePath = null;
+        StateHasChanged();  
+    }
 }
+

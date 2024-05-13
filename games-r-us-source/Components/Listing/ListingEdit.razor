@@ -27,8 +27,9 @@
 
 @if (IsVisible)
 {
-    <div class="inset-0 bg-gray-800 fixed flex items-center justify-center bg-opacity-75">
-        <div class="bg-white p-6 w-full max-w-md rounded-lg shadow-lg">
+    @* if the user presses outside of the "ShowModal" it triggers "ShowConfirmCancel" *@
+    <div @onclick="ShowConfirmCancel" class="inset-0 bg-gray-800 fixed flex items-center justify-center bg-opacity-75">
+        <div class="bg-white p-6 w-full max-w-md rounded-lg shadow-lg" @onclick:stopPropagation>
 
             @* If the user has an image uploaded we show the "delete image" button *@
             @if (base64Image != null || listing.ImagePath != null)
@@ -50,7 +51,7 @@
                         <img src="@base64Image" alt="New Listing Image" class="h-48 w-48 mx-auto rounded-md object-cover">
                         <label for="image" class="bg-white text-gray-500 m-auto block w-full cursor-pointer rounded-l border-2 bg-clip-border transition hover:bg-gray-400">
                             Change Image
-                            <InputFile class="hidden" OnChange="@LoadFiles" accept=".png, .jpg, .jpeg, .img" />
+                            <InputFile id="image" class="hidden" OnChange="@LoadFiles" accept=".png, .jpg, .jpeg, .img" />
                         </label>
                     }
                     else if (listing.ImagePath != null)
@@ -58,14 +59,14 @@
                         <img src="@listing.ImagePath" alt="Existing Listing Image" class="h-48 w-48 mx-auto rounded-md object-cover">
                         <label for="image" class="bg-white text-gray-500 m-auto block w-full cursor-pointer rounded-l border-2 bg-clip-border transition hover:bg-gray-400">
                             Change Image
-                            <InputFile class="hidden" OnChange="@LoadFiles" accept=".png, .jpg, .jpeg, .img" />
+                            <InputFile id="image" class="hidden" OnChange="@LoadFiles" accept=".png, .jpg, .jpeg, .img" />
                         </label>
                     }
                     else
                     {
                         <label for="image" class="mt-4 border-gray-300 bg-white bg-gray-300 p-2 px-3 py-1.5 text-gray-700 text-black m-auto block inline-block w-full cursor-pointer rounded rounded-full border text-base text-sm leading-6 transition-colors duration-150 ease-in-out hover:bg-gray-400">
                             Add Image
-                            <InputFile class="hidden" OnChange="@LoadFiles" accept=".png, .jpg, .jpeg, .img" />
+                            <InputFile id="image" class="hidden" OnChange="@LoadFiles" accept=".png, .jpg, .jpeg, .img" />
                         </label>
                     }
 
@@ -85,7 +86,7 @@
                             <ValidationMessage For="@(() => listing.Name)" class="text-red-500 text-xs mt-1" />
                         </li>
                         <li>
-                            <label for="name" class="text-gray-700 block text-sm font-medium">Starting price:</label>
+                            <label for="startingPrice" class="text-gray-700 block text-sm font-medium">Starting price:</label>
                             @if (!DisablePrice)
                             {
                                 <InputNumber id="startingPrice" @bind-Value="listing.StartingPrice" class="input-field mt-1 block w-full"
@@ -95,7 +96,7 @@
                             else  // If there has been a bid made, the user cannot edit the starting price
                             {
                                 <InputNumber id="startingPrice" @bind-Value="listing.StartingPrice" class="input-field mt-1 block w-full"
-                                             min="1" disabled />
+                                              disabled />
                                 <p class="mt-1 text-red-500 text-xs">Cannot change starting price after a bid has been made.</p>
                             }
                         </li>
@@ -108,7 +109,7 @@
                         </li>
                         <li>
                             @* Uneditable end date *@
-                            <label for="description" class="text-gray-700 block text-sm font-medium">End date for Auction:</label>
+                            <label for="auctionEnd" class="text-gray-700 block text-sm font-medium">End date for Auction:</label>
                             <input type="datetime-local" id="auctionEnd" @bind="listing.AuctionEnd" class="input-field mt-1 block w-full"
                                    min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" disabled />
                         </li>
@@ -332,12 +333,16 @@
         {
             listing = await dbContext.Listings.FirstOrDefaultAsync(l => l.ID == listingId);
 
+
             if (listing == null)
             {
                 Console.WriteLine("Listing not found.");
                 IsVisible = false;
                 return;
             }
+
+            var existingBid = await dbContext.Bids.FirstOrDefaultAsync(b => b.ListingID == listingId);
+            DisablePrice = existingBid != null; // Disable price edit if there's at least one bid
         }
 
         successMessage = "";

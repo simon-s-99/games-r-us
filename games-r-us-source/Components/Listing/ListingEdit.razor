@@ -179,9 +179,11 @@
 @code {
     [Parameter]
     public Listing Listing { get; set; } // Get Listing.ID from "ListingDetails"
-
     [Parameter]
     public int ListingID { get; set; }
+    [Parameter]
+    public Bid HighestBid { get; set; }
+
     private Listing listing;
 
     // file size set to 3MB
@@ -323,28 +325,41 @@
         IsVisible = false;
         errors.Clear();
     }
-
-    public async Task ShowModal(int listingID)
+    public void ShowModal(int listingID)
     {
-        // Fetch the listing from the database
-        using (var dbContext = dbContextFactory.CreateDbContext())
+        if (Listing == null)
         {
-            listing = await dbContext.Listings.FirstOrDefaultAsync(l => l.ID == ListingID);
-
-            if (listing == null)
-            {
-                Console.WriteLine("Listing not found.");
-                IsVisible = false;
-                return;
-            }
-
-            var existingBid = await dbContext.Bids.FirstOrDefaultAsync(b => b.ListingID == listingID);
-            DisablePrice = existingBid != null; // Disable price edit if there's at least one bid
+            Console.WriteLine("Listing not found.");
+            IsVisible = false;
+            return;
         }
 
-        isSuccessful = false;
+        DisablePrice = HighestBid != null && HighestBid.Amount > Listing.StartingPrice;
+
         IsVisible = true;
     }
+
+    // public async Task ShowModal(int listingID)
+    // {
+    //     // Fetch the listing from the database
+    //     using (var dbContext = dbContextFactory.CreateDbContext())
+    //     {
+    //         listing = await dbContext.Listings.FirstOrDefaultAsync(l => l.ID == ListingID);
+
+    //         if (listing == null)
+    //         {
+    //             Console.WriteLine("Listing not found.");
+    //             IsVisible = false;
+    //             return;
+    //         }
+
+    //         var existingBid = await dbContext.Bids.FirstOrDefaultAsync(b => b.ListingID == listingID);
+    //         DisablePrice = existingBid != null; // Disable price edit if there's at least one bid
+    //     }
+
+    //     isSuccessful = false;
+    //     IsVisible = true;
+    // }
 
     public void CloseModal()
     {

@@ -159,14 +159,16 @@
         </div>
     }
 
-    @if (!string.IsNullOrEmpty(successMessage))
+    @if (isSuccessful)
     {
         <div class="inset-0 bg-black fixed flex items-center justify-center bg-opacity-50">
             <div class="bg-white p-4 flex flex-col items-center rounded">
-                <h3 class="mb-4 text-lg">@successMessage</h3>
+                <h3 class="mb-4 text-lg">Changes saved successfully</h3>
             </div>
         </div>
     }
+
+
     @foreach (var error in errors)
     {
         <div class="alert alert-danger">@error</div>
@@ -176,12 +178,15 @@
 
 @code {
     [Parameter]
+    public Listing Listing { get; set; } // Get Listing.ID from "ListingDetails"
+
+    [Parameter]
     public int ListingID { get; set; }
     private Listing listing;
 
     // file size set to 3MB
     private long maxFileSize = 1024 * 1024 * 3;
-    private int maxAllowedFiles = 1; // In case we ever want to allow more than one image
+    private int maxAllowedFiles = 1; // In case we ever want to allow more than one image in the future
     private List<string> errors = new(); //displays errors in the UI
 
     private IBrowserFile? file; // Holds a reference to the uploaded file
@@ -194,7 +199,7 @@
 
     private bool IsVisible;
     private bool showConfirmation;
-    private string successMessage = ""; //Clears successMessage
+    private bool isSuccessful;
 
 
     private async Task HandleValidSubmit()
@@ -202,73 +207,66 @@
         var currentTime = DateTime.Now;
 
         // Check to prevent rapid successive submissions
-        if ((currentTime - lastSubmissionTime).TotalSeconds < 3) 
+        if ((currentTime - lastSubmissionTime).TotalSeconds < 3)
         {
             Console.WriteLine("Please wait 3 seconds before editing another listing.");
-            return; 
+            return;
         }
 
         using var dbContext = dbContextFactory.CreateDbContext();
-        var existingListing = await dbContext.Listings.FindAsync(listing.ID);
 
-        if (existingListing != null)
+        // Attach the updated Listing to the context and mark it as modified
+        dbContext.Entry(listing).State = EntityState.Modified;
+
+        // Update listing details from the edit form
+        // Directly using Listing object assuming it's the same object updated by data-binding in the form
+        if (!string.IsNullOrEmpty(currentImagePath))
         {
-            // Update listing details from the edit form
-            existingListing.Name = listing.Name;
-            existingListing.Description = listing.Description;
-            existingListing.StartingPrice = listing.StartingPrice;
-            existingListing.Platform = listing.Platform;
-            existingListing.AuctionEnd = listing.AuctionEnd;
-            existingListing.GameCategory = listing.GameCategory;
+            string permanentFolderPath = Path.Combine(Environment.WebRootPath, "images");
+            string tempImagePath = Path.Combine(Environment.WebRootPath, "temp_images", currentImagePath);
+            string permanentImagePath = Path.Combine(permanentFolderPath, currentImagePath);
 
-            // Check if a new image has been uploaded and process it
-            if (!string.IsNullOrEmpty(currentImagePath))
+            if (File.Exists(tempImagePath))
             {
-                string permanentFolderPath = Path.Combine(Environment.WebRootPath, "images");
-                string tempImagePath = Path.Combine(Environment.WebRootPath, "temp_images", currentImagePath);
-                string permanentImagePath = Path.Combine(permanentFolderPath, currentImagePath);
-
-                if (File.Exists(tempImagePath))
-                {
-                    Directory.CreateDirectory(permanentFolderPath); // ensure the permanent directory exists
-                    File.Move(tempImagePath, permanentImagePath); // Move the image from temp to perm
-                    existingListing.ImagePath = Path.Combine("images", currentImagePath); // Update the database
-                }
-                else
-                {
-                    Console.WriteLine("Temporary image file not found.");
-                }
+                Directory.CreateDirectory(permanentFolderPath); // Ensure the permanent directory exists
+                File.Move(tempImagePath, permanentImagePath); // Move the image from temp to perm
+                listing.ImagePath = Path.Combine("images", currentImagePath); // Update the database image path
             }
-
-            // Attempt to save changes to the database
-            try
+            else
             {
-                await dbContext.SaveChangesAsync();
-                successMessage = "Changes saved successfully";
-                StateHasChanged();
-
-                await Task.Delay(2000); // Display the successMessage for 2 seconds
-
-                successMessage = "";
-                StateHasChanged();
-
-                NavigationManager.NavigateTo($"/", forceLoad: true);
-                lastSubmissionTime = currentTime;
-            }
-            catch (DbUpdateException ex)
-            {
-                Console.WriteLine($"Database update failed: {ex.Message}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"An unexpected error occurred: {ex.Message}");
+                Console.WriteLine("Temporary image file not found.");
             }
         }
-        else
+
+        // Attempt to save changes to the database
+        try
         {
-            Console.WriteLine("No existing listing found with ID: " + listing.ID);
+            await dbContext.SaveChangesAsync();
+            isSuccessful = true;
+            StateHasChanged();
+
+            await Task.Delay(2000); // Display the success message for 2 seconds before redirect
+
+            isSuccessful = false;
+            NavigationManager.NavigateTo("/", forceLoad: true);
+            lastSubmissionTime = currentTime;
+        }
+        catch (DbUpdateException ex)
+        {
+            Console.WriteLine($"Database update failed: {ex.Message}");
+            errors.Add($"Database update failed: {ex.Message}");
+            isSuccessful = false;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"An unexpected error occurred: {ex.Message}");
+            errors.Add($"An unexpected error occurred: {ex.Message}");
+            isSuccessful = false;
+            StateHasChanged();
         }
     }
+
 
 
     // Method to handle images
@@ -326,13 +324,12 @@
         errors.Clear();
     }
 
-    public async Task ShowModal(int listingId)
+    public async Task ShowModal(int listingID)
     {
         // Fetch the listing from the database
         using (var dbContext = dbContextFactory.CreateDbContext())
         {
-            listing = await dbContext.Listings.FirstOrDefaultAsync(l => l.ID == listingId);
-
+            listing = await dbContext.Listings.FirstOrDefaultAsync(l => l.ID == ListingID);
 
             if (listing == null)
             {
@@ -341,17 +338,17 @@
                 return;
             }
 
-            var existingBid = await dbContext.Bids.FirstOrDefaultAsync(b => b.ListingID == listingId);
+            var existingBid = await dbContext.Bids.FirstOrDefaultAsync(b => b.ListingID == listingID);
             DisablePrice = existingBid != null; // Disable price edit if there's at least one bid
         }
 
-        successMessage = "";
+        isSuccessful = false;
         IsVisible = true;
     }
 
     public void CloseModal()
     {
-        successMessage = "";
+        isSuccessful = false;
         base64Image = null;
         serverImagePath = null;
         errors.Clear();

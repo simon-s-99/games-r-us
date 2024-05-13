@@ -3,31 +3,17 @@
 
 @inject SignInManager<ApplicationUser> SignInManager
 
-<ul class="nav nav-pills flex-column">
-    <li class="nav-item">
-        <NavLink class="nav-link" href="Account/Manage" Match="NavLinkMatch.All">Profile</NavLink>
+<ul class="flex flex-col">
+    <li class="mt-2.5">
+        <NavLink class="rounded-lg bg-gray-300 px-1 py-1 hover:bg-gray-200" href="Account/Manage/PersonalData">Personal data</NavLink>
     </li>
-    <li class="nav-item">
-        <NavLink class="nav-link" href="Account/Manage/Email">Email</NavLink>
-    </li>
-    <li class="nav-item">
-        <NavLink class="nav-link" href="Account/Manage/ChangePassword">Password</NavLink>
-    </li>
-    @if (hasExternalLogins)
-    {
-        <li class="nav-item">
-            <NavLink class="nav-link" href="Account/Manage/ExternalLogins">External logins</NavLink>
-        </li>
-    }
-    <li class="nav-item">
-        <NavLink class="nav-link" href="Account/Manage/TwoFactorAuthentication">Two-factor authentication</NavLink>
-    </li>
-    <li class="nav-item">
-        <NavLink class="nav-link" href="Account/Manage/PersonalData">Personal data</NavLink>
+    <li class="mt-2.5">
+        <NavLink class="rounded-lg bg-gray-300 px-1 py-1 hover:bg-gray-200" href="Account/Manage/ChangePassword">Change Password</NavLink>
     </li>
 </ul>
 
 @code {
+    // The below code is needed for our OAuth endpoint
     private bool hasExternalLogins;
 
     protected override async Task OnInitializedAsync()

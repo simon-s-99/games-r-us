@@ -3,6 +3,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace games_r_us_source.Data
 {
+    public enum BidStatus
+    {
+        Won,
+        Lost,
+        Leading,
+        Losing
+    }
+
     public class Bid
     {
         public int ID { get; set; }
@@ -29,12 +37,5 @@ namespace games_r_us_source.Data
 
         [NotMapped]
         public BidStatus Status { get; set; }
-    }
-    public enum BidStatus
-    {
-        Won,
-        Lost,
-        Leading,
-        Losing
     }
 }

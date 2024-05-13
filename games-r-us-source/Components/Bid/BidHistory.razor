@@ -2,90 +2,90 @@
 @using Data;
 @using Components.Helpers;
 @using Microsoft.AspNetCore.Components.Authorization
+@using games_r_us_source.Components.Listing
 @inject IDbContextFactory<ApplicationDbContext> dbContextFactory;
-@inject AuthenticationStateProvider AuthorizationStateProvider;
+@inject AuthenticationStateProvider AuthenticationStateProvider;
 @rendermode InteractiveServer
 
-<AuthorizeView>
-    <Authorized>
-        <h3 class="mb-4 block text-center text-2xl font-bold">Bidding History</h3>
-        <main class="border-2 rounded border-black text-center *:list-none">
-            <ul class="grid-cols-4 grid font-bold">
-                <li>
-                    <button class="uppercase tracking-wide" type="button" @onclick="() => OrderBids(SortingOrder.Amount)">
-                        Amount
-                        @DrawArrowIcon(SortingOrder.Amount)
-                    </button>
-                </li>
-                <li class="border-l-[1px] border-r-[1px] border-black">
-                    <button class="uppercase tracking-wide" type="button" @onclick="() => OrderBids(SortingOrder.Status)">
-                        Status
-                        @DrawArrowIcon(SortingOrder.Status)
-                    </button>
-                </li>
-                <li class="border-r-[1px] border-black">
-                    <button class="uppercase tracking-wide" type="button" @onclick="() => OrderBids(SortingOrder.Listing)">
-                        Listing
-                        @DrawArrowIcon(SortingOrder.Listing)
-                    </button>
-                </li>
-                <li>
-                    <button class="uppercase tracking-wide" type="button" @onclick="() => OrderBids(SortingOrder.Time)">
-                        Time
-                        @DrawArrowIcon(SortingOrder.Time)
-                    </button>
-                </li>
-            </ul>
+<h3 class="mb-4 block text-center text-2xl font-bold">Bidding History</h3>
+<main class="border-2 rounded border-black text-center *:list-none">
+    <ul class="grid-cols-4 grid font-bold">
+        <li>
+            <button class="uppercase tracking-wide underline" type="button" @onclick="() => OrderBids(SortingOrder.Amount)">
+                Amount
+                @DrawArrowIcon(SortingOrder.Amount)
+            </button>
+        </li>
+        <li class="border-l-[1px] border-r-[1px] border-black">
+            <button class="uppercase tracking-wide underline" type="button" @onclick="() => OrderBids(SortingOrder.Status)">
+                Status
+                @DrawArrowIcon(SortingOrder.Status)
+            </button>
+        </li>
+        <li class="border-r-[1px] border-black">
+            <button class="uppercase tracking-wide underline" type="button" @onclick="() => OrderBids(SortingOrder.Listing)">
+                Listing
+                @DrawArrowIcon(SortingOrder.Listing)
+            </button>
+        </li>
+        <li>
+            <button class="uppercase tracking-wide underline" type="button" @onclick="() => OrderBids(SortingOrder.Time)">
+                Time
+                @DrawArrowIcon(SortingOrder.Time)
+            </button>
+        </li>
+    </ul>
 
-            @if (Bids.Any())
+    @if (Bids.Any())
+    {
+        foreach (Bid bid in Bids)
+        {
+            Bid highestBid = new Bid();
+            string style = String.Empty;
+
+            using (var dbContext = dbContextFactory.CreateDbContext())
             {
-                foreach (Bid bid in Bids)
+                bid.Listing = ListingHelper.GetListingFromListingID(bid.ListingID, dbContext);
+
+                highestBid = BidHelper.GetHighestBidFromListingID(bid.ListingID, dbContext);
+
+                // Check if bid was the highest bid for associated listing
+                if (bid.ID == highestBid.ID)
                 {
-                    Bid highestBid = new Bid();
-                    string style = String.Empty;
-
-                    using (var dbContext = dbContextFactory.CreateDbContext())
-                    {
-                        bid.Listing = ListingHelper.GetListingFromListingID(bid.ListingID, dbContext);
-
-                        highestBid = BidHelper.GetHighestBidFromListingID(bid.ListingID, dbContext);
-
-                        // Check if bid was the highest bid for associated listing
-                        if (bid.ID == highestBid.ID)
-                        {
-                            bid.Status = bid.Listing.AuctionEnd < DateTime.Today ? BidStatus.Won : BidStatus.Leading;
-                            style = bid.Listing.AuctionEnd < DateTime.Today ? "bg-green-300 grid-cols-4 grid *:p-4" : "bg-green-100 grid-cols-4 grid *:p-4";
-                        }
-                        else
-                        {
-                            bid.Status = bid.Listing.AuctionEnd < DateTime.Today ? BidStatus.Lost : BidStatus.Losing;
-                            style = bid.Listing.AuctionEnd < DateTime.Today ? "bg-red-300 grid-cols-4 grid *:p-4" : "bg-red-100 grid-cols-4 grid *:p-4";
-                        }
-                    }
-
-                    <ul class=@style>
-                        <li>$@bid.Amount</li>
-                        <li class="border-l-[1px] border-r-[1px] border-black">@bid.Status.ToString()</li>
-                        <li class="border-r-[1px] border-black">@bid.Listing.Name</li>
-                        <li>@bid.Time</li>
-                    </ul>
+                    bid.Status = bid.Listing.AuctionEnd < DateTime.Today ? BidStatus.Won : BidStatus.Leading;
+                    style = bid.Listing.AuctionEnd < DateTime.Today ? "bg-green-300 grid-cols-4 grid *:p-4" : "bg-green-100 grid-cols-4 grid *:p-4";
+                }
+                else
+                {
+                    bid.Status = bid.Listing.AuctionEnd < DateTime.Today ? BidStatus.Lost : BidStatus.Losing;
+                    style = bid.Listing.AuctionEnd < DateTime.Today ? "bg-red-300 grid-cols-4 grid *:p-4" : "bg-red-100 grid-cols-4 grid *:p-4";
                 }
             }
-            else
-            {
-                <p>You have no placed bids.</p>
-            }
-        </main>
-    </Authorized>
-    <NotAuthorized>
-        <p>Log in to view your bidding history.</p>
-    </NotAuthorized>
-</AuthorizeView>
+
+            <ul class=@style>
+                <li>$@bid.Amount</li>
+                <li class="border-l-[1px] border-r-[1px] border-black">@bid.Status.ToString()</li>
+                <li class="border-r-[1px] border-black">@* <button type="button" @onclick="() => ToggleListingVisibility(bid.Listing)">@bid.Listing.Name</button> *@@bid.Listing.Name</li>
+                <li>@bid.Time</li>
+            </ul>
+        }
+    }
+    else
+    {
+        <p>You have no placed bids.</p>
+    }
+</main>
+
+@* @if (ActiveListing is not null)
+{
+    <ListingDetails CurrentListing="ActiveListing" />
+} *@
 
 @code {
     private List<Bid?> Bids { get; set; } = new List<Bid?>();
     private string UserName { get; set; }
     private bool OrderByDescending { get; set; } = true;
+    private Listing? ActiveListing { get; set; }
 
     // Only for determining which arrow to show
     private SortingOrder? SelectedSortingOrder { get; set; } = null;
@@ -105,13 +105,13 @@
 
         if (sortingOrder != SortingOrder.Listing)
         {
-            // Dynamically get the property of the bid object to order by
+            // Convert enum to string, then parse the string as a property of the bid class (i.e. get the property of bid depending on passed enum value)
             var order = typeof(Bid).GetProperty(sortingOrder.ToString());
 
             if (OrderByDescending)
             {
                 // Order by the specified sorting order
-                // b in this case is the Bid object, we are essentially doing "b.sortingOrder"
+                // b in this case is the Bid class, we are essentially doing "b.sortingOrder" in reverse
                 Bids = Bids.OrderByDescending(b => order.GetValue(b)).ToList();
             }
             else
@@ -150,10 +150,16 @@
         return null;
     }
 
+    // private void ToggleListingVisibility(Listing listing)
+    // {
+    //         ActiveListing = null;
+    //         ActiveListing = listing;
+    // }
+
     protected override async Task OnInitializedAsync()
     {
         // Get the logged in user
-        var authenticationState = await AuthorizationStateProvider.GetAuthenticationStateAsync();
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authenticationState.User;
 
 
@@ -170,7 +176,6 @@
         using (var dbContext = dbContextFactory.CreateDbContext())
         {
             ApplicationUser loggedInUser = ApplicationUserHelper.GetAccountFromUserName(UserName, dbContext);
-
             Bids = dbContext.Bids.Where(b => b.ApplicationUserID == loggedInUser.Id).ToList();
         }
     }

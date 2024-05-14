@@ -66,14 +66,14 @@
 
     private async Task OnPlatformChanged(ChangeEventArgs e)
     {
-        platform = e.Value.ToString() == "" ? null : (Platform?)Enum.Parse(typeof(Platform), e.Value.ToString());
+        platform = e.Value.ToString() == null ? null : (Platform?)Enum.Parse(typeof(Platform), e.Value.ToString());
         await ApplyFilters(searchText, platform, category);
         StateHasChanged();
     }
 
     private async Task OnCategoryChanged(ChangeEventArgs e)
     {
-        category = e.Value.ToString() == "" ? null : (GameCategory?)Enum.Parse(typeof(Platform), e.Value.ToString());
+        category = e.Value.ToString() == null ? null : (GameCategory?)Enum.Parse(typeof(Platform), e.Value.ToString());
         await ApplyFilters(searchText, platform, category);
         StateHasChanged();
     }

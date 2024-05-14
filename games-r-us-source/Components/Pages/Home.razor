@@ -18,9 +18,7 @@
 <ListingCreate />
 
 <!-- Temporary for testing purposes -->
-<CategoryFilterSearch SearchText="@searchText"
-                      SelectedPlatform="@selectedPlatform"
-                      SelectedCategory="@selectedCategory"/>
+<ListingSearch /> 
 
 
 <!-- Only here as a template for how to show content if
@@ -48,8 +46,6 @@
     private Platform? selectedPlatform;
     private GameCategory? selectedCategory;
     private List<Listing> listings = new List<Listing>();
-
-  
 
   
 }

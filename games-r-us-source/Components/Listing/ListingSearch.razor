@@ -1,45 +1,21 @@
-﻿@page "/search"
-@using Microsoft.AspNetCore.WebUtilities
+﻿@rendermode InteractiveServer
+
 @using games_r_us_source.Data
 @using Microsoft.EntityFrameworkCore
-@using Microsoft.AspNetCore.Identity
 
-
-@using System.Data.SqlClient;
-@using System.Threading; @* StateHasChanged *@
-@using System.Threading.Tasks;
-
-@using games_r_us_source.Components.Pages
-
-@using System.Data.SqlClient;
-@using System.Threading; @* StateHasChanged *@
-@using System.Threading.Tasks
-
-
-@inject IConfiguration Configuration
-@inject NavigationManager NavigationManager
-
-@*Used for live search updates*@
-@using System.Timers
-
-@inject UserManager<ApplicationUser> userManager
-@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IDbContextFactory<ApplicationDbContext> dbContextFactory
 
-@rendermode InteractiveServer
+@page "/search"
 
-
-
-
-<div class="px-4 py-6 mx-auto max-w-4xl sm:px-6 lg:px-8">
-    <div class="gap-4 flex">
+<div class="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
+    <div class="flex gap-4">
         <div class="flex-1">
-            <InputText class="form-input border-gray-300 w-full rounded-lg shadow-sm"
+            <InputText class="form-input w-full rounded-lg border-gray-300 shadow-sm"
                        @bind-Value="searchText"
                        @oninput="OnInputChanged" placeholder="Search..." maxlength="50" />
         </div>
         <div class="w-48">
-            <select @bind="selectedPlatform" class="form-select border-gray-300 w-full rounded-lg shadow-sm">
+            <select @bind="platform" class="form-select w-full rounded-lg border-gray-300 shadow-sm">
                 <option value="">All Platforms</option>
                 @foreach (var platform in Enum.GetValues(typeof(Platform)))
                 {
@@ -48,7 +24,7 @@
             </select>
         </div>
         <div class="w-48">
-            <select @bind="selectedCategory" class="form-select border-gray-300 w-full rounded-lg shadow-sm">
+            <select @bind="category" class="form-select w-full rounded-lg border-gray-300 shadow-sm">
 
                 <option value="">All Categories</option>
                 @foreach (var category in Enum.GetValues(typeof(GameCategory)))
@@ -56,46 +32,32 @@
                     <option value="@category">@category.ToString()</option>
                 }
             </select>
-        </div>  @*Search with the selected search terms*@
-
-        <button @onclick="SubmitSearch" class="bg-gray-500 px-4 py-2 text-white rounded-lg font-bold hover:bg-gray-700">
-            Search
-        </button>
+        </div>
     </div>
 </div>
 
-
-
 @code {
     private string searchText;
-    private Platform? selectedPlatform;
-    private GameCategory? selectedCategory = null;
-
-
-    private List<Listing> allListings = new List<Listing>(); // List to store all listings
-    private List<Listing> filteredListings = new List<Listing>(); // List to store filtered listings
-
-    private List<Listing> listings = new List<Listing>();
-    // private Timer debounceTimer;
-    private int updateCounter = 0;
-
-    private int Count { get; set; } = 5;
-
+    private Platform? platform = null;
+    private GameCategory? category = null;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadAllListings();
+        // do shit when component is rendered
     }
 
-
-    private async Task LoadAllListings()
+    // firstRender parameter is needed for correct override even if it is not used in the method
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        using (var dbContext = dbContextFactory.CreateDbContext())
-        {
-            filteredListings = await dbContext.Listings.ToListAsync();
-            filteredListings = allListings; // filtered listings are the same as all listings
-            StateHasChanged();
-        }
+        // do shit when StateHasChanged() has been called
+    }
+
+    private async Task OnInputChanged(ChangeEventArgs e)
+    {
+        searchText = e.Value.ToString() ?? string.Empty;
+
+        await ApplyFilters(searchText, platform, category);
+        StateHasChanged();
     }
 
     private async Task ApplyFilters(string searchText, Platform? platform, GameCategory? category)
@@ -108,8 +70,9 @@
             if (!string.IsNullOrEmpty(searchText))
             {
                 query = query.Where(l => EF.Functions
-                .Like(l.Name, $"%{searchText}%") ||
-                EF.Functions.Like(l.Description, $"%{searchText}%"));
+                    .Like(l.Name, $"%{searchText}%") 
+                    ||
+                    EF.Functions.Like(l.Description, $"%{searchText}%"));
             }
 
             if (platform.HasValue)
@@ -122,133 +85,18 @@
                 query = query.Where(l => l.GameCategory == category.Value);
             }
 
-            filteredListings = await query.ToListAsync();
+            //filteredListings = await query.ToListAsync();
             StateHasChanged();
-
         }
     }
-
-
-    private async Task SubmitSearch()
-    {
-        try
-        {
-            ApplyFilters(searchText, selectedPlatform, selectedCategory);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Following error occured: {ex.Message}");
-        }
-
-        // NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
-        StateHasChanged();
-
 
     private async Task<IEnumerable<Listing>> SearchListings(string searchText)
     {
         using (var dbContext = dbContextFactory.CreateDbContext())
         {
             return await dbContext.Listings
-                                  .Where(l => EF.Functions.Like(l.Name, $"%{searchText}%"))
-                                  .ToListAsync();
+                .Where(l => EF.Functions.Like(l.Name, $"%{searchText}%"))
+                .ToListAsync();
         }
     }
-
-
-
-
-    void StartCountdown()
-    {
-        var timer = new System.Threading.Timer(TimeCallBack, null, 1000, 1000);
-    }
-
-    void TimeCallBack(object state)
-    {
-        if (Count > 0)
-        {
-            Count--;
-            InvokeAsync(StateHasChanged);
-        }
-    }
-
-    protected override bool ShouldRender()
-    {
-        EventType.Add("ShouldRender is called");
-        return true;
-    }
-
-
-    protected override async Task OnInitializedAsync()
-    {
-
-        var connectionString = Configuration.GetConnectionString("DefaultConnection");
-        using (var connection = new Microsoft.Data.SqlClient.SqlConnection(connectionString))
-        {
-            await connection.OpenAsync();
-            listings = (await connection.QueryAsync<Listing>("SELECT * FROM Listings")).ToList();
-        }
-        // debounceTimer = new Timer(200); // Debounce interval set to 200ms
-        // debounceTimer.AutoReset = false; // Ensures that the timer only runs once after the interval
-        // debounceTimer.Elapsed += HandleDebounceElapsed;
-        StateHasChanged();
-
-    }
-
-    private async Task OnInputChanged(ChangeEventArgs e)
-    {
-        searchText = e.Value.ToString() ?? string.Empty;
-        Console.WriteLine($"Search Text: {searchText}"); // Debugging output
-
-        // debounceTimer.Stop();
-        // debounceTimer.Start();
-        await SubmitSearch();
-        StateHasChanged();
-    }
-
-
-    // private async void HandleDebounceElapsed(object sender, ElapsedEventArgs e)
-    // {
-    //     try
-    //     {
-    //         await InvokeAsync(async () =>
-    //         {
-    //             await ApplyFilters(searchText, selectedPlatform, selectedCategory);
-    //         });
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         Console.WriteLine($"Error during HandleDebounceElapsed: {ex.Message}");
-    //     }
-    // }
-
-
-    // public void Dispose()
-    // {
-    //     // debounceTimer?.Stop();
-    //     // debounceTimer?.Dispose();
-    //     StateHasChanged();
-    // }
-
-    // void StartCountdown()
-    // {
-    //     var timer = new System.Threading.Timer(TimeCallBack, null, 1000, 1000);
-    // }
-
-    // void TimeCallBack(object state)
-    // {
-    //     if (Count > 0)
-    //     {
-    //         Count--;
-    //         InvokeAsync(StateHasChanged);
-    //     }
-    // }
-
-    public void Dispose()
-    {
-        // debounceTimer?.Stop();
-        // debounceTimer?.Dispose();
-        StateHasChanged();
-    }
-
 }
-

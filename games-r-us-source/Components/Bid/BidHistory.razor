@@ -9,27 +9,27 @@
 
 <h3 class="mb-4 block text-center text-2xl font-bold">Bidding History</h3>
 <main class="border-2 rounded border-black text-center *:list-none">
-    <ul class="grid-cols-4 grid font-bold">
-        <li>
-            <button class="uppercase tracking-wide underline" type="button" @onclick="() => OrderBids(SortingOrder.Amount)">
+    <ul class="grid-cols-4 grid font-bold *:bg-gray-200">
+        <li class="hover:bg-white">
+            <button class="uppercase tracking-wide hover:underline" type="button" @onclick="() => OrderBids(SortingOrder.Amount)">
                 Amount
                 @DrawArrowIcon(SortingOrder.Amount)
             </button>
         </li>
-        <li class="border-l-[1px] border-r-[1px] border-black">
-            <button class="uppercase tracking-wide underline" type="button" @onclick="() => OrderBids(SortingOrder.Status)">
+        <li class="border-l-[1px] border-r-[1px] border-black hover:bg-white">
+            <button class="uppercase tracking-wide hover:underline" type="button" @onclick="() => OrderBids(SortingOrder.Status)">
                 Status
                 @DrawArrowIcon(SortingOrder.Status)
             </button>
         </li>
-        <li class="border-r-[1px] border-black">
-            <button class="uppercase tracking-wide underline" type="button" @onclick="() => OrderBids(SortingOrder.Listing)">
+        <li class="border-r-[1px] border-black hover:bg-white">
+            <button class="uppercase tracking-wide hover:underline" type="button" @onclick="() => OrderBids(SortingOrder.Listing)">
                 Listing
                 @DrawArrowIcon(SortingOrder.Listing)
             </button>
         </li>
-        <li>
-            <button class="uppercase tracking-wide underline" type="button" @onclick="() => OrderBids(SortingOrder.Time)">
+        <li class="hover:bg-white">
+            <button class="uppercase tracking-wide hover:underline" type="button" @onclick="() => OrderBids(SortingOrder.Time)">
                 Time
                 @DrawArrowIcon(SortingOrder.Time)
             </button>
@@ -65,7 +65,7 @@
             <ul class=@style>
                 <li>$@bid.Amount</li>
                 <li class="border-l-[1px] border-r-[1px] border-black">@bid.Status.ToString()</li>
-                <li class="border-r-[1px] border-black">@* <button type="button" @onclick="() => ToggleListingVisibility(bid.Listing)">@bid.Listing.Name</button> *@@bid.Listing.Name</li>
+                <li class="border-r-[1px] border-black">@bid.Listing.Name <p class="text-sm text-gray-400">@BidHelper.GetTimeDifference(bid.Listing.AuctionEnd) left</p></li>
                 <li>@bid.Time</li>
             </ul>
         }
@@ -75,11 +75,6 @@
         <p>You have no placed bids.</p>
     }
 </main>
-
-@* @if (ActiveListing is not null)
-{
-    <ListingDetails CurrentListing="ActiveListing" />
-} *@
 
 @code {
     private List<Bid?> Bids { get; set; } = new List<Bid?>();
@@ -131,7 +126,6 @@
             }
         }
 
-
         StateHasChanged();
     }
 
@@ -149,12 +143,6 @@
 
         return null;
     }
-
-    // private void ToggleListingVisibility(Listing listing)
-    // {
-    //         ActiveListing = null;
-    //         ActiveListing = listing;
-    // }
 
     protected override async Task OnInitializedAsync()
     {

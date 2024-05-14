@@ -65,7 +65,7 @@
             <ul class=@style>
                 <li>$@bid.Amount</li>
                 <li class="border-l-[1px] border-r-[1px] border-black">@bid.Status.ToString()</li>
-                <li class="border-r-[1px] border-black">@bid.Listing.Name <p class="text-sm text-gray-400">@BidHelper.GetTimeDifference(bid.Listing.AuctionEnd) left</p></li>
+                <li class="border-r-[1px] border-black">@bid.Listing.Name <div class="group relative block cursor-help md:mt-0"><p class="text-sm text-gray-700">@BidHelper.GetTimeDifference(bid.Listing.AuctionEnd) left </p><span class="-ml-[20%] -mb-[15%] invisible absolute bottom-full left-1/2 w-fit text-nowrap rounded bg-black text-white opacity-70 group-hover:visible">@bid.Listing.AuctionEnd</span></div></li>
                 <li>@bid.Time</li>
             </ul>
         }

@@ -1,4 +1,5 @@
-﻿@page "/listing/edit"
+﻿@* Enables onclick functions *@
+@rendermode InteractiveServer
 
 @using Microsoft.AspNetCore.Components.Forms
 @using System.ComponentModel.DataAnnotations
@@ -6,9 +7,7 @@
 @using Microsoft.AspNetCore.Identity
 @using games_r_us_source.Components
 @using games_r_us_source.Data
-
-@* Enables onclick functions *@
-@rendermode InteractiveServer
+@inject IDbContextFactory<ApplicationDbContext> dbContextFactory
 
 @* Used to redirect user to home page *@
 @inject NavigationManager NavigationManager
@@ -16,13 +15,11 @@
 @* Used in LoadFiles *@
 @inject IWebHostEnvironment Environment
 
-@inject AuthenticationStateProvider AuthenticationStateProvider
-@inject UserManager<ApplicationUser> userManager
-@inject IDbContextFactory<ApplicationDbContext> dbContextFactory
+@page "/listing/edit"
+
 
 @* Button to show the modal when editing a listing *@
-  <button @onclick="() => ShowModal(ListingID)" class="bg-gray-300 px-4 py-2 text-black rounded-xl font-bold hover:bg-gray-400 h-20 w-20">Edit</button>
-
+<button @onclick="() => ShowModal(ListingID)" class="bg-gray-300 px-4 py-2 text-black rounded-xl font-bold hover:bg-gray-400 h-20 w-20">Edit</button>
 
 
 @if (IsVisible)
@@ -96,7 +93,7 @@
                             else  // If there has been a bid made, the user cannot edit the starting price
                             {
                                 <InputNumber id="startingPrice" @bind-Value="listing.StartingPrice" class="input-field mt-1 block w-full"
-                                              disabled />
+                                             disabled />
                                 <p class="mt-1 text-red-500 text-xs">Cannot change starting price after a bid has been made.</p>
                             }
                         </li>
@@ -180,14 +177,13 @@
     [Parameter]
     public Listing Listing { get; set; } // Get Listing.ID from "ListingDetails"
     [Parameter]
-    public int ListingID { get; set; }
+    public int ListingID { get; set; } // Connects this component with ListingDetails by ID
     [Parameter]
     public Bid HighestBid { get; set; }
 
     private Listing listing;
 
-    // file size set to 3MB
-    private long maxFileSize = 1024 * 1024 * 3;
+    private long maxFileSize = 1024 * 1024 * 3; // file size set to 3MB
     private int maxAllowedFiles = 1; // In case we ever want to allow more than one image in the future
     private List<string> errors = new(); //displays errors in the UI
 
@@ -202,7 +198,6 @@
     private bool IsVisible;
     private bool showConfirmation;
     private bool isSuccessful;
-
 
     private async Task HandleValidSubmit()
     {
@@ -269,8 +264,6 @@
         }
     }
 
-
-
     // Method to handle images
     private async Task LoadFiles(InputFileChangeEventArgs e)
     {
@@ -312,19 +305,6 @@
         }
     }
 
-    private void ShowConfirmCancel() => showConfirmation = true;
-
-    private void HideConfirmCancel()
-    {
-        showConfirmation = false;
-    }
-
-    private void ConfirmCancel()
-    {
-        showConfirmation = false;
-        IsVisible = false;
-        errors.Clear();
-    }
     public void ShowModal(int listingID)
     {
         if (Listing == null)
@@ -361,15 +341,6 @@
     //     IsVisible = true;
     // }
 
-    public void CloseModal()
-    {
-        isSuccessful = false;
-        base64Image = null;
-        serverImagePath = null;
-        errors.Clear();
-        IsVisible = false;
-    }
-
     private void RemoveImage()
     {
         base64Image = null;
@@ -387,7 +358,31 @@
         }
 
         listing.ImagePath = null;
-        StateHasChanged();  
+        StateHasChanged();
     }
+
+    private void ShowConfirmCancel() => showConfirmation = true;
+
+    private void HideConfirmCancel()
+    {
+        showConfirmation = false;
+    }
+
+    private void ConfirmCancel()
+    {
+        showConfirmation = false;
+        IsVisible = false;
+        errors.Clear();
+    }
+
+    public void CloseModal()
+    {
+        isSuccessful = false;
+        base64Image = null;
+        serverImagePath = null;
+        errors.Clear();
+        IsVisible = false;
+    }
+
 }
 

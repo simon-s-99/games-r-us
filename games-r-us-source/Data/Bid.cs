@@ -3,6 +3,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace games_r_us_source.Data
 {
+    public enum BidStatus
+    {
+        Won,
+        Lost,
+        Leading,
+        Losing
+    }
+
     public class Bid
     {
         public int ID { get; set; }
@@ -16,15 +24,18 @@ namespace games_r_us_source.Data
         public Listing Listing { get; set; }
 
         [ForeignKey("ApplicationUserID")]
-		public string ApplicationUserID { get; set; } // account that placed the bid 
+        public string ApplicationUserID { get; set; } // account that placed the bid 
 
-		[NotMapped]
+        [NotMapped]
         [DeleteBehavior(DeleteBehavior.NoAction)] // sets AccountID to null if the related account is deleted 
-		public ApplicationUser ApplicationUser { get; set; }
+        public ApplicationUser ApplicationUser { get; set; }
 
         public decimal Amount { get; set; }
 
         // time bid was placed
         public DateTime Time { get; set; }
+
+        [NotMapped]
+        public BidStatus Status { get; set; }
     }
 }

@@ -5,25 +5,24 @@
 
 @if (!IsListingDeleted)
 {
-    <button @onclick="ShowConfirmationDialog" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Delete</button>
+    <button @onclick="ShowConfirmationDialog" class="rounded bg-red-500 px-4 py-2 text-white hover:bg-red-600">Delete</button>
+}
+else
+{
+    <div class="mt-4 text-green-500">Listing successfully deleted</div>
 }
 
 @if (ConfirmationDialog)
 {
-    <section class="inset-0 bg-black fixed flex items-center justify-center bg-opacity-50">
-        <section class="bg-white p-4 rounded">
+    <section class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+        <section class="rounded bg-white p-4">
             <p class="mb-4">Are you sure you want to delete this listing?</p>
-            <div class="space-x-4 flex justify-center">
-                <button class="px-4 py-2 text-white bg-red-500 rounded" @onclick="RemoveListing">Yes</button>
-                <button class="px-4 py-2 text-white bg-green-500 rounded" @onclick="() => ConfirmationDialog = false">No</button>
+            <div class="flex justify-center space-x-4">
+                <button class="rounded bg-red-500 px-4 py-2 text-white" @onclick="RemoveListing">Yes</button>
+                <button class="rounded bg-green-500 px-4 py-2 text-white" @onclick="() => ConfirmationDialog = false">No</button>
             </div>
         </section>
     </section>
-}
-
-@if (IsListingDeleted)
-{
-    <div class="text-green-500 mt-4">Listing successfully deleted</div>
 }
 
 @code {

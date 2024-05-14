@@ -10,26 +10,26 @@
 <h3 class="mb-4 block text-center text-2xl font-bold">Bidding History</h3>
 <main class="border-2 rounded border-black text-center *:list-none">
     <ul class="grid-cols-4 grid font-bold *:bg-gray-200">
-        <li class="hover:bg-white">
-            <button class="uppercase tracking-wide hover:underline" type="button" @onclick="() => OrderBids(SortingOrder.Amount)">
+        <li>
+            <button class="rounded-xl px-4 py-2 uppercase tracking-wide hover:underline hover:bg-white" type="button" @onclick="() => OrderBids(SortingOrder.Amount)">
                 Amount
                 @DrawArrowIcon(SortingOrder.Amount)
             </button>
         </li>
-        <li class="border-l-[1px] border-r-[1px] border-black hover:bg-white">
-            <button class="uppercase tracking-wide hover:underline" type="button" @onclick="() => OrderBids(SortingOrder.Status)">
+        <li class="border-l-[1px] border-r-[1px] border-black">
+            <button class="rounded-xl px-4 py-2 uppercase tracking-wide hover:underline hover:bg-white" type="button" @onclick="() => OrderBids(SortingOrder.Status)">
                 Status
                 @DrawArrowIcon(SortingOrder.Status)
             </button>
         </li>
-        <li class="border-r-[1px] border-black hover:bg-white">
-            <button class="uppercase tracking-wide hover:underline" type="button" @onclick="() => OrderBids(SortingOrder.Listing)">
+        <li class="border-r-[1px] border-black">
+            <button class="rounded-xl px-4 py-2 uppercase tracking-wide hover:underline hover:bg-white" type="button" @onclick="() => OrderBids(SortingOrder.Listing)">
                 Listing
                 @DrawArrowIcon(SortingOrder.Listing)
             </button>
         </li>
-        <li class="hover:bg-white">
-            <button class="uppercase tracking-wide hover:underline" type="button" @onclick="() => OrderBids(SortingOrder.Time)">
+        <li>
+            <button class="rounded-xl px-4 py-2 uppercase tracking-wide hover:underline hover:bg-white" type="button" @onclick="() => OrderBids(SortingOrder.Time)">
                 Time
                 @DrawArrowIcon(SortingOrder.Time)
             </button>

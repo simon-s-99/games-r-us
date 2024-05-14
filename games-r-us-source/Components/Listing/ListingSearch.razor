@@ -64,6 +64,20 @@
         StateHasChanged();
     }
 
+    private async Task OnPlatformChanged(ChangeEventArgs e)
+    {
+        platform = e.Value.ToString() == "" ? null : (Platform?)Enum.Parse(typeof(Platform), e.Value.ToString());
+        await ApplyFilters(searchText, platform, category);
+        StateHasChanged();
+    }
+
+    private async Task OnCategoryChanged(ChangeEventArgs e)
+    {
+        category = e.Value.ToString() == "" ? null : (GameCategory?)Enum.Parse(typeof(Platform), e.Value.ToString());
+        await ApplyFilters(searchText, platform, category);
+        StateHasChanged();
+    }
+
     private async Task ApplyFilters(string searchText, Platform? platform, GameCategory? category)
     {
         using (var dbContext = dbContextFactory.CreateDbContext())
@@ -74,7 +88,7 @@
             if (!string.IsNullOrEmpty(searchText))
             {
                 query = query.Where(l => EF.Functions
-                    .Like(l.Name, $"%{searchText}%") 
+                    .Like(l.Name, $"%{searchText}%")
                     ||
                     EF.Functions.Like(l.Description, $"%{searchText}%"));
             }
@@ -90,7 +104,7 @@
             }
 
             var filteredListings = await query.ToListAsync();
-        await OnSearchResultsUpdated.InvokeAsync(filteredListings);
+            await OnSearchResultsUpdated.InvokeAsync(filteredListings); // triggers the event callback
             StateHasChanged();
         }
     }

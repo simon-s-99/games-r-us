@@ -1,23 +1,14 @@
-﻿﻿@using Microsoft.EntityFrameworkCore
+﻿@using Microsoft.EntityFrameworkCore
 @using games_r_us_source.Data
-@using games_r_us_source.Components.Helpers
 @inject IDbContextFactory<ApplicationDbContext> ContextFactory
-@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
-@rendermode InteractiveServer
 
 @if (!IsListingDeleted)
 {
-    <AuthorizeView>
-        <Authorized>
-            @if (IsOwner)
-            {
-                <button @onclick="ShowConfirmationDialog" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Delete</button>
-            }
-        </Authorized>
-    </AuthorizeView>
+    <button @onclick="ShowConfirmationDialog" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Delete</button>
 }
-@if (ConfirmationDialog @* && !IsListingDeleted *@)
+
+@if (ConfirmationDialog)
 {
     <section class="inset-0 bg-black fixed flex items-center justify-center bg-opacity-50">
         <section class="bg-white p-4 rounded">
@@ -26,7 +17,7 @@
                 <button class="px-4 py-2 text-white bg-red-500 rounded" @onclick="RemoveListing">Yes</button>
                 <button class="px-4 py-2 text-white bg-green-500 rounded" @onclick="() => ConfirmationDialog = false">No</button>
             </div>
-         </section>
+        </section>
     </section>
 }
 
@@ -41,45 +32,21 @@
 
     private bool IsListingDeleted { get; set; } = false;
     private bool ConfirmationDialog { get; set; } = false;
-    private bool IsOwner { get; set; } = false;
-    private Listing listing;
-
-    protected override async Task OnInitializedAsync()
-    {
-        await CheckOwnership();
-    }
 
     private async Task ShowConfirmationDialog()
     {
-        await CheckOwnership();
         ConfirmationDialog = true;
-    }
-
-    private async Task CheckOwnership()
-    {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var userName = authState.User.Identity.Name;
-
-        using (var dbContext = ContextFactory.CreateDbContext())
-        {
-            listing = await dbContext.Listings.FindAsync(ListingID);
-            IsOwner = ApplicationUserHelper.IsUserListingOwner(userName, listing, dbContext);
-        }
     }
 
     private async Task RemoveListing()
     {
-        if (IsOwner)
+        using (var dbContext = ContextFactory.CreateDbContext())
         {
-            using (var dbContext = ContextFactory.CreateDbContext())
-            {
-                dbContext.Listings.Remove(new Listing { ID = ListingID });
-                await dbContext.SaveChangesAsync();
-
-                IsListingDeleted = true;
-                ConfirmationDialog = false;
-                NavigationManager.NavigateTo("/");
-            }
+            dbContext.Listings.Remove(new Listing { ID = ListingID });
+            await dbContext.SaveChangesAsync();
+            IsListingDeleted = true;
+            ConfirmationDialog = false;
+            NavigationManager.NavigateTo("/", forceLoad: true);
         }
     }
 }

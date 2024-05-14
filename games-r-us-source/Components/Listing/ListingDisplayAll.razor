@@ -51,6 +51,11 @@
             await LoadListingsAndPrices();
         }
     }
+    // Communication with other components (search)
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+    }
 
     private async Task<decimal> GetCurrentBid(int listingID)
     {

@@ -7,15 +7,15 @@
 
 @page "/search"
 
-<div class="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
-    <div class="flex gap-4">
+<div class="px-4 py-6 mx-auto max-w-4xl sm:px-6 lg:px-8">
+    <div class="gap-4 flex">
         <div class="flex-1">
-            <InputText class="form-input w-full rounded-lg border-gray-300 shadow-sm"
+            <InputText class="form-input border-gray-300 w-full rounded-lg shadow-sm"
                        @bind-Value="searchText"
                        @oninput="OnInputChanged" placeholder="Search..." maxlength="50" />
         </div>
         <div class="w-48">
-            <select @bind="platform" class="form-select w-full rounded-lg border-gray-300 shadow-sm">
+            <select @bind="platform" class="form-select border-gray-300 w-full rounded-lg shadow-sm">
                 <option value="">All Platforms</option>
                 @foreach (var platform in Enum.GetValues(typeof(Platform)))
                 {
@@ -24,7 +24,7 @@
             </select>
         </div>
         <div class="w-48">
-            <select @bind="category" class="form-select w-full rounded-lg border-gray-300 shadow-sm">
+            <select @bind="category" class="form-select border-gray-300 w-full rounded-lg shadow-sm">
 
                 <option value="">All Categories</option>
                 @foreach (var category in Enum.GetValues(typeof(GameCategory)))
@@ -40,6 +40,10 @@
     private string searchText;
     private Platform? platform = null;
     private GameCategory? category = null;
+
+    [Parameter]
+    public EventCallback<List<Listing>> OnSearchResultsUpdated { get; set; }
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -85,7 +89,8 @@
                 query = query.Where(l => l.GameCategory == category.Value);
             }
 
-            //filteredListings = await query.ToListAsync();
+            var filteredListings = await query.ToListAsync();
+        await OnSearchResultsUpdated.InvokeAsync(filteredListings);
             StateHasChanged();
         }
     }
@@ -95,7 +100,8 @@
         using (var dbContext = dbContextFactory.CreateDbContext())
         {
             return await dbContext.Listings
-                .Where(l => EF.Functions.Like(l.Name, $"%{searchText}%"))
+                .Where(l => EF.Functions.Like(l.Name, $"%{searchText}%") ||
+            EF.Functions.Like(l.Description, $"%{searchText}%"))
                 .ToListAsync();
         }
     }

@@ -18,7 +18,7 @@
 <ListingCreate />
 
 <!-- Temporary for testing purposes -->
-<ListingSearch /> 
+<ListingSearch OnSearchResultsUpdated="HandleSearchResults" /> 
 
 
 <!-- Only here as a template for how to show content if
@@ -46,6 +46,12 @@
     private Platform? selectedPlatform;
     private GameCategory? selectedCategory;
     private List<Listing> listings = new List<Listing>();
+
+    private void HandleSearchResults(List<Listing> results)
+    {
+        listings = results; // Updates the list that is passed to ListingsDisplayAll
+        StateHasChanged(); 
+    }
 
   
 }

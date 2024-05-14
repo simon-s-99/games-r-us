@@ -3,6 +3,7 @@
 @using games_r_us_source.Data
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Identity
+@using games_r_us_source.Components.Pages
 
 @using Dapper;
 @using System.Data.SqlClient;
@@ -25,8 +26,8 @@
 @rendermode InteractiveServer
 
 
-@* <div class="py-6 px-4 mx-auto max-w-4xl sm:px-6 lg:px-8">
-    <div class="gap-4 flex">
+@* <div class="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
+    <div class="flex gap-4">
         <div class="flex-1">
             <BlazoredTypeahead SearchMethod="SearchListings"
                                @bind-Value="selectedListing"
@@ -41,7 +42,7 @@
             </BlazoredTypeahead>
         </div>
         <div class="w-48">
-            <select @bind="selectedPlatform" class="form-select border-gray-300 w-full rounded-lg shadow-sm">
+            <select @bind="selectedPlatform" class="form-select w-full rounded-lg border-gray-300 shadow-sm">
                 <option value="">All Platforms</option>
                 @foreach (var platform in Enum.GetValues(typeof(Platform)))
                 {
@@ -50,7 +51,7 @@
             </select>
         </div>
         <div class="w-48">
-            <select @bind="selectedCategory" class="form-select border-gray-300 w-full rounded-lg shadow-sm">
+            <select @bind="selectedCategory" class="form-select w-full rounded-lg border-gray-300 shadow-sm">
                 <option value="">All Categories</option>
                 @foreach (var category in Enum.GetValues(typeof(GameCategory)))
                 {
@@ -58,22 +59,22 @@
                 }
             </select>
         </div>
-        <button @onclick="SubmitSearch" class="bg-gray-500 text-white py-2 px-4 rounded-lg font-bold hover:bg-gray-700">
+        <button @onclick="SubmitSearch" class="rounded-lg bg-gray-500 px-4 py-2 font-bold text-white hover:bg-gray-700">
             Search
         </button>
     </div>
 </div> *@
 
 
-<div class="py-6 px-4 mx-auto max-w-4xl sm:px-6 lg:px-8">
-    <div class="gap-4 flex">
+<div class="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
+    <div class="flex gap-4">
         <div class="flex-1">
-            <InputText class="form-input border-gray-300 w-full rounded-lg shadow-sm"
+            <InputText class="form-input w-full rounded-lg border-gray-300 shadow-sm"
                        @bind-Value="searchText"
                        @oninput="OnInputChanged" placeholder="Search..." maxlength="50" />
         </div>
         <div class="w-48">
-            <select @bind="selectedPlatform" class="form-select border-gray-300 w-full rounded-lg shadow-sm">
+            <select @bind="selectedPlatform" class="form-select w-full rounded-lg border-gray-300 shadow-sm">
                 <option value="">All Platforms</option>
                 @foreach (var platform in Enum.GetValues(typeof(Platform)))
                 {
@@ -82,7 +83,7 @@
             </select>
         </div>
         <div class="w-48">
-            <select @bind="selectedCategory" class="form-select border-gray-300 w-full rounded-lg shadow-sm">
+            <select @bind="selectedCategory" class="form-select w-full rounded-lg border-gray-300 shadow-sm">
                 <option value="">All Categories</option>
                 @foreach (var category in Enum.GetValues(typeof(GameCategory)))
                 {
@@ -90,7 +91,7 @@
                 }
             </select>
         </div>  @*Search with the selected search terms*@
-        <button @onclick="SubmitSearch" class="bg-gray-500 text-white py-2 px-4 rounded-lg font-bold hover:bg-gray-700">
+        <button @onclick="SubmitSearch" class="rounded-lg bg-gray-500 px-4 py-2 font-bold text-white hover:bg-gray-700">
             Search
         </button>
     </div>

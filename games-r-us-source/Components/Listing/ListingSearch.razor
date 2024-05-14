@@ -2,34 +2,34 @@
 
 @using games_r_us_source.Data
 @using Microsoft.EntityFrameworkCore
+@using System.Threading
 
 @inject IDbContextFactory<ApplicationDbContext> dbContextFactory
 
 @page "/search"
 
-<div class="px-4 py-6 mx-auto max-w-4xl sm:px-6 lg:px-8">
-    <div class="gap-4 flex">
+<div class="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
+    <div class="flex gap-4">
         <div class="flex-1">
-            <InputText class="form-input border-gray-300 w-full rounded-lg shadow-sm"
+            <InputText class="w-full rounded-lg border-gray-300 shadow-sm"
                        @bind-Value="searchText"
-                       @oninput="OnInputChanged" placeholder="Search..." maxlength="50" />
+                       @oninput="SearchDebounce" @onblur="SearchDebounce" placeholder="Search..." maxlength="50" />
         </div>
         <div class="w-48">
-            <select @bind="platform" class="form-select border-gray-300 w-full rounded-lg shadow-sm">
+            <select @bind="platform" @oninput="SearchDebounce" class="w-full rounded-lg border-gray-300 shadow-sm">
                 <option value="">All Platforms</option>
                 @foreach (var platform in Enum.GetValues(typeof(Platform)))
                 {
-                    <option value="@platform">@platform.ToString()</option>
+                    <option value="@platform">@platform</option>
                 }
             </select>
         </div>
         <div class="w-48">
-            <select @bind="category" class="form-select border-gray-300 w-full rounded-lg shadow-sm">
-
+            <select @bind="category" @oninput="SearchDebounce" class="w-full rounded-lg border-gray-300 shadow-sm">
                 <option value="">All Categories</option>
                 @foreach (var category in Enum.GetValues(typeof(GameCategory)))
                 {
-                    <option value="@category">@category.ToString()</option>
+                    <option value="@category">@category</option>
                 }
             </select>
         </div>
@@ -40,44 +40,24 @@
     private string searchText;
     private Platform? platform = null;
     private GameCategory? category = null;
+    private Timer debounceTimer;
 
-    [Parameter]
+    [Parameter] // exposes our callback in Home.razor so that displayed listings are updated
     public EventCallback<List<Listing>> OnSearchResultsUpdated { get; set; }
 
-
-    protected override async Task OnInitializedAsync()
+    // Debounce for live searching so that we do not send too many queries to the database.
+    private void SearchDebounce()
     {
-        // do shit when component is rendered
+        debounceTimer = new Timer(callback: TimerCallBack, null, dueTime: 300, period: Timeout.Infinite);
     }
 
-    // firstRender parameter is needed for correct override even if it is not used in the method
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    // new Timer() constructor only accepts callback with this format
+    void TimerCallBack(object state)
     {
-        // do shit when StateHasChanged() has been called
+        InvokeAsync(async () => ApplyFilters(searchText, platform, category));
     }
 
-    private async Task OnInputChanged(ChangeEventArgs e)
-    {
-        searchText = e.Value.ToString() ?? string.Empty;
-
-        await ApplyFilters(searchText, platform, category);
-        StateHasChanged();
-    }
-
-    private async Task OnPlatformChanged(ChangeEventArgs e)
-    {
-        platform = e.Value.ToString() == null ? null : (Platform?)Enum.Parse(typeof(Platform), e.Value.ToString());
-        await ApplyFilters(searchText, platform, category);
-        StateHasChanged();
-    }
-
-    private async Task OnCategoryChanged(ChangeEventArgs e)
-    {
-        category = e.Value.ToString() == null ? null : (GameCategory?)Enum.Parse(typeof(Platform), e.Value.ToString());
-        await ApplyFilters(searchText, platform, category);
-        StateHasChanged();
-    }
-
+    // performs the actual search and filtering towards the database 
     private async Task ApplyFilters(string searchText, Platform? platform, GameCategory? category)
     {
         using (var dbContext = dbContextFactory.CreateDbContext())
@@ -95,28 +75,16 @@
 
             if (platform.HasValue)
             {
-                query = query.Where(l => l.Platform == platform.Value);
+                query = query.Where(l => l.Platform == platform);
             }
 
             if (category.HasValue)
             {
-                query = query.Where(l => l.GameCategory == category.Value);
+                query = query.Where(l => l.GameCategory == category);
             }
 
             var filteredListings = await query.ToListAsync();
             await OnSearchResultsUpdated.InvokeAsync(filteredListings); // triggers the event callback
-            StateHasChanged();
-        }
-    }
-
-    private async Task<IEnumerable<Listing>> SearchListings(string searchText)
-    {
-        using (var dbContext = dbContextFactory.CreateDbContext())
-        {
-            return await dbContext.Listings
-                .Where(l => EF.Functions.Like(l.Name, $"%{searchText}%") ||
-            EF.Functions.Like(l.Description, $"%{searchText}%"))
-                .ToListAsync();
         }
     }
 }

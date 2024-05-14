@@ -42,16 +42,11 @@
 <ListingDetails /> @* <-- For testing purposes*@
 
 @code {
-    private string searchText;
-    private Platform? selectedPlatform;
-    private GameCategory? selectedCategory;
     private List<Listing> listings = new List<Listing>();
 
     private void HandleSearchResults(List<Listing> results)
     {
         listings = results; // Updates the list that is passed to ListingsDisplayAll
-        StateHasChanged(); 
-    }
-
-  
+        StateHasChanged(); // <-- this might be unnecessary 
+    }  
 }

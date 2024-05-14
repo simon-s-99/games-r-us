@@ -2,6 +2,9 @@
 @using games_r_us_source.Components.Listing
 @using games_r_us_source.Components.Account
 @using games_r_us_source.Components.Account.CustomComponents
+@using games_r_us_source.Components.Helpers
+@using games_r_us_source.Data
+@using Microsoft.EntityFrameworkCore
 @page "/"
 @rendermode InteractiveServer
 
@@ -16,6 +19,8 @@
 <ProfileButton />
 
 <ListingCreate />
+
+<ListingSort OnSortResultsUpdated="HandleSorting" />
 
 <!-- Only here as a template for how to show content if
 	user is logged  in or not.
@@ -35,3 +40,19 @@
 
 <!-- Temporary for testing purposes -->
 @* <ListingDetails CurrentListing="@CurrentListing"/> *@
+
+@code {
+	private List<Listing> listings = new List<Listing>();
+
+	private void HandleSearchResults(List<Listing> results)
+	{
+		listings = results; // Updates the list that is passed to ListingsDisplayAll
+		StateHasChanged(); // <-- this might be unnecessary
+	}
+
+	private void HandleSorting(List<Listing> sortResults)
+	{
+		listings = sortResults;
+		StateHasChanged();
+	}
+}

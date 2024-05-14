@@ -36,7 +36,8 @@
     // [PAGINATION COMMENT (issue #8 on github)] 
     // this will need to be restricted later to only get a certain amount of
     // listings from the database, implement when doing pagination
-    List<Listing> listings = new List<Listing>();
+    [Parameter]
+    public List<Listing> listings { get; set; }
     private List<decimal> prices = new(); //Display prices for listings
 
     // Lifecycle method for blazor that is called after this component

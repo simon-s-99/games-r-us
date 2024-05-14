@@ -1,0 +1,71 @@
+﻿@rendermode InteractiveServer
+@using games_r_us_source.Data
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<ApplicationDbContext> dbContextFactory
+
+@page "/sort"
+
+<h3>Sort by</h3>
+
+<select @bind="SelectedSortOrder" @oninput="ApplySort">
+    <option value="PriceAscending">Price ascending</option>
+    <option value="PriceDescending">Price descending</option>
+    <option value="Alphabetically">Alphabetically</option>
+    <option value="DateAscending">Listing end date ascending</option>
+    <option value="DateDescending">Listing end date descending</option>
+</select>
+
+
+
+@code {
+    [Parameter]
+    public Listing Listing { get; set; } //for listings(?)
+
+    [Parameter]
+    public Bid? HighestBid { get; set; } //For prices
+
+    [Parameter]
+    public EventCallback<List<Listing>> OnSortResultsUpdated { get; set; }
+
+    private string SelectedSortOrder { get; set; } = "DateAscending";
+
+    public enum SortOrder
+    {
+        PriceAscending,
+        PriceDescending,
+        DateAscending,
+        DateDescending,
+        Alphabetically
+    }
+
+
+    private async void ApplySort()
+    {
+        using var dbContext = dbContextFactory.CreateDbContext();
+
+        var listingsWithHighestBids = dbContext.Listings
+       
+
+        switch (SelectedSortOrder)
+        {
+            case "PriceAscending":
+                 
+                break;
+            case "PriceDescending":
+                
+                break;
+            case "Alphabetically":
+                
+                break;
+            case "DateAscending":
+                
+                break;
+            case "DateDescending":
+                
+                break;
+        }
+
+        var sortedListings = await query.ToListAsync();
+        await OnSortResultsUpdated.InvokeAsync(sortedListings);
+    }
+}

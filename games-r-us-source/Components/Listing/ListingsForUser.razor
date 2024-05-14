@@ -19,6 +19,12 @@
         {
             <li class="mt-4">
                 <button type="button" @onclick="() => ShowListingDetails(listing)" class="text-blue-500 hover:underline">@listing.Name</button>
+                @if (selectedListingIndex.HasValue && selectedListingIndex == listings.IndexOf(listing))
+                {
+                    <div>
+                        <ListingDetails CurrentListing="@listing" />
+                    </div>
+                }
             </li>
         }
     </ul>
@@ -27,27 +33,12 @@ else if (listings != null && !listings.Any() && buttonClicked)
 {
     <p class="max-w-[fit-content] mt-4 border-red-500 bg-gray-200 p-2 text-red-500 inline-block rounded border font-bold">No listings found.</p>
 }
-@if (selectedListing != null)
-{
-    <ListingDetails CurrentListing="@selectedListing" />
-}
 
 @code {
     private List<Listing> listings { get; set; }
     private bool buttonClicked = false;
+    private int? selectedListingIndex = null;
 
-    private Listing? selectedListing { get; set; }
-
-    private void ShowListingDetails(Listing listing)
-    {
-        if (listing != null)
-        {
-            selectedListing = listing;
-
-            StateHasChanged();
-        }
-        
-    }
 
     private async Task ViewMyListings()
     {
@@ -73,4 +64,24 @@ else if (listings != null && !listings.Any() && buttonClicked)
             }
         }
     }
+
+    private void ShowListingDetails(Listing listing)
+    {
+        if (listing != null)
+        {
+            if (selectedListingIndex == listings.IndexOf(listing))
+            {
+                // Clicked listing is already selected, so close it
+                selectedListingIndex = null;
+            }
+            else
+            {
+                // Clicked listing is different, show its details
+                selectedListingIndex = listings.IndexOf(listing);
+            }
+
+            StateHasChanged();
+        }
+    }
+
 }

@@ -94,13 +94,18 @@
 
 
 @code {
-     [Parameter] //<-- For testinng purposes
+    [Parameter]
     public Listing CurrentListing { get; set; }
 
     private Bid? HighestBid { get; set; }
 
     private string GetTimeDifference(DateTime endDate)
     {
+        if (DateTime.Now > endDate)
+        {
+            return "ended";
+        }
+
         TimeSpan timeDifference = endDate - DateTime.Today;
 
         if (timeDifference.TotalDays >= 7)
@@ -121,10 +126,7 @@
     {
         using (var dbContext = dbContextFactory.CreateDbContext())
         {
-            // For testing purposes
-            CurrentListing = ListingHelper.GetListingFromListingID(4, dbContext);
             CurrentListing.ApplicationUser = ApplicationUserHelper.GetAccountFromUserID(CurrentListing.ApplicationUserID, dbContext);
-
             HighestBid = BidHelper.GetHighestBidFromListingID(CurrentListing.ID, dbContext);
         }
     }

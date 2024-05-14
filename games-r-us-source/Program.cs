@@ -1,5 +1,6 @@
 using games_r_us_source.Components;
 using games_r_us_source.Components.Account;
+using games_r_us_source.Components.Notification;
 using games_r_us_source.Data;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -21,6 +22,9 @@ namespace games_r_us_source
             builder.Services.AddScoped<IdentityUserAccessor>();
             builder.Services.AddScoped<IdentityRedirectManager>();
             builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+
+            // Add SignalR
+            builder.Services.AddSignalR();
 
             builder.Services.AddAuthentication(options =>
             {
@@ -73,6 +77,9 @@ namespace games_r_us_source
 
             // Add additional endpoints required by the Identity /Account Razor components.
             app.MapAdditionalIdentityEndpoints();
+
+            // Configure hub
+            app.MapHub<NotificationsHub>("notifications");
 
             // adds sampledata for a table if the table is empty 
             // DOES NOT add data for AspNet-tables

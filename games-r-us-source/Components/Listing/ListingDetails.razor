@@ -8,23 +8,18 @@
 
 
 <article class="font-[Kadwa] border-2 m-auto flex h-fit w-1/2 flex-col rounded-2xl border-blue-800 bg-gray-200 p-4 text-center md:flex-row">
+    <!-- checks if user is logged in & the listings owner to display edit/delete button -->
     <AuthorizeView>
         <Authorized>
             @if (IsOwner)
             {
                 <ListingDelete ListingID="@CurrentListing.ID" />
+                <ListingEdit Listing="@CurrentListing" HighestBid="@HighestBid" />
             }
         </Authorized>
     </AuthorizeView>
 
     <img class="mb-6 mr-2 rounded object-contain drop-shadow-2xl xl:object-cover md:w-1/2 md:mb-0" src="@CurrentListing.ImagePath" alt="@CurrentListing.Name" />
-
-    <!-- checks if user is logged in & the listings owner to display edit/delete button -->
-    <AuthorizeView>
-        <Authorized>
-            <ListingEdit Listing="@CurrentListing" HighestBid="@HighestBid" />
-        </Authorized>
-    </AuthorizeView>
 
     <div class="pl-2 md:w-1/2">
         <span class="text-gray-800">
@@ -96,7 +91,15 @@
                 </a>
             </section>
 
-            <BidPlaceForm CurrentListing="CurrentListing" HighestBid="HighestBid" />
+            <!-- disables place bid functionality if user is the owner of the listing -->
+            <AuthorizeView>
+                <Authorized>
+                    @if (IsOwner)
+                    {
+                        <BidPlaceForm CurrentListing="CurrentListing" HighestBid="HighestBid" />
+                    }
+                </Authorized>
+            </AuthorizeView>
         </div>
     </div>
 </article>

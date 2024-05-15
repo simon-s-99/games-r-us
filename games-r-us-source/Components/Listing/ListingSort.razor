@@ -23,9 +23,6 @@
 
 @code {
     [Parameter]
-    public Bid? HighestBid { get; set; } //For prices
-
-    [Parameter]
     public EventCallback<List<Listing>> OnSortResultsUpdated { get; set; }
 
     private SortingOrder? SelectedSortingOrder { get; set; } = null;
@@ -41,6 +38,7 @@
         Alphabetically
     }
 
+    // Method to apply sorting based on the selected sorting order
     private async Task ApplySort(SortingOrder sortingOrder)
     {
         using var dbContext = dbContextFactory.CreateDbContext();
@@ -79,12 +77,15 @@
                 break;
         }
 
+        // Convert the sorted data back to a list of listings to update the UI
         var sortedListings = listingsWithMaxPrice.Select(x => x.Listing).ToList();
         await OnSortResultsUpdated.InvokeAsync(sortedListings);
     }
 
+    // Method to handle changes in the select element, parses the sorting order, and applies it
     private async Task HandleSortChange(ChangeEventArgs e)
     {
+        // Attempts to parse the selected dropdown value to a SortingOrder enum; sets "sortingOrder" if successful
         if (Enum.TryParse<SortingOrder>(e.Value?.ToString(), out var sortingOrder))
         {
             await ApplySort(sortingOrder);

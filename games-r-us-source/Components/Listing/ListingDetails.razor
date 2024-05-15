@@ -1,11 +1,24 @@
 ﻿@using Microsoft.EntityFrameworkCore
 @using games_r_us_source.Data;
 @using games_r_us_source.Components.Bid;
-@using Components.Helpers;
+@using games_r_us_source.Components.Helpers;
 @rendermode InteractiveServer
 @inject IDbContextFactory<ApplicationDbContext> dbContextFactory;
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
 
 <article class="font-[Kadwa] border-blue-800 bg-gray-200 p-4 m-auto flex h-fit w-1/2 flex-col rounded-2xl border-2 text-center md:flex-row">
+    <!-- checks if user is logged in & the listings owner to display edit/delete button -->
+    <AuthorizeView>
+        <Authorized>
+            @if (IsOwner)
+            {
+                <ListingDelete ListingID="@CurrentListing.ID" />
+                <ListingEdit Listing="@CurrentListing" HighestBid="@HighestBid" />
+            }
+        </Authorized>
+    </AuthorizeView>
+
     <img class="mb-6 mr-2 rounded object-contain drop-shadow-2xl xl:object-cover md:w-1/2 md:mb-0" src="@CurrentListing.ImagePath" alt="@CurrentListing.Name" />
 
     <div class="pl-2 md:w-1/2">
@@ -48,7 +61,7 @@
 
                 <!-- Show tooltip on hover -->
                 <div class="mt-4 group relative inline-block cursor-help md:mt-0">
-                    <p>Ends in</p><span class="border-black text-red-700 border-b-2 border-dotted">@GetTimeDifference(CurrentListing.AuctionEnd)</span>
+                    <p>Ends in</p><span class="border-black text-red-700 border-b-2 border-dotted">@BidHelper.GetTimeDifference(CurrentListing.AuctionEnd)</span>
                     <span class="-ml-[70%] bg-black text-white invisible absolute bottom-full left-1/2 w-fit text-nowrap rounded opacity-70 group-hover:visible">@CurrentListing.AuctionEnd</span>
                 </div>
             </div>
@@ -78,7 +91,15 @@
                 </a>
             </section>
 
-            <BidPlaceForm CurrentListing="CurrentListing" HighestBid="HighestBid" />
+            <!-- disables place bid functionality if user is the owner of the listing -->
+            <AuthorizeView>
+                <Authorized>
+                    @if (!IsOwner)
+                    {
+                        <BidPlaceForm CurrentListing="CurrentListing" HighestBid="HighestBid" />
+                    }
+                </Authorized>
+            </AuthorizeView>
         </div>
     </div>
 </article>
@@ -90,8 +111,43 @@
 
     private Bid? HighestBid { get; set; }
 
+    private bool IsOwner { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using (var dbContext = dbContextFactory.CreateDbContext())
+        {
+            // For testing purposes
+            //CurrentListing = ListingHelper.GetListingFromListingID(4, dbContext);
+            CurrentListing.ApplicationUser = ApplicationUserHelper.GetAccountFromUserID(CurrentListing.ApplicationUserID, dbContext);
+
+            HighestBid = BidHelper.GetHighestBidFromListingID(CurrentListing.ID, dbContext);
+        }
+
+        await CheckOwnership();
+    }
+
+    private async Task CheckOwnership()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userName = authState.User.Identity.Name;
+
+        if (userName is not null)
+        {
+            using (var dbContext = dbContextFactory.CreateDbContext())
+            {
+                IsOwner = ApplicationUserHelper.IsUserListingOwner(userName, CurrentListing, dbContext);
+            }
+        }
+    }
+
     private string GetTimeDifference(DateTime endDate)
     {
+        if (DateTime.Now > endDate)
+        {
+            return "ended";
+        }
+
         TimeSpan timeDifference = endDate - DateTime.Today;
 
         if (timeDifference.TotalDays >= 7)
@@ -108,14 +164,5 @@
         return timeDifference.TotalDays + " days";
     }
 
-    protected override void OnInitialized()
-    {
-        using (var dbContext = dbContextFactory.CreateDbContext())
-        {
-            // For testing purposes
-            CurrentListing.ApplicationUser = ApplicationUserHelper.GetAccountFromUserID(CurrentListing.ApplicationUserID, dbContext);
 
-            HighestBid = BidHelper.GetHighestBidFromListingID(CurrentListing.ID, dbContext);
-        }
-    }
 }

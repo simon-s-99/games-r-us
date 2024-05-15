@@ -1,4 +1,3 @@
-﻿@using Microsoft.EntityFrameworkCore
 @using games_r_us_source.Components.Listing
 @using games_r_us_source.Components.Account
 @using games_r_us_source.Components.Account.CustomComponents
@@ -20,39 +19,46 @@
 
 <ListingCreate />
 
+
 <ListingSort OnSortResultsUpdated="HandleSorting" />
 
+<!-- Temporary for testing purposes -->
+<ListingSearch OnSearchResultsUpdated="HandleSearchResults" /> 
+
+
 <!-- Only here as a template for how to show content if
-	user is logged  in or not.
+    user is logged  in or not.
 -->
 <AuthorizeView>
-	<Authorized>
-		@* Display this content here if user is logged in *@
-		@* content accesses the AuthenticationState of the logged in user *@
-		@context.User.Identity.Name
-	</Authorized>
-	<NotAuthorized>
-		@* Display this content here if user is not logged in *@
-	</NotAuthorized>
+    <Authorized>
+        @* Display this content here if user is logged in *@
+        @* content accesses the AuthenticationState of the logged in user *@
+        @context.User.Identity.Name
+    </Authorized>
+    <NotAuthorized>
+        @* Display this content here if user is not logged in *@
+    </NotAuthorized>
 </AuthorizeView>
 
-<ListingDisplayAll />
+<ListingDisplayAll listings="@listings" />
 
 <!-- Temporary for testing purposes -->
 @* <ListingDetails CurrentListing="@CurrentListing"/> *@
+<ListingDetails /> @* <-- For testing purposes*@
 
 @code {
-	private List<Listing> listings = new List<Listing>();
+    private List<Listing> listings = new List<Listing>();
 
-	private void HandleSearchResults(List<Listing> results)
-	{
-		listings = results; // Updates the list that is passed to ListingsDisplayAll
-		StateHasChanged(); // <-- this might be unnecessary
-	}
-
-	private void HandleSorting(List<Listing> sortResults)
+    private void HandleSearchResults(List<Listing> results)
+    {
+        listings = results; // Updates the list that is passed to ListingsDisplayAll
+        StateHasChanged(); // <-- this might be unnecessary 
+    } 
+                                  
+    private void HandleSorting(List<Listing> sortResults)
 	{
 		listings = sortResults;
 		StateHasChanged();
 	}
 }
+

@@ -21,7 +21,7 @@
                     <div class="border-gray-200 bg-gray-100 px-4 pb-4 pt-3 border-t">
                         <div class="text-gray-600 text-xs font-bold uppercase tracking-wide">Price</div>
                         @* Align each index with it's' corresponding price with the use of index *@
-                        <div class="text-gray-900 text-lg">@prices[index] kr</div>
+                        <div class="text-gray-900 text-lg">$ @prices[index]</div>
                         <div class="mt-2 text-gray-600 text-xs font-bold uppercase tracking-wide">Time Remaining</div>
                         <div class="text-gray-900 text-lg">@GetTimeDifference(listing.AuctionEnd)</div>
                     </div>
@@ -31,6 +31,10 @@
         </div>
     </div>
 }
+else
+{
+    <p class="font-semibold italic">No listings found.</p>
+}
 
 @code {
     // [PAGINATION COMMENT (issue #8 on github)] 
@@ -38,6 +42,7 @@
     // listings from the database, implement when doing pagination
     [Parameter]
     public List<Listing> listings { get; set; }
+
     private List<decimal> prices = new(); //Display prices for listings
 
     // Lifecycle method for blazor that is called after this component
@@ -48,6 +53,11 @@
         {
             await LoadListingsAndPrices();
         }
+    }
+    // Communication with other components (search)
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
     }
 
     private async Task<decimal> GetCurrentBid(int listingID)

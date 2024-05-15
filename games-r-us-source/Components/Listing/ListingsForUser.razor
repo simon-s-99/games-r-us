@@ -8,26 +8,53 @@
 
 <AuthorizeView>
     <Authorized>
-        <button @onclick="ViewMyListings" class="bg-blue-500 px-4 py-2 text-white rounded hover:bg-blue-600">View My Listings</button>
+        <button @onclick="ViewMyListings" class="bg-gray-500 px-4 py-2 text-white rounded hover:bg-gray-600">View My Listings</button>
     </Authorized>
 </AuthorizeView>
 
 @if (listings != null && listings.Any())
 {
-    <ul>
-        @foreach (var listing in listings)
-        {
-            <li class="mt-4">
-                <button type="button" @onclick="() => ShowListingDetails(listing)" class="text-blue-500 hover:underline">@listing.Name</button>
+    <table class="divide-gray-200 min-w-full divide-y">
+        <thead class="bg-gray-50">
+            <tr>
+                <th scope="col" class="px-6 py-3 text-gray-500 text-left text-xs font-medium uppercase tracking-wider">Name</th>
+                <th scope="col" class="px-6 py-3 text-gray-500 text-left text-xs font-medium uppercase tracking-wider">Description</th>
+                <th scope="col" class="px-6 py-3 text-gray-500 text-left text-xs font-medium uppercase tracking-wider">Category</th>
+                <th scope="col" class="px-6 py-3 text-gray-500 text-left text-xs font-medium uppercase tracking-wider">Auction End</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-gray-200 divide-y">
+            @foreach (var listing in listings)
+            {
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <button type="button" @onclick="() => ShowListingDetails(listing)" class="text-gray-900 focus:outline-none hover:underline" style="cursor: pointer;">
+                            @listing.Name
+                        </button>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <p class="text-gray-500 text-sm">@listing.Description</p>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <p class="text-gray-500 text-sm">@listing.GameCategory</p>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <p class="text-gray-500 text-sm">@listing.AuctionEnd</p>
+                    </td>
+                </tr>
                 @if (selectedListingIndex.HasValue && selectedListingIndex == listings.IndexOf(listing))
                 {
-                    <div>
-                        <ListingDetails CurrentListing="@listing" />
-                    </div>
+                    <tr>
+                        <td colspan="4" class="px-6 py-4 whitespace-nowrap">
+                            <div>
+                                <ListingDetails CurrentListing="@listing" />
+                            </div>
+                        </td>
+                    </tr>
                 }
-            </li>
-        }
-    </ul>
+            }
+        </tbody>
+    </table>
 }
 else if (listings != null && !listings.Any() && buttonClicked)
 {

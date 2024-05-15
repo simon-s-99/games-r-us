@@ -3,10 +3,11 @@
 @using games_r_us_source.Components.Listing
 @using games_r_us_source.Components.Account
 @using games_r_us_source.Components.Account.CustomComponents
-@using games_r_us_source.Components.Helpers
 @using games_r_us_source.Data
 @using games_r_us_source.Hubs
+@using games_r_us_source.Components.Helpers
 
+@inject IDbContextFactory<ApplicationDbContext> dbContextFactory
 @inject NavigationManager NavigationManager
 
 @implements IAsyncDisposable
@@ -20,10 +21,19 @@
 <h1>Hello, world!</h1>
 
 <!-- Temporary for testing purposes -->
+@* <ListingDetails CurrentListing="@CurrentListing"/> *@
+<ListingDetails CurrentListing="@Helpers.ListingHelper.GetListingFromListingID(2, dbContextFactory.CreateDbContext())" /> @* <-- For testing purposes*@
+
+<!-- Temporary for testing purposes -->
 <LoginLogoutButton />
 
 <!-- Temporary for testing purposes -->
+@* <ListingEdit /> <-- moved to listingdetails *@
+
+<!-- Temporary for testing purposes -->
+
 <ProfileButton />
+
 
 <ListingCreate />
 
@@ -55,7 +65,9 @@
 </ul>
 
 <!-- Temporary for testing purposes -->
+
 @* <ListingDetails CurrentListing="@CurrentListing"/> *@
+<ListingDetails CurrentListing="@Helpers.ListingHelper.GetListingFromListingID(5, dbContextFactory.CreateDbContext())" /> @* <-- For testing purposes*@
 
 @code {
     private List<Listing> listings = new List<Listing>();

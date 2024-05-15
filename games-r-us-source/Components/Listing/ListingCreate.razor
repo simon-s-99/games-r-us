@@ -1,11 +1,10 @@
-﻿@page "/listing/create"
+﻿@rendermode InteractiveServer
 
 @* Used for EditForms, InputText, number, select etc *@
 @using Microsoft.AspNetCore.Components.Forms
 @using System.ComponentModel.DataAnnotations
 @using games_r_us_source.Data
 @using Microsoft.EntityFrameworkCore
-@rendermode InteractiveServer
 
 @* Follwing three using/injects are needed for ApplicationUserID *@
 @using Microsoft.AspNetCore.Identity
@@ -23,6 +22,9 @@ helping mitigate issues associated with having a DbContext that is too long-live
 @* Used to fetch listings. Prices in particular *@
 @inject NavigationManager NavigationManager
 
+@page "/listing/create"
+
+
 
 @* Error handling for "attacks"? eg scripts in input fields *@
 @* We should do our image upload in a different way, curently the user can upload
@@ -38,8 +40,20 @@ helping mitigate issues associated with having a DbContext that is too long-live
 
 @if (IsVisible)
 {
-    <div class="inset-0 bg-gray-800 fixed flex items-center justify-center bg-opacity-75">
-        <div class="bg-white p-6 w-full max-w-md rounded-lg shadow-lg">
+    @* if the user presses outside of the "ShowModal" it triggers "ShowConfirmCancel" *@
+    <div @onclick="ShowConfirmCancel" class="inset-0 bg-gray-800 fixed flex items-center justify-center bg-opacity-75">
+        <div class="bg-white p-6 w-full max-w-md rounded-lg shadow-lg" @onclick:stopPropagation>
+
+            @* If the user has an image uploaded we show the "delete image" button *@
+            @if (base64Image != null || listing.ImagePath != null)
+            {
+                <div class="p-4 flex justify-center">
+                <button @onclick="RemoveImage"
+                        class="bg-red-500 px-4 py-2 text-white rounded-lg font-bold shadow transition duration-150 ease-in-out hover:bg-red-700">
+                    Remove Image
+                </button>
+                </div>
+            }
 
             @* Editform used in blazor for creating a listing  *@
             <EditForm Model="@listing" OnValidSubmit="HandleValidSubmit">
@@ -220,10 +234,9 @@ helping mitigate issues associated with having a DbContext that is too long-live
             await dbContext.SaveChangesAsync();
 
             CloseModal();
-            Console.WriteLine("Listing created successfully.");
 
             // Force reload the page to update the newly added listing
-            NavigationManager.NavigateTo("/", forceLoad: false);
+            NavigationManager.NavigateTo("/", forceLoad: true);
         }
         catch (DbUpdateException ex)
         {
@@ -246,7 +259,7 @@ helping mitigate issues associated with having a DbContext that is too long-live
             {
                 // Create the existence of a temporary storage directory for images
                 string tempFolderPath = Path.Combine(Environment.WebRootPath, "temp_images");
-                Directory.CreateDirectory(tempFolderPath); // Ensure the directory exists
+                Directory.CreateDirectory(tempFolderPath);
 
 
                 // Delete previous image if the user changes image before submitting
@@ -271,17 +284,31 @@ helping mitigate issues associated with having a DbContext that is too long-live
             }
             catch (Exception ex)
             {
-                // errors.Add($"Error uploading image: {ex.Message}");
                 base64Image = null;
                 currentImagePath = null;
             }
 
         }
-        else
+    }
+
+    private void RemoveImage()
+    {
+        base64Image = null;
+
+        // If there's a current image path in temporary storage, delete it
+        if (!string.IsNullOrEmpty(currentImagePath))
         {
-            base64Image = null;
+            string tempFolderPath = Path.Combine(Environment.WebRootPath, "temp_images");
+            string fullPath = Path.Combine(tempFolderPath, currentImagePath);
+            if (File.Exists(fullPath))
+            {
+                File.Delete(fullPath);  // Delete the image file
+            }
             currentImagePath = null;
         }
+
+        listing.ImagePath = null;
+        StateHasChanged();
     }
 
 

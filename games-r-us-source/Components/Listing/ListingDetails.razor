@@ -4,16 +4,22 @@
 @using games_r_us_source.Components.Helpers;
 @rendermode InteractiveServer
 @inject IDbContextFactory<ApplicationDbContext> dbContextFactory;
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
 
 <article class="font-[Kadwa] border-2 m-auto flex h-fit w-1/2 flex-col rounded-2xl border-blue-800 bg-gray-200 p-4 text-center md:flex-row">
-    <img class="mb-6 mr-2 rounded object-contain drop-shadow-2xl xl:object-cover md:w-1/2 md:mb-0" src="@CurrentListing.ImagePath" alt="@CurrentListing.Name" />
-
     <!-- checks if user is logged in & the listings owner to display edit/delete button -->
     <AuthorizeView>
         <Authorized>
-            <ListingEdit Listing="@CurrentListing" HighestBid="@HighestBid" />
+            @if (IsOwner)
+            {
+                <ListingDelete ListingID="@CurrentListing.ID" />
+                <ListingEdit Listing="@CurrentListing" HighestBid="@HighestBid" />
+            }
         </Authorized>
     </AuthorizeView>
+
+    <img class="mb-6 mr-2 rounded object-contain drop-shadow-2xl xl:object-cover md:w-1/2 md:mb-0" src="@CurrentListing.ImagePath" alt="@CurrentListing.Name" />
 
     <div class="pl-2 md:w-1/2">
         <span class="text-gray-800">
@@ -85,7 +91,15 @@
                 </a>
             </section>
 
-            <BidPlaceForm CurrentListing="CurrentListing" HighestBid="HighestBid" />
+            <!-- disables place bid functionality if user is the owner of the listing -->
+            <AuthorizeView>
+                <Authorized>
+                    @if (!IsOwner)
+                    {
+                        <BidPlaceForm CurrentListing="CurrentListing" HighestBid="HighestBid" />
+                    }
+                </Authorized>
+            </AuthorizeView>
         </div>
     </div>
 </article>
@@ -97,12 +111,56 @@
 
     private Bid? HighestBid { get; set; }
 
-    protected override void OnInitialized()
+    private bool IsOwner { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
     {
         using (var dbContext = dbContextFactory.CreateDbContext())
         {
+            // For testing purposes
+            //CurrentListing = ListingHelper.GetListingFromListingID(4, dbContext);
             CurrentListing.ApplicationUser = ApplicationUserHelper.GetAccountFromUserID(CurrentListing.ApplicationUserID, dbContext);
+
             HighestBid = BidHelper.GetHighestBidFromListingID(CurrentListing.ID, dbContext);
         }
+
+        await CheckOwnership();
+    }
+
+    private async Task CheckOwnership()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userName = authState.User.Identity.Name;
+
+        if (userName is not null)
+        {
+            using (var dbContext = dbContextFactory.CreateDbContext())
+            {
+                IsOwner = ApplicationUserHelper.IsUserListingOwner(userName, CurrentListing, dbContext);
+            }
+        }
+    }
+
+    private string GetTimeDifference(DateTime endDate)
+    {
+        if (DateTime.Now > endDate)
+        {
+            return "ended";
+        }
+
+        TimeSpan timeDifference = endDate - DateTime.Today;
+
+        if (timeDifference.TotalDays >= 7)
+        {
+            // Round down
+            double wholeWeeks = Math.Floor(timeDifference.TotalDays / 7);
+
+            // Get the rest value
+            double wholeDays = Math.Round(timeDifference.TotalDays % 7);
+
+            return wholeWeeks + " weeks" + (wholeDays > 0 ? $", {wholeDays} days" : "");
+        }
+
+        return timeDifference.TotalDays + " days";
     }
 }

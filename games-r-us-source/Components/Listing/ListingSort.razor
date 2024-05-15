@@ -24,10 +24,7 @@
 @code {
     [Parameter]
     public EventCallback<List<Listing>> OnSortResultsUpdated { get; set; }
-
     private SortingOrder? SelectedSortingOrder { get; set; } = null;
-    private bool OrderByDescending { get; set; } = false;
-    private bool OrderByAscending { get; set; } = false;
 
     private enum SortingOrder
     {

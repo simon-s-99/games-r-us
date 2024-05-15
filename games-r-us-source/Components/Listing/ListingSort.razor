@@ -19,7 +19,7 @@
 
 @code {
     [Parameter]
-    public Listing Listing { get; set; } //for listings(?)
+    public Listing Listing { get; set; } //for listings
 
     [Parameter]
     public Bid? HighestBid { get; set; } //For prices
@@ -27,45 +27,46 @@
     [Parameter]
     public EventCallback<List<Listing>> OnSortResultsUpdated { get; set; }
 
-    private string SelectedSortOrder { get; set; } = "DateAscending";
-
-    public enum SortOrder
-    {
-        PriceAscending,
-        PriceDescending,
-        DateAscending,
-        DateDescending,
-        Alphabetically
-    }
-
+    private string SelectedSortOrder { get; set; } = "PriceAscending";
 
     private async void ApplySort()
     {
         using var dbContext = dbContextFactory.CreateDbContext();
 
-        var listingsWithHighestBids = dbContext.Listings
-       
+        // Fetch the listings along with their maximum price, either from the highest bid or the startingPrice
+        var ListingHighestPrice = await dbContext.Listings.Select(l => new
+        {
+            // For each listing "l", we create an anonymous object containing the listings itself
+            // and the calculated MaxPrice
+            Listing = l,
+            MaxPrice = dbContext.Bids
+            .Where(b => b.ListingID == l.ID)
+            .OrderByDescending(b => b.Amount).Select(b => (decimal?)b.Amount)
+            .FirstOrDefault() ?? l.StartingPrice
+
+        }).ToListAsync();
+
 
         switch (SelectedSortOrder)
         {
             case "PriceAscending":
-                 
+                ListingHighestPrice = ListingHighestPrice.OrderBy(x => x.MaxPrice).ToList();
                 break;
             case "PriceDescending":
-                
+                ListingHighestPrice = ListingHighestPrice.OrderByDescending(x => x.MaxPrice).ToList();
                 break;
             case "Alphabetically":
-                
+
                 break;
             case "DateAscending":
-                
+
                 break;
             case "DateDescending":
-                
+
                 break;
         }
 
-        var sortedListings = await query.ToListAsync();
+        var sortedListings = ListingHighestPrice.Select(x => x.Listing).ToList();
         await OnSortResultsUpdated.InvokeAsync(sortedListings);
     }
 }

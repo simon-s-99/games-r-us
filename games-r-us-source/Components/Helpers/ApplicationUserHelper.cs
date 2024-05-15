@@ -16,5 +16,14 @@ namespace games_r_us_source.Components.Helpers
             ApplicationUser account = context.ApplicationUsers.Where(a => a.Id == userID).FirstOrDefault();
             return account;
         }
+
+        public static bool IsUserListingOwner(string userName, Data.Listing listing, ApplicationDbContext context)
+        {
+            ApplicationUser account = GetAccountFromUserName(userName, context);
+
+            if (listing.ApplicationUserID == account.Id) { return true; }
+
+            return false;
+        }
     }
 }

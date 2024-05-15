@@ -1,21 +1,31 @@
+@using Microsoft.EntityFrameworkCore
 @using games_r_us_source.Components.Listing
 @using games_r_us_source.Components.Account
 @using games_r_us_source.Components.Account.CustomComponents
-@using games_r_us_source.Components.Helpers
 @using games_r_us_source.Data
-@using Microsoft.EntityFrameworkCore
-@page "/"
+@using games_r_us_source.Components.Helpers
+@inject IDbContextFactory<ApplicationDbContext> dbContextFactory
 @rendermode InteractiveServer
+@page "/"
 
 <PageTitle>Home</PageTitle>
 
 <h1>Hello, world!</h1>
 
 <!-- Temporary for testing purposes -->
+@* <ListingDetails CurrentListing="@CurrentListing"/> *@
+<ListingDetails CurrentListing="@Helpers.ListingHelper.GetListingFromListingID(2, dbContextFactory.CreateDbContext())" /> @* <-- For testing purposes*@
+
+<!-- Temporary for testing purposes -->
 <LoginLogoutButton />
 
 <!-- Temporary for testing purposes -->
+@* <ListingEdit /> <-- moved to listingdetails *@
+
+<!-- Temporary for testing purposes -->
+
 <ProfileButton />
+
 
 <ListingCreate />
 
@@ -40,8 +50,10 @@
 <ListingDisplayAll listings="@listings" />
 
 <!-- Temporary for testing purposes -->
+
 @* <ListingDetails CurrentListing="@CurrentListing"/> *@
 @*<ListingDetails /> @* <-- For testing purposes*@
+<ListingDetails CurrentListing="@Helpers.ListingHelper.GetListingFromListingID(5, dbContextFactory.CreateDbContext())" /> @* <-- For testing purposes*@
 
 @code {
     private List<Listing> listings = new List<Listing>();

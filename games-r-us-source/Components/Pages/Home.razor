@@ -22,7 +22,7 @@
 
 <!-- Temporary for testing purposes -->
 @* <ListingDetails CurrentListing="@CurrentListing"/> *@
-<ListingDetails CurrentListing="@Helpers.ListingHelper.GetListingFromListingID(2, dbContextFactory.CreateDbContext())" /> @* <-- For testing purposes*@
+@*<ListingDetails CurrentListing="@Helpers.ListingHelper.GetListingFromListingID(2, dbContextFactory.CreateDbContext())" /> <-- For testing purposes*@
 
 <!-- Temporary for testing purposes -->
 <LoginLogoutButton />
@@ -66,9 +66,6 @@
 
 <!-- Temporary for testing purposes -->
 
-@* <ListingDetails CurrentListing="@CurrentListing"/> *@
-<ListingDetails CurrentListing="@Helpers.ListingHelper.GetListingFromListingID(5, dbContextFactory.CreateDbContext())" /> @* <-- For testing purposes*@
-
 @code {
     private List<Listing> listings = new List<Listing>();
 
@@ -77,6 +74,7 @@
         listings = results; // Updates the list that is passed to ListingsDisplayAll
         StateHasChanged(); // <-- this might be unnecessary
     }
+
 
     // =================
     // testing hub
@@ -90,7 +88,7 @@
             .WithUrl(NavigationManager.ToAbsoluteUri("/Notifications"))
             .Build();
 
-        hubConnection.On<string>("RecieveNotification", notification =>
+        hubConnection.On<string>("SendNotificationToAll", notification =>
         {
             notifications.Add(notification);
             InvokeAsync(StateHasChanged);
@@ -99,13 +97,13 @@
         await hubConnection.StartAsync();
     }
 
-    // private async Task Send()
-    // {
-    //     if (hubConnection is not null)
-    //     {
-    //         await hubConnection.SendAsync("RecieveNotification", "testMsg");
-    //     }
-    // }
+    private async Task Send()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.SendAsync("SendNotificationToAll", "testMsg");
+        }
+    }
 
     public async ValueTask DisposeAsync()
     {

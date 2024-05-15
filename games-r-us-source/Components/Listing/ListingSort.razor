@@ -1,72 +1,101 @@
 ﻿@rendermode InteractiveServer
 @using games_r_us_source.Data
 @using Microsoft.EntityFrameworkCore
+@using games_r_us_source.Components.Listing
+@using games_r_us_source.Components.Helpers
+@using Data
+
 @inject IDbContextFactory<ApplicationDbContext> dbContextFactory
 
 @page "/sort"
 
 <h3>Sort by</h3>
 
-<select @bind="SelectedSortOrder" @oninput="ApplySort">
+<select @bind="SelectedSortingOrder" @oninput="HandleSortChange">
     <option value="PriceAscending">Price ascending</option>
     <option value="PriceDescending">Price descending</option>
-    <option value="Alphabetically">Alphabetically</option>
     <option value="DateAscending">Listing end date ascending</option>
     <option value="DateDescending">Listing end date descending</option>
+    <option value="Alphabetically">Alphabetically</option>
 </select>
 
 
 
 @code {
     [Parameter]
-    public Listing Listing { get; set; } //for listings
+    public Listing? Listing { get; set; } //for listings
 
     [Parameter]
     public Bid? HighestBid { get; set; } //For prices
 
+    private List<Bid?> Sort { get; set; } = new List<Bid?>();
+    private Listing? SortedListing { get; set; }
+
     [Parameter]
     public EventCallback<List<Listing>> OnSortResultsUpdated { get; set; }
 
-    private string SelectedSortOrder { get; set; } = "PriceAscending";
+    private SortingOrder? SelectedSortingOrder { get; set; } = null;
+    private bool OrderByDescending { get; set; } = false;
+    private bool OrderByAscending { get; set; } = false;
 
-    private async void ApplySort()
+    private enum SortingOrder
+    {
+        PriceAscending,
+        PriceDescending,
+        DateAscending,
+        DateDescending,
+        Alphabetically
+    }
+
+    private async Task ApplySort(SortingOrder sortingOrder)
     {
         using var dbContext = dbContextFactory.CreateDbContext();
 
-        // Fetch the listings along with their maximum price, either from the highest bid or the startingPrice
-        var ListingHighestPrice = await dbContext.Listings.Select(l => new
+        SelectedSortingOrder = sortingOrder;
+
+        // Fetch the listings along with their maximum price, either from the highest bid or the starting price
+        var listingsWithMaxPrice = await dbContext.Listings
+            .Select(l => new
+            {
+                Listing = l,
+                MaxPrice = dbContext.Bids
+                            .Where(b => b.ListingID == l.ID)
+                            .OrderByDescending(b => b.Amount)
+                            .Select(b => (decimal?)b.Amount)
+                            .FirstOrDefault() ?? l.StartingPrice
+            })
+            .ToListAsync();
+
+        switch (sortingOrder)
         {
-            // For each listing "l", we create an anonymous object containing the listings itself
-            // and the calculated MaxPrice
-            Listing = l,
-            MaxPrice = dbContext.Bids
-            .Where(b => b.ListingID == l.ID)
-            .OrderByDescending(b => b.Amount).Select(b => (decimal?)b.Amount)
-            .FirstOrDefault() ?? l.StartingPrice
-
-        }).ToListAsync();
-
-
-        switch (SelectedSortOrder)
-        {
-            case "PriceAscending":
-                ListingHighestPrice = ListingHighestPrice.OrderBy(x => x.MaxPrice).ToList();
+            case SortingOrder.PriceAscending:
+                listingsWithMaxPrice = listingsWithMaxPrice.OrderBy(l => l.MaxPrice).ToList();
                 break;
-            case "PriceDescending":
-                ListingHighestPrice = ListingHighestPrice.OrderByDescending(x => x.MaxPrice).ToList();
+            case SortingOrder.PriceDescending:
+                listingsWithMaxPrice = listingsWithMaxPrice.OrderByDescending(l => l.MaxPrice).ToList();
                 break;
-            case "Alphabetically":
-
+            case SortingOrder.DateAscending:
+                listingsWithMaxPrice = listingsWithMaxPrice.OrderBy(l => l.Listing.AuctionEnd).ToList();
                 break;
-            case "DateAscending":
-
+            case SortingOrder.DateDescending:
+                listingsWithMaxPrice = listingsWithMaxPrice.OrderByDescending(l => l.Listing.AuctionEnd).ToList();
                 break;
-            case "DateDescending":
-
+            case SortingOrder.Alphabetically:
+                listingsWithMaxPrice = listingsWithMaxPrice.OrderBy(l => l.Listing.Name).ToList();
                 break;
         }
 
-        var sortedListings = ListingHighestPrice.Select(x => x.Listing).ToList();
+        var sortedListings = listingsWithMaxPrice.Select(x => x.Listing).ToList();
         await OnSortResultsUpdated.InvokeAsync(sortedListings);
     }
+
+    private async Task HandleSortChange(ChangeEventArgs e)
+    {
+        if (Enum.TryParse<SortingOrder>(e.Value?.ToString(), out var sortingOrder))
+        {
+            await ApplySort(sortingOrder);
+        }
+    }
 }
+
+

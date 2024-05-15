@@ -1,7 +1,7 @@
 ﻿@using Microsoft.EntityFrameworkCore
 @using games_r_us_source.Data;
 @using games_r_us_source.Components.Bid;
-@using Components.Helpers;
+@using games_r_us_source.Components.Helpers;
 @rendermode InteractiveServer
 @inject IDbContextFactory<ApplicationDbContext> dbContextFactory;
 
@@ -55,7 +55,7 @@
 
                 <!-- Show tooltip on hover -->
                 <div class="group relative mt-4 inline-block cursor-help md:mt-0">
-                    <p>Ends in</p><span class="border-b-2 border-dotted border-black text-red-700">@GetTimeDifference(CurrentListing.AuctionEnd)</span>
+                    <p>Ends in</p><span class="border-b-2 border-dotted border-black text-red-700">@BidHelper.GetTimeDifference(CurrentListing.AuctionEnd)</span>
                     <span class="-ml-[70%] invisible absolute bottom-full left-1/2 w-fit text-nowrap rounded bg-black text-white opacity-70 group-hover:visible">@CurrentListing.AuctionEnd</span>
                 </div>
             </div>
@@ -96,29 +96,6 @@
     public Listing CurrentListing { get; set; }
 
     private Bid? HighestBid { get; set; }
-
-    private string GetTimeDifference(DateTime endDate)
-    {
-        if (DateTime.Now > endDate)
-        {
-            return "ended";
-        }
-
-        TimeSpan timeDifference = endDate - DateTime.Today;
-
-        if (timeDifference.TotalDays >= 7)
-        {
-            // Round down
-            double wholeWeeks = Math.Floor(timeDifference.TotalDays / 7);
-
-            // Get the rest value
-            double wholeDays = Math.Round(timeDifference.TotalDays % 7);
-
-            return wholeWeeks + " weeks" + (wholeDays > 0 ? $", {wholeDays} days" : "");
-        }
-
-        return timeDifference.TotalDays + " days";
-    }
 
     protected override void OnInitialized()
     {

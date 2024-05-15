@@ -223,7 +223,7 @@ helping mitigate issues associated with having a DbContext that is too long-live
             Console.WriteLine("Listing created successfully.");
 
             // Force reload the page to update the newly added listing
-            NavigationManager.NavigateTo("/", forceLoad: false);
+            NavigationManager.NavigateTo("/", forceLoad: true);
         }
         catch (DbUpdateException ex)
         {

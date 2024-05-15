@@ -5,7 +5,6 @@
 @* Display the listings here *@
 @if (listings.Any())
 {
-    int index = 0;
     <div class="mt-4 px-4">
         <h2 class="text-gray-800 text-lg font-semibold">Listings:</h2>
         <div class="gap-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
@@ -21,12 +20,11 @@
                     <div class="border-gray-200 bg-gray-100 px-4 pb-4 pt-3 border-t">
                         <div class="text-gray-600 text-xs font-bold uppercase tracking-wide">Price</div>
                         @* Align each index with it's' corresponding price with the use of index *@
-                        <div class="text-gray-900 text-lg">$ @prices[index] </div>
+                        <div class="text-gray-900 text-lg">$@listingPrices[listing.ID]</div>
                         <div class="mt-2 text-gray-600 text-xs font-bold uppercase tracking-wide">Time Remaining</div>
                         <div class="text-gray-900 text-lg">@GetTimeDifference(listing.AuctionEnd)</div>
                     </div>
                 </div>
-                index++; // prepares to pair the next listing with it's corresponding price
             }
         </div>
     </div>
@@ -43,7 +41,13 @@ else
     [Parameter]
     public List<Listing> listings { get; set; }
 
-    private List<decimal> prices = new(); //Display prices for listings
+    // display the price associated with each listing.The dictionary allows us to directly access the price using the listing ID
+    private Dictionary<int, decimal> listingPrices = new Dictionary<int, decimal>(); 
+
+    [Parameter]
+    public Bid? HighestBid { get; set; }
+
+    public bool ShowBidAsPrice = false;
 
     // Lifecycle method for blazor that is called after this component
     // is initialized but before being rendered
@@ -64,41 +68,38 @@ else
     {
         using var dbContext = dbContextFactory.CreateDbContext();
 
-        // check for any bids on the listing and get the highest if available. Nullable in case there are no bids
-        var highestBid = await dbContext.Bids.Where(b => b.ListingID == listingID).MaxAsync(b => (decimal?)b.Amount);
+        // Fetch highest bid for the listing
+        var highestBid = await dbContext.Bids
+            .Where(b => b.ListingID == listingID)
+            .MaxAsync(b => (decimal?)b.Amount);
 
-        if (highestBid == null)
-        {
-            var startingPrice = await dbContext.Listings
+            //Return highestbid or StartingPrice if bid == null
+        return highestBid ?? (await dbContext.Listings
             .Where(l => l.ID == listingID)
             .Select(l => l.StartingPrice)
-            .FirstOrDefaultAsync();   
-
-            return startingPrice;
-        }
-
-        return highestBid.Value;
+            .FirstOrDefaultAsync());
     }
 
     //fetch listings and their respecrtive prices
-    private async Task LoadListingsAndPrices() 
+    private async Task LoadListingsAndPrices()
     {
         using (var dbContext = dbContextFactory.CreateDbContext())
         {
             var currentDate = DateTime.Now;
             listings = await dbContext.Listings
-                .Where(l => l.AuctionEnd > currentDate) // Filter away expired listings
+                .Where(l => l.AuctionEnd > currentDate)
                 .ToListAsync();
 
-            prices.Clear(); // Clear old prices
-
-            var priceTasks = listings.Select(listing => GetCurrentBid(listing.ID)).ToList();
-            prices = (await Task.WhenAll(priceTasks)).ToList();
-
+            foreach (var listing in listings)
+            {
+                decimal price = await GetCurrentBid(listing.ID);
+                listingPrices[listing.ID] = price;
+            }
         }
 
-        StateHasChanged(); // Updates UI after loading listings and prices
+        StateHasChanged();
     }
+
 
     private string GetTimeDifference(DateTime endDate)
     {

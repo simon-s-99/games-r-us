@@ -1,9 +1,6 @@
 ﻿@rendermode InteractiveServer
 @using games_r_us_source.Data
 @using Microsoft.EntityFrameworkCore
-@using games_r_us_source.Components.Listing
-@using games_r_us_source.Components.Helpers
-@using Data
 
 @inject IDbContextFactory<ApplicationDbContext> dbContextFactory
 
@@ -23,13 +20,7 @@
 
 @code {
     [Parameter]
-    public Listing? Listing { get; set; } //for listings
-
-    [Parameter]
     public Bid? HighestBid { get; set; } //For prices
-
-    private List<Bid?> Sort { get; set; } = new List<Bid?>();
-    private Listing? SortedListing { get; set; }
 
     [Parameter]
     public EventCallback<List<Listing>> OnSortResultsUpdated { get; set; }

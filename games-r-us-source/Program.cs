@@ -1,7 +1,7 @@
 using games_r_us_source.Components;
 using games_r_us_source.Components.Account;
-using games_r_us_source.Components.Notification;
 using games_r_us_source.Data;
+using games_r_us_source.Hubs;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -79,7 +79,7 @@ namespace games_r_us_source
             app.MapAdditionalIdentityEndpoints();
 
             // Configure hub
-            app.MapHub<NotificationsHub>("notifications");
+            app.MapHub<NotificationsHub>("/Notifications");
 
             // adds sampledata for a table if the table is empty 
             // DOES NOT add data for AspNet-tables

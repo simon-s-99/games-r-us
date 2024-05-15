@@ -1,11 +1,19 @@
+@using Microsoft.AspNetCore.SignalR.Client
+@using Microsoft.EntityFrameworkCore
 @using games_r_us_source.Components.Listing
 @using games_r_us_source.Components.Account
 @using games_r_us_source.Components.Account.CustomComponents
 @using games_r_us_source.Components.Helpers
 @using games_r_us_source.Data
-@using Microsoft.EntityFrameworkCore
-@page "/"
+@using games_r_us_source.Hubs
+
+@inject NavigationManager NavigationManager
+
+@implements IAsyncDisposable
+
 @rendermode InteractiveServer
+
+@page "/"
 
 <PageTitle>Home</PageTitle>
 
@@ -20,7 +28,7 @@
 <ListingCreate />
 
 <!-- Temporary for testing purposes -->
-<ListingSearch OnSearchResultsUpdated="HandleSearchResults" /> 
+<ListingSearch OnSearchResultsUpdated="HandleSearchResults" />
 
 
 <!-- Only here as a template for how to show content if
@@ -39,9 +47,15 @@
 
 <ListingDisplayAll listings="@listings" />
 
+<ul>
+    @foreach (string notifiaction in notifications)
+    {
+        <li>@notifiaction</li>
+    }
+</ul>
+
 <!-- Temporary for testing purposes -->
 @* <ListingDetails CurrentListing="@CurrentListing"/> *@
-<ListingDetails /> @* <-- For testing purposes*@
 
 @code {
     private List<Listing> listings = new List<Listing>();
@@ -49,6 +63,43 @@
     private void HandleSearchResults(List<Listing> results)
     {
         listings = results; // Updates the list that is passed to ListingsDisplayAll
-        StateHasChanged(); // <-- this might be unnecessary 
-    }  
+        StateHasChanged(); // <-- this might be unnecessary
+    }
+
+    // =================
+    // testing hub
+    // ==================
+    private HubConnection? hubConnection;
+    private readonly List<string> notifications = new List<string>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/Notifications"))
+            .Build();
+
+        hubConnection.On<string>("RecieveNotification", notification =>
+        {
+            notifications.Add(notification);
+            InvokeAsync(StateHasChanged);
+        });
+
+        await hubConnection.StartAsync();
+    }
+
+    // private async Task Send()
+    // {
+    //     if (hubConnection is not null)
+    //     {
+    //         await hubConnection.SendAsync("RecieveNotification", "testMsg");
+    //     }
+    // }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
 }

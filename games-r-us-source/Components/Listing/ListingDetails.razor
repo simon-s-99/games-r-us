@@ -94,7 +94,7 @@
             <!-- disables place bid functionality if user is the owner of the listing -->
             <AuthorizeView>
                 <Authorized>
-                    @if (IsOwner)
+                    @if (!IsOwner)
                     {
                         <BidPlaceForm CurrentListing="CurrentListing" HighestBid="HighestBid" />
                     }

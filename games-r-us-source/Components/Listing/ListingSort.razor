@@ -12,6 +12,10 @@
     <h3 class="text-gray-800 mb-4 text-lg font-semibold">Sort by</h3>
     <select @bind="SelectedSortingOrder" @oninput="HandleSortChange"
             class="form-select px-2 py-1 text-gray-700 bg-white border-gray-300 m-0 px-2 py-1 block w-full appearance-none rounded border border-solid bg-clip-padding bg-no-repeat text-base font-normal transition ease-in-out focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none">
+        @if (!HasSorted)
+        {
+            <option value="">Any</option>     
+        }
         <option value="PriceAscending">Price ascending</option>
         <option value="PriceDescending">Price descending</option>
         <option value="DateAscending">End date ascending</option>
@@ -25,6 +29,7 @@
     [Parameter]
     public EventCallback<List<Listing>> OnSortResultsUpdated { get; set; }
     private SortingOrder? SelectedSortingOrder { get; set; } = null;
+    private bool HasSorted { get; set; } = false;
 
     private enum SortingOrder
     {
@@ -41,6 +46,7 @@
         using var dbContext = dbContextFactory.CreateDbContext();
 
         SelectedSortingOrder = sortingOrder;
+        HasSorted = true;
 
         // Fetch the listings along with their maximum price, either from the highest bid or the starting price
         var listingsWithMaxPrice = await dbContext.Listings

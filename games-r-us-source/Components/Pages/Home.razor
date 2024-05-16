@@ -4,19 +4,18 @@
 @using games_r_us_source.Components.Account.CustomComponents
 @using games_r_us_source.Data
 @using games_r_us_source.Components.Helpers
+@using games_r_us_source.Components.Layout
+
 @inject IDbContextFactory<ApplicationDbContext> dbContextFactory
 @rendermode InteractiveServer
+@layout HomeLayout
 @page "/"
 
 <PageTitle>Home</PageTitle>
 
-<ListingSearch OnSearchResultsUpdated="HandleSearchResults" /> 
 <!-- Temporary for testing purposes -->
 @* <ListingDetails CurrentListing="@CurrentListing"/> *@
 @* <ListingDetails CurrentListing="@Helpers.ListingHelper.GetListingFromListingID(2, dbContextFactory.CreateDbContext())" /> *@ @* <-- For testing purposes*@
-
-
-<ListingCreate />
 
 
 <ListingSort OnSortResultsUpdated="HandleSorting" />
@@ -31,7 +30,6 @@
     <Authorized>
         @* Display this content here if user is logged in *@
         @* content accesses the AuthenticationState of the logged in user *@
-        @context.User.Identity.Name
     </Authorized>
     <NotAuthorized>
         @* Display this content here if user is not logged in *@

@@ -1,0 +1,124 @@
+﻿@using Microsoft.EntityFrameworkCore
+@using games_r_us_source.Data
+@using games_r_us_source.Components.Helpers
+@using games_r_us_source.Components.Listing
+@inject IDbContextFactory<ApplicationDbContext> ContextFactory
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@rendermode InteractiveServer
+
+<div>
+<AuthorizeView>
+    <Authorized>
+        <button @onclick="ViewMyListings" class="bg-gray-500 px-4 py-2 text-white mb-4 mb-4 rounded hover:bg-gray-600">View My Listings</button>
+    </Authorized>
+</AuthorizeView>
+</div>
+
+<div>
+@if (listings != null && listings.Any())
+{
+    <table class="divide-gray-200 min-w-full divide-y">
+        <thead class="bg-gray-50">
+            <tr>
+                <th scope="col" class="px-6 py-3 text-gray-500 text-left text-xs font-medium uppercase tracking-wider">Name</th>
+                <th scope="col" class="px-6 py-3 text-gray-500 text-left text-xs font-medium uppercase tracking-wider">Description</th>
+                <th scope="col" class="px-6 py-3 text-gray-500 text-left text-xs font-medium uppercase tracking-wider">Category</th>
+                <th scope="col" class="px-6 py-3 text-gray-500 text-left text-xs font-medium uppercase tracking-wider">Auction End</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-gray-200 divide-y">
+            @foreach (var listing in listings)
+            {
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <button type="button" @onclick="() => ShowListingDetails(listing)" class="text-gray-900 focus:outline-none hover:underline" style="cursor: pointer;">
+                            @listing.Name
+                        </button>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <p class="text-gray-500 text-sm">@listing.Description</p>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <p class="text-gray-500 text-sm">@listing.GameCategory</p>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <p class="text-gray-500 text-sm">@listing.AuctionEnd</p>
+                    </td>
+                </tr>
+                @if (selectedListingIndex.HasValue && selectedListingIndex == listings.IndexOf(listing))
+                {
+                    <tr>
+                        <td colspan="4" class="px-6 py-4 whitespace-nowrap">
+                            <div>
+                                <ListingDetails CurrentListing="@listing" />
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+}
+else if (listings != null && !listings.Any() && buttonClicked)
+{
+    <p class="max-w-[fit-content] mt-4 border-red-500 bg-gray-200 p-2 text-red-500 inline-block rounded border font-bold">No listings found.</p>
+}
+</div>
+
+@code {
+    private List<Listing> listings { get; set; }
+    private bool buttonClicked = false;
+    private bool listingsVisible = false;
+    private int? selectedListingIndex = null;
+
+    private async Task ViewMyListings()
+    {
+        buttonClicked = true;
+        listingsVisible = !listingsVisible;
+
+        if (listingsVisible)
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (user.Identity.IsAuthenticated)
+            {
+                var userName = user.Identity.Name; 
+
+                await using var dbContext = ContextFactory.CreateDbContext();
+
+                // Retrieve the user's account using the helper method
+                var userAccount = ApplicationUserHelper.GetAccountFromUserName(userName, dbContext);
+
+                if (userAccount != null)
+                {
+                    // Now that we have the user's account, fetch listings associated with that account
+                    listings = await dbContext.Listings
+                        .Where(l => l.ApplicationUserID == userAccount.Id)
+                        .ToListAsync();
+                }
+            }
+        }
+        else
+        {
+            listings = null;
+        }
+    }
+
+    private void ShowListingDetails(Listing listing)
+    {
+        if (listing != null)
+        {
+            if (selectedListingIndex == listings.IndexOf(listing))
+            {
+                // Clicked listing is already selected, so close it
+                selectedListingIndex = null;
+            }
+            else
+            {
+                // Clicked listing is different, show its details
+                selectedListingIndex = listings.IndexOf(listing);
+            }
+        }
+    }
+}

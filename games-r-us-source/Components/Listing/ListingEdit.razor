@@ -207,8 +207,8 @@
         // Directly using Listing object assuming it's the same object updated by data-binding in the form
         if (!string.IsNullOrEmpty(currentImagePath))
         {
-            string permanentFolderPath = Path.Combine(Environment.WebRootPath, "images");
-            string tempImagePath = Path.Combine(Environment.WebRootPath, "temp_images", currentImagePath);
+            string permanentFolderPath = Path.Combine("C:\\Temp", "images");
+            string tempImagePath = Path.Combine("C:\\Temp", "temp_images", currentImagePath);
             string permanentImagePath = Path.Combine(permanentFolderPath, currentImagePath);
 
             if (File.Exists(tempImagePath))
@@ -261,7 +261,7 @@
             try
             {
                 // Create the existence of a temporary storage directory for images
-                string tempFolderPath = Path.Combine(Environment.WebRootPath, "temp_images");
+                string tempFolderPath = Path.Combine("C:\\Temp", "temp_images");
                 Directory.CreateDirectory(tempFolderPath); // Ensure the directory exists
 
 
@@ -306,7 +306,7 @@
         // If there's a current image path in temporary storage, delete it
         if (!string.IsNullOrEmpty(currentImagePath))
         {
-            string tempFolderPath = Path.Combine(Environment.WebRootPath, "temp_images");
+            string tempFolderPath = Path.Combine("C:\\Temp", "temp_images");
             string fullPath = Path.Combine(tempFolderPath, currentImagePath);
             if (File.Exists(fullPath))
             {

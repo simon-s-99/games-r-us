@@ -1,13 +1,18 @@
 ﻿@inherits LayoutComponentBase
+@using games_r_us_source.Components.Account.CustomComponents
+@inject NavigationManager NavigationManager
 
 <div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
-
     <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+        <div class="flex flex-row justify-between">
+            <NavLink href="/">
+                <h1 class="font-[Kadwa] m-2 text-3xl font-medium">Games '<span class="text-red-500">Я</span>' Us</h1>
+            </NavLink>
+
+            <div class="flex flex-row">
+                <LoginLogoutButton />
+                <ProfileButton />
+            </div>
         </div>
 
         <article class="content px-4">

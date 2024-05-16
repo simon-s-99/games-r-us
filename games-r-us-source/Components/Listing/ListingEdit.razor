@@ -207,7 +207,7 @@
         // Directly using Listing object assuming it's the same object updated by data-binding in the form
         if (!string.IsNullOrEmpty(currentImagePath))
         {
-            string permanentFolderPath = Path.Combine("C:\\Temp", "images");
+            string permanentFolderPath = Path.Combine("C:\\Temp");
             string tempImagePath = Path.Combine("C:\\Temp", "temp_images", currentImagePath);
             string permanentImagePath = Path.Combine(permanentFolderPath, currentImagePath);
 
@@ -215,7 +215,7 @@
             {
                 Directory.CreateDirectory(permanentFolderPath); // Ensure the permanent directory exists
                 File.Move(tempImagePath, permanentImagePath); // Move the image from temp to perm
-                Listing.ImagePath = Path.Combine("images", currentImagePath); // Update the database image path
+                Listing.ImagePath = currentImagePath; // Update the database image path
             }
             else
             {

@@ -11,7 +11,7 @@
             @foreach (var listing in listings)
             {
                 <div class="bg-white p-4 overflow-hidden rounded-lg shadow-lg">
-                    <img class="h-64 w-full object-cover" src="@listing.ImagePath" alt="Image of listing">
+                    <img class="h-64 w-full object-cover" src="@($"/images/{listing.ImagePath}")" alt="Image of listing">
                     <div class="p-4">
                         <h3 class="text-md text-gray-900 font-semibold">@listing.Name</h3>
                         <!-- height and overflow handling for the description -->

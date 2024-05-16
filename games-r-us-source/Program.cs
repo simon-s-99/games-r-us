@@ -54,6 +54,9 @@ namespace games_r_us_source
 
             builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
+            // Add controllers
+            builder.Services.AddControllers();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -71,10 +74,26 @@ namespace games_r_us_source
             app.UseHttpsRedirection();
 
             app.UseStaticFiles();
-            app.UseAntiforgery();
+            
 
             app.MapRazorComponents<App>()
                 .AddInteractiveServerRenderMode();
+
+            // Following code is used for configuring the middleware pipeline
+            // <----------------->
+            app.UseRouting();
+
+            app.UseAntiforgery(); 
+            app.UseAuthentication();
+            app.UseAuthorization(); 
+
+            // Endpoint for controllers
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers(); // Map the controllers to the request pipeline
+            });
+            // <------------------>
+
 
             // Add additional endpoints required by the Identity /Account Razor components.
             app.MapAdditionalIdentityEndpoints();

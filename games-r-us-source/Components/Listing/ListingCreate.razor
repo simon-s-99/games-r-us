@@ -211,10 +211,10 @@ helping mitigate issues associated with having a DbContext that is too long-live
             // We send the images to a temp storage in case they won't be needed later. Example: if the user changes image
 
             //path to the permanent storage directory for images
-            string permanentFolderPath = Path.Combine(Environment.WebRootPath, "images");
+                string permanentFolderPath = Path.Combine("C:\\Temp");
 
             // path to the image currently in temporary storage
-            string sourcePath = Path.Combine(Environment.WebRootPath, "temp_images", currentImagePath);
+                string sourcePath = Path.Combine("C:\\Temp", "temp_images", currentImagePath);
 
             // destination path for the image once it is confirmed for permanent storage.
             string destinationPath = Path.Combine(permanentFolderPath, currentImagePath);
@@ -227,7 +227,8 @@ helping mitigate issues associated with having a DbContext that is too long-live
             }
 
             // Update listing with the path of the permanently stored image
-            listing.ImagePath = Path.Combine("images", currentImagePath);
+                // listing.ImagePath = Path.Combine("C:\\Temp", currentImagePath);
+                listing.ImagePath = currentImagePath; // Only store the file name
             }
 
             dbContext.Listings.Add(listing); // Adds the new listing to the database
@@ -258,7 +259,7 @@ helping mitigate issues associated with having a DbContext that is too long-live
             try
             {
                 // Create the existence of a temporary storage directory for images
-                string tempFolderPath = Path.Combine(Environment.WebRootPath, "temp_images");
+                string tempFolderPath = Path.Combine("C:\\Temp", "temp_images");
                 Directory.CreateDirectory(tempFolderPath);
 
 
@@ -298,7 +299,7 @@ helping mitigate issues associated with having a DbContext that is too long-live
         // If there's a current image path in temporary storage, delete it
         if (!string.IsNullOrEmpty(currentImagePath))
         {
-            string tempFolderPath = Path.Combine(Environment.WebRootPath, "temp_images");
+            string tempFolderPath = Path.Combine("C:\\Temp", "temp_images");
             string fullPath = Path.Combine(tempFolderPath, currentImagePath);
             if (File.Exists(fullPath))
             {

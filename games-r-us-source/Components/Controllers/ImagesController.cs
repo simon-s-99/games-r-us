@@ -23,7 +23,7 @@ public class ImageController : Controller
         return File(image, contentType);
     }
 
-    // This private method gets the content type (MIME type) for a given file path
+    // This method gets the content type (MIME type) for a given file path
     // MIME types is used to specify the type of data being sent over the internet(HTTP)
     private string GetContentType(string path)
     {
@@ -37,7 +37,8 @@ public class ImageController : Controller
         return types.ContainsKey(ext) ? types[ext] : "application/octet-stream";
     }
 
-    // This private method returns a dictionary of common file extensions and their MIME types
+    // This method returns a dictionary of common file extensions and their MIME types
+    // (the image types we allow when users uploads an image) + "application/octet-stream"
     private Dictionary<string, string> GetMimeTypes()
     {
         return new Dictionary<string, string>

@@ -1,0 +1,99 @@
+﻿@rendermode InteractiveServer
+@using games_r_us_source.Data
+@using Microsoft.EntityFrameworkCore
+
+@inject IDbContextFactory<ApplicationDbContext> dbContextFactory
+
+@page "/sort"
+
+<h3>Sort by</h3>
+
+<div class="bg-gray-100 p-6 mt-6 mx-auto max-w-md rounded-lg shadow-md">
+    <h3 class="text-gray-800 mb-4 text-lg font-semibold">Sort by</h3>
+    <select @bind="SelectedSortingOrder" @oninput="HandleSortChange"
+            class="form-select px-2 py-1 text-gray-700 bg-white border-gray-300 m-0 px-2 py-1 block w-full appearance-none rounded border border-solid bg-clip-padding bg-no-repeat text-base font-normal transition ease-in-out focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none">
+        @if (!HasSorted)
+        {
+            <option value="">Any</option>     
+        }
+        <option value="PriceAscending">Price ascending</option>
+        <option value="PriceDescending">Price descending</option>
+        <option value="DateAscending">End date ascending</option>
+        <option value="DateDescending">End date descending</option>
+        <option value="Alphabetically">Alphabetically</option>
+    </select>
+</div>
+
+
+@code {
+    [Parameter]
+    public EventCallback<List<Listing>> OnSortResultsUpdated { get; set; }
+    private SortingOrder? SelectedSortingOrder { get; set; } = null;
+    private bool HasSorted { get; set; } = false;
+
+    private enum SortingOrder
+    {
+        PriceAscending,
+        PriceDescending,
+        DateAscending,
+        DateDescending,
+        Alphabetically
+    }
+
+    // Method to apply sorting based on the selected sorting order
+    private async Task ApplySort(SortingOrder sortingOrder)
+    {
+        using var dbContext = dbContextFactory.CreateDbContext();
+
+        SelectedSortingOrder = sortingOrder;
+        HasSorted = true;
+
+        // Fetch the listings along with their maximum price, either from the highest bid or the starting price
+        var listingsWithMaxPrice = await dbContext.Listings
+            .Select(l => new
+            {
+                Listing = l,
+                MaxPrice = dbContext.Bids
+                            .Where(b => b.ListingID == l.ID)
+                            .OrderByDescending(b => b.Amount)
+                            .Select(b => (decimal?)b.Amount)
+                            .FirstOrDefault() ?? l.StartingPrice
+            })
+            .ToListAsync();
+
+        switch (sortingOrder)
+        {
+            case SortingOrder.PriceAscending:
+                listingsWithMaxPrice = listingsWithMaxPrice.OrderBy(l => l.MaxPrice).ToList();
+                break;
+            case SortingOrder.PriceDescending:
+                listingsWithMaxPrice = listingsWithMaxPrice.OrderByDescending(l => l.MaxPrice).ToList();
+                break;
+            case SortingOrder.DateAscending:
+                listingsWithMaxPrice = listingsWithMaxPrice.OrderBy(l => l.Listing.AuctionEnd).ToList();
+                break;
+            case SortingOrder.DateDescending:
+                listingsWithMaxPrice = listingsWithMaxPrice.OrderByDescending(l => l.Listing.AuctionEnd).ToList();
+                break;
+            case SortingOrder.Alphabetically:
+                listingsWithMaxPrice = listingsWithMaxPrice.OrderBy(l => l.Listing.Name).ToList();
+                break;
+        }
+
+        // Convert the sorted data back to a list of listings to update the UI
+        var sortedListings = listingsWithMaxPrice.Select(x => x.Listing).ToList();
+        await OnSortResultsUpdated.InvokeAsync(sortedListings);
+    }
+
+    // Method to handle changes in the select element, parses the sorting order, and applies it
+    private async Task HandleSortChange(ChangeEventArgs e)
+    {
+        // Attempts to parse the selected dropdown value to a SortingOrder enum; sets "sortingOrder" if successful
+        if (Enum.TryParse<SortingOrder>(e.Value?.ToString(), out var sortingOrder))
+        {
+            await ApplySort(sortingOrder);
+        }
+    }
+}
+
+

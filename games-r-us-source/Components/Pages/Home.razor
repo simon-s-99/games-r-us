@@ -14,7 +14,7 @@
 
 <!-- Temporary for testing purposes -->
 @* <ListingDetails CurrentListing="@CurrentListing"/> *@
-<ListingDetails CurrentListing="@Helpers.ListingHelper.GetListingFromListingID(2, dbContextFactory.CreateDbContext())" /> @* <-- For testing purposes*@
+@* <ListingDetails CurrentListing="@Helpers.ListingHelper.GetListingFromListingID(2, dbContextFactory.CreateDbContext())" /> *@ @* <-- For testing purposes*@
 
 <!-- Temporary for testing purposes -->
 <LoginLogoutButton />
@@ -28,6 +28,9 @@
 
 
 <ListingCreate />
+
+
+<ListingSort OnSortResultsUpdated="HandleSorting" />
 
 <!-- Temporary for testing purposes -->
 <ListingSearch OnSearchResultsUpdated="HandleSearchResults" /> 
@@ -55,8 +58,10 @@
 
 
 @* <ListingDetails CurrentListing="@CurrentListing"/> *@
+
 @*<ListingDetails /> @* <-- For testing purposes*@
 <ListingDetails CurrentListing="@Helpers.ListingHelper.GetListingFromListingID(5, dbContextFactory.CreateDbContext())" /> @* <-- For testing purposes*@
+
 
 @code {
     private List<Listing> listings = new List<Listing>();
@@ -65,5 +70,12 @@
     {
         listings = results; // Updates the list that is passed to ListingsDisplayAll
         StateHasChanged(); // <-- this might be unnecessary 
-    }  
+    } 
+                                  
+    private void HandleSorting(List<Listing> sortResults)
+	{
+		listings = sortResults;
+		StateHasChanged();
+	}
 }
+

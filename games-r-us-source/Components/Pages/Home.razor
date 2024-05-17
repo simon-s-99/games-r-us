@@ -20,24 +20,12 @@
 
 <h1>Hello, world!</h1>
 
-<!-- Temporary for testing purposes -->
-@* <ListingDetails CurrentListing="@CurrentListing"/> *@
-<ListingDetails CurrentListing="@Helpers.ListingHelper.GetListingFromListingID(2, dbContextFactory.CreateDbContext())" /> @* <-- For testing purposes*@
-
-<!-- Temporary for testing purposes -->
 <LoginLogoutButton />
-
-<!-- Temporary for testing purposes -->
-@* <ListingEdit /> <-- moved to listingdetails *@
-
-<!-- Temporary for testing purposes -->
 
 <ProfileButton />
 
-
 <ListingCreate />
 
-<!-- Temporary for testing purposes -->
 <ListingSearch OnSearchResultsUpdated="HandleSearchResults" />
 
 
@@ -58,16 +46,11 @@
 <ListingDisplayAll listings="@listings" />
 
 <ul>
-    @foreach (string notifiaction in notifications)
+    @foreach (string notification in notifications)
     {
-        <li>@notifiaction</li>
+        <li>@notification</li>
     }
 </ul>
-
-<!-- Temporary for testing purposes -->
-
-@* <ListingDetails CurrentListing="@CurrentListing"/> *@
-<ListingDetails CurrentListing="@Helpers.ListingHelper.GetListingFromListingID(5, dbContextFactory.CreateDbContext())" /> @* <-- For testing purposes*@
 
 @code {
     private List<Listing> listings = new List<Listing>();

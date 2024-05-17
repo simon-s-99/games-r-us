@@ -1,4 +1,4 @@
-@using Microsoft.AspNetCore.SignalR.Client
+﻿@using Microsoft.AspNetCore.SignalR.Client
 @using Microsoft.EntityFrameworkCore
 @using games_r_us_source.Components.Listing
 @using games_r_us_source.Components.Account
@@ -49,6 +49,9 @@
 
 <ListingsForUser />
 
+<!-- temp buttons to test signalr messaging -->
+<button @onclick="Send" class="rounded-xl bg-orange-300 px-4 py-2">Click me</button>
+
 <ul>
     @foreach (string notification in notifications)
     {
@@ -93,13 +96,13 @@
         await hubConnection.StartAsync();
     }
 
-    // private async Task Send()
-    // {
-    //     if (hubConnection is not null)
-    //     {
-    //         await hubConnection.SendAsync("RecieveNotification", "testMsg");
-    //     }
-    // }
+    private async Task Send()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.SendAsync("SendNotification", "testMsg");
+        }
+    }
 
     public async ValueTask DisposeAsync()
     {
@@ -109,4 +112,3 @@
         }
     }
 }
-

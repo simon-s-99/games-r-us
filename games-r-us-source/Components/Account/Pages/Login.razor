@@ -12,32 +12,33 @@
 
 <PageTitle>Log in</PageTitle>
 
-<div class="border-2 m-auto mt-6 w-1/2 rounded border-black text-center">
+<div class="border-2 font-[Kadwa] m-auto mt-6 w-2/5 rounded border-black text-center">
 
-    <h1 class="text-2xl font-bold">Log in</h1>
-    <p>New to Games 'Я' Us? <NavLink class="text-blue-400" href="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))">Register</NavLink></p>
+    <h1 class="mb-4 text-2xl font-bold">Log in</h1>
+    <p>New to Games '<span class="text-red-500">Я</span>' Us? <NavLink class="text-blue-400" href="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))">Register</NavLink></p>
 
     <StatusMessage Message="@errorMessage" />
-    <EditForm class="flex flex-col" Model="Input" method="post" OnValidSubmit="LoginUser" FormName="login">
+    <EditForm class="m-2 flex flex-col justify-center" Model="Input" method="post" OnValidSubmit="LoginUser" FormName="login">
         <DataAnnotationsValidator />
         <ValidationSummary class="text-danger" role="alert" />
-        <label for="email" class="font-semibold">Email</label>
-        <InputText @bind-Value="Input.Email" id="email" class="border-[1px] m-2 rounded border-black py-2" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-        <ValidationMessage For="() => Input.Email" class="text-danger" />
-        <label for="password" class="font-semibold">Password</label>
-        <InputText type="password" id="password" @bind-Value="Input.Password" class="border-[1px] m-2 rounded border-black py-2" autocomplete="current-password" aria-required="true" placeholder="password" />
-        <ValidationMessage For="() => Input.Password" class="text-danger" />
-        <NavLink class="m-2 text-left text-red-700" href="Account/ForgotPassword">Forgot your password?</NavLink>
-
-        <div class="flex flex-row items-center justify-center gap-2">
-            <button type="submit" class="border-[1px] rounded-xl border-black bg-green-300 p-2">Log in</button>
-            <label class="form-label">
+        <label for="email" class="left-[9999px] absolute">Email</label> @* For accessibility purposes *@
+        <InputText @bind-Value="Input.Email" id="email" class="border-[1px] peer mt-8 rounded border-black py-2" autocomplete="username" aria-required="true" placeholder="Email" />
+        <ValidationMessage For="() => Input.Email" class="text-red-500" />
+        <label for="password" class="left-[9999px] absolute">Password</label>
+        <InputText type="password" id="password" @bind-Value="Input.Password" class="border-[1px] mt-4 rounded border-black py-2" autocomplete="current-password" aria-required="true" placeholder="Password" />
+        <ValidationMessage For="() => Input.Password" class="text-red-500" />
+        <div class="flex flex-col justify-between md:flex-row">
+            <label class="m-2">
                 <InputCheckbox @bind-Value="Input.RememberMe" />
                 Remember me
             </label>
+            <NavLink class="m-2 text-left text-red-700" href="Account/ForgotPassword">Forgot your password?</NavLink>
         </div>
+
+        <button type="submit" class="border-[1px] m-auto block rounded-xl border-black bg-green-300 p-2">Log in</button>
     </EditForm>
-    <h3>Use another service to log in.</h3>
+    <div class="border-b-2 m-auto my-8 h-1 w-3/4 border-dashed border-black"></div> @* Vertical divider *@
+    <p class="mb-3">Or sign in using</p>
     <ExternalLoginPicker />
 </div>
 

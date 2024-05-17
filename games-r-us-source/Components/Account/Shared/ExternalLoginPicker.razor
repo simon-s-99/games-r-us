@@ -23,7 +23,7 @@ else
             <p>
                 @foreach (var provider in externalLogins)
                 {
-                    <button type="submit" class="rounded-xl bg-gray-300 px-4 py-2 font-bold text-black hover:bg-gray-400" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.DisplayName</button>
+                    <button type="submit" class="rounded-xl" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account"><img class="h-[50px] w-[50px]" src="/google-icon.svg"/></button>
                 }
             </p>
         </div>

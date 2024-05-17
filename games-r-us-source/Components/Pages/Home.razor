@@ -1,4 +1,5 @@
-﻿@using Microsoft.AspNetCore.SignalR.Client
+﻿@using Microsoft.AspNetCore.SignalR
+@using Microsoft.AspNetCore.SignalR.Client
 @using Microsoft.EntityFrameworkCore
 @using games_r_us_source.Components.Listing
 @using games_r_us_source.Components.Account
@@ -67,12 +68,12 @@
         listings = results; // Updates the list that is passed to ListingsDisplayAll
         StateHasChanged(); // <-- this might be unnecessary
     }
-                            
+
     private void HandleSorting(List<Listing> sortResults)
-	{
-		listings = sortResults;
-		StateHasChanged();
-	}
+    {
+        listings = sortResults;
+        StateHasChanged();
+    }
 
 
     // =================
@@ -87,7 +88,7 @@
             .WithUrl(NavigationManager.ToAbsoluteUri("/Notifications"))
             .Build();
 
-        hubConnection.On<string>("RecieveNotification", notification =>
+        hubConnection.On<string>("RecieveNotificationAsync", notification =>
         {
             notifications.Add(notification);
             InvokeAsync(StateHasChanged);

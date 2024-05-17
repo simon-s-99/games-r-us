@@ -8,15 +8,15 @@
 
 <AuthorizeView Context="authorizeViewContext">
     <Authorized>
-        <p class="font-bold text-red-600">@ErrorMessage</p>
-        <p class="font-bold text-green-600">@SuccessMessage</p>
+        <p class="text-red-600 font-bold">@ErrorMessage</p>
+        <p class="text-green-600 font-bold">@SuccessMessage</p>
         <EditForm class="m-auto max-w-full" Model="@bid" OnValidSubmit="HandleValidSubmit" FormName="bidPlaceForm">
             <DataAnnotationsValidator />
             <ValidationSummary />
             <label for="amount" class="block text-center">
                 New bid
             </label>
-            <div class="border-2 flex flex-col border-black md:flex-row">
+            <div class="border-black flex flex-col border-2 md:flex-row">
                 <InputNumber id="amount" class="w-full flex-grow" @bind-Value="@bid.Amount" />
                 <button class="bg-green-500" type="submit">Place bid</button>
             </div>
@@ -40,19 +40,6 @@
 
     // Create new bid object, linked to the form
     Bid bid = new Bid { Time = DateTime.Now };
-
-    protected override async Task OnInitializedAsync()
-    {
-        // Get the logged in user
-        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authenticationState.User;
-
-        // Get the user's email if they are authenticated
-        if (user.Identity.IsAuthenticated)
-        {
-            UserName = user.Identity.Name;
-        }
-    }
 
     // Only runs if form contains expected data types
     private async Task HandleValidSubmit(EditContext editContext)
@@ -109,10 +96,6 @@
         {
             dbContext.Bids.Add(bid); // Adds the new listing to the database
             await dbContext.SaveChangesAsync();
-
-            // notifies server of a new bid placed so that server
-            // can notify the user who has just lost the bid 
-            await NotifyPreviousBidder(HighestBid.ApplicationUserID);
         }
         catch (DbUpdateException ex)
         {
@@ -126,8 +109,18 @@
         SuccessMessage = $"Success! New bid at ${bid.Amount} placed.";
     }
 
-    private async Task NotifyPreviousBidder(string? previousHighestBidder)
-    {
 
+    protected override async Task OnInitializedAsync()
+    {
+        // Get the logged in user
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authenticationState.User;
+
+        // Get the user's email if they are authenticated
+        if (user.Identity.IsAuthenticated)
+        {
+            UserName = user.Identity.Name;
+        }
     }
+
 }

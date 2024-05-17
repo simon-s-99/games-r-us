@@ -6,7 +6,6 @@
 @using games_r_us_source.Data
 @using games_r_us_source.Hubs
 @using games_r_us_source.Components.Helpers
-@using Microsoft.AspNetCore.Authentication
 
 @inject IDbContextFactory<ApplicationDbContext> dbContextFactory
 @inject NavigationManager NavigationManager
@@ -79,6 +78,7 @@
         StateHasChanged(); // <-- this might be unnecessary
     }
 
+
     // =================
     // testing hub
     // ==================
@@ -87,13 +87,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // JUST SEND IT AS A QUERY OR A HEADER 
-
         hubConnection = new HubConnectionBuilder()
-            .WithUrl(NavigationManager.ToAbsoluteUri("/Notifications"), options =>
-            {
-                options.
-            })
+            .WithUrl(NavigationManager.ToAbsoluteUri("/Notifications"))
             .Build();
 
         hubConnection.On<string>("RecieveNotification", notification =>

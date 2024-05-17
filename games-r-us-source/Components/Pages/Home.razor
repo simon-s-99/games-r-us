@@ -28,6 +28,8 @@
 
 <ListingSearch OnSearchResultsUpdated="HandleSearchResults" />
 
+<ListingSort OnSortResultsUpdated="HandleSorting" />
+
 
 <!-- Only here as a template for how to show content if
     user is logged  in or not.
@@ -45,6 +47,8 @@
 
 <ListingDisplayAll listings="@listings" />
 
+<ListingsForUser />
+
 <ul>
     @foreach (string notification in notifications)
     {
@@ -60,6 +64,12 @@
         listings = results; // Updates the list that is passed to ListingsDisplayAll
         StateHasChanged(); // <-- this might be unnecessary
     }
+                            
+    private void HandleSorting(List<Listing> sortResults)
+	{
+		listings = sortResults;
+		StateHasChanged();
+	}
 
 
     // =================
@@ -99,3 +109,4 @@
         }
     }
 }
+

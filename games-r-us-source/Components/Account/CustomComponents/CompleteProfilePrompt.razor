@@ -1,0 +1,92 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using games_r_us_source.Data
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject IdentityUserAccessor UserAccessor
+@inject NavigationManager NavigationManager
+@inject IDbContextFactory<ApplicationDbContext> DbContextFactory
+
+<!-- Empty html, just redirecting -->
+
+<!-- Just nest this component wherever/whenever you need to
+	redirect a user with an incomplete profile. 
+-->
+
+<!-- we should convert this into a more generic component since
+	we do something similar in at least 3 different places in the code
+	vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+-->
+@if (showPrompt != false) // <- this is a nullable bool, explanation in @code block 
+{
+	<div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+		<div class="flex flex-col items-center rounded bg-white p-4">
+			<h2 class="text-lg font-bold">
+				Your profile is incomplete.
+			</h2>
+			<p class="mt-3">
+				Do you wish to go to your profile page and fill out the missing information?
+			</p>
+			<div class="mt-3 space-x-4">
+				<button class="rounded bg-green-400 px-4 py-2 text-white" @onclick="SendToProfilePage">
+					Go to profile
+				</button>
+				<button class="rounded bg-gray-300 px-4 py-2 text-white" @onclick="() => showPrompt = false">
+					Go back
+				</button>
+			</div>
+		</div>
+	</div>
+}
+
+@code {
+	private ApplicationUser user = default!;
+	private string? phoneNumber;
+	private string? fullName;
+	private string? address;
+
+	// does not work if declared as a normal bool, since it get's instantly reset
+	// to false due to blazors rendering
+	// this is why we check for showPrompt != false instead of just doing !showPrompt
+	private bool? showPrompt;
+
+	[CascadingParameter]
+	private HttpContext HttpContext { get; set; } = default!;
+
+	// Gets user phoneNr., fullName & address
+	// if any of them are set to NULL (i.e. an incomplete profile)
+	// send the user to the profile page 
+	protected override async Task OnInitializedAsync()
+	{
+		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+		if (HttpContext is not null && authState.User.Identity.IsAuthenticated)
+		{
+			user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+			phoneNumber = await UserManager.GetPhoneNumberAsync(user);
+
+			using (var dbContext = DbContextFactory.CreateDbContext())
+			{
+				// this should not result in 2 separate queries to the database since
+				// current context should still be tracking the entity
+				fullName = dbContext.ApplicationUsers.Find(user.Id).FullName;
+				address = dbContext.ApplicationUsers.Find(user.Id).Address;
+			}
+
+			if (phoneNumber is null || fullName is null || address is null)
+			{
+				showPrompt = true;
+			}
+			else
+			{
+				showPrompt = false;
+			}
+		}
+	}
+
+	private void SendToProfilePage()
+	{ 
+		NavigationManager.NavigateTo("/Account/Manage");
+	}
+}

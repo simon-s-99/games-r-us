@@ -4,23 +4,45 @@
 @inject IDbContextFactory<ApplicationDbContext> dbContextFactory
 @rendermode InteractiveServer
 
-<div class="mb-4 flex flex-wrap items-center justify-center">
+<div class="pagination-container mb-4 flex flex-wrap items-center justify-center">
     
     <button class="btn btn-primary mr-2" @onclick="PreviousPage" disabled="@IsFirstPage">Previous</button>
 
     @for (int i = 1; i <= totalPages; i++)
     {
-        int pageNumber = i; 
-        <button class="btn btn-primary @(i == currentPage ? "active" : "") mr-2" @onclick="(() => ChangePage(pageNumber))">@i</button>
+        int pageNumber = i;
+
+        // Display first page number
+        @if (i == 1)
+        {
+            <button class="btn btn-primary @(i == currentPage ? "active" : "") mr-2" @onclick="(() => ChangePage(pageNumber))">@i</button>
+        }
+
+        // Display page numbers between current page - 2 and current page + 2
+        else if (i >= currentPage - 2 && i <= currentPage + 2)
+        {
+            <button class="btn btn-primary @(i == currentPage ? "active" : "") mr-2" @onclick="(() => ChangePage(pageNumber))">@i</button>
+        }
+
+        // Display last page number if the current page is not close to the last page
+        else if (i == totalPages && currentPage <= totalPages - 3)
+        {
+            <button class="btn btn-primary @(i == currentPage ? "active" : "") mr-2" @onclick="(() => ChangePage(pageNumber))">@i</button>
+        }
+
+        // Display "..." before the last page number if the current page is close to the last page
+        else if (i == currentPage + 3 && currentPage <= totalPages - 3)
+        {
+            <span class="mr-2">...</span>
+        }
     }
-    
+
     <button class="btn btn-primary ml-2" @onclick="NextPage" disabled="@IsLastPage">Next</button>
 
-    <!-- Input field for entering page size -->
     <div class="ml-4 flex items-center">
         <label class="mr-2">Items per page:</label>
         <input type="number" class="form-input border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" @bind="pageSize" placeholder="Enter page size" />
-      
+
         <button class="btn btn-primary ml-2" @onclick="ApplyPageSize">Apply</button>
     </div>
 </div>

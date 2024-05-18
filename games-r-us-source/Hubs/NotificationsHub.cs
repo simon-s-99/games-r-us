@@ -10,6 +10,9 @@ namespace games_r_us_source.Hubs
         // Send a test notification when user connect to hub
         public override async Task OnConnectedAsync()
         {
+            var httpContext = Context.GetHttpContext();
+            var headerUserName = httpContext.Request.Headers["UserName"].ToString();
+
             await Clients.Client(Context.ConnectionId).RecieveNotificationAsync(
                 "User-message = " + Context.ConnectionId);
 

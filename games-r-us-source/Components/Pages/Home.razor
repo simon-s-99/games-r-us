@@ -10,6 +10,7 @@
 
 @inject IDbContextFactory<ApplicationDbContext> dbContextFactory
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider;
 
 @implements IAsyncDisposable
 
@@ -84,8 +85,18 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // Get the logged in user
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userName = authenticationState.User.Identity.Name;
+
         hubConnection = new HubConnectionBuilder()
-            .WithUrl(NavigationManager.ToAbsoluteUri("/Notifications"))
+            .WithUrl(NavigationManager.ToAbsoluteUri("/Notifications"), options =>
+            {
+                // NOTE: Ideally we should do this with bearer tokens for better security.
+                //
+                // Pass username as header to our SignalR hub extension.
+                options.Headers.Add(new("UserName", userName));
+            })
             .Build();
 
         hubConnection.On<string>("RecieveNotificationAsync", notification =>

@@ -74,7 +74,21 @@ namespace games_r_us_source
             app.UseHttpsRedirection();
 
             app.UseStaticFiles();
-            
+
+            // Following code is used for configuring the middleware pipeline
+            // <----------------->
+            app.UseRouting();
+
+            app.UseAntiforgery();
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            // Endpoint for controllers
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers(); // Map the controllers to the request pipeline
+            });
+            // <------------------>
 
             app.MapRazorComponents<App>()
                 .AddInteractiveServerRenderMode();
@@ -83,9 +97,9 @@ namespace games_r_us_source
             // <----------------->
             app.UseRouting();
 
-            app.UseAntiforgery(); 
+            app.UseAntiforgery();
             app.UseAuthentication();
-            app.UseAuthorization(); 
+            app.UseAuthorization();
 
             // Endpoint for controllers
             app.UseEndpoints(endpoints =>

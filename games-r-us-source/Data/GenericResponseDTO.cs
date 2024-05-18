@@ -6,7 +6,7 @@
     {
         public string Name { get; set; }
 
-        public string? ShortDescription { get; set; }
+        public string ShortDescription { get; set; }
 
         public Platform Platform { get; set; }
 

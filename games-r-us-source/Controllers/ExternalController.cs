@@ -1,17 +1,18 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using games_r_us_source.Data;
 using games_r_us_source.Components.Helpers;
+using Microsoft.EntityFrameworkCore;
 
 namespace games_r_us_source.Controllers
 {
     // change route name if we add more api's in the future 
-    [Route("api")]
     [ApiController]
-    public class APIExternal : ControllerBase
+    [Route("api/[controller]")]
+    public class ExternalController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
 
-        public APIExternal(ApplicationDbContext context)
+        public ExternalController(ApplicationDbContext context)
         {
             _context = context;
         }
@@ -20,16 +21,16 @@ namespace games_r_us_source.Controllers
         /// Returns ten listings at a time with their associated owner and highest bid.
         /// </summary>
         [HttpGet("listings")]
-        public async Task<ActionResult<Listing[]>> GetListings([FromQuery] int pageNr = 0)
+        public async Task<ActionResult<IEnumerable<GenericResponseDTO>>> GetListings([FromQuery] int pageNr = 0)
         {
             // if pageNr is not entered (null) it is set to 0 automagically by .net
 
             // get 10 listings paginated 
-            Listing[] listings = _context.Listings
+            Listing[] listings = await _context.Listings
                 .OrderBy(l => l.AuctionEnd)
                 .Skip(10 * pageNr)
                 .Take(10)
-                .ToArray();
+                .ToArrayAsync();
 
             GenericResponseDTO[] result = new GenericResponseDTO[listings.Length];
 

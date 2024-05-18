@@ -20,7 +20,7 @@ namespace games_r_us_source.Controllers
         /// <summary>
         /// Returns ten listings at a time with their associated owner and highest bid.
         /// </summary>
-        [HttpGet("listings")]
+        [HttpGet("listings")] // TODO: Add url to response so that receiver can navigate to our website. 
         public async Task<ActionResult<IEnumerable<GenericResponseDTO>>> GetListings([FromQuery] int pageNr = 0)
         {
             // if pageNr is not entered (null) it is set to 0 automagically by .net
@@ -67,8 +67,8 @@ namespace games_r_us_source.Controllers
                     result[i].ShortDescription = "";
                 }
 
-                result[i].Platform = listings[i].Platform;
-                result[i].GameCategory = listings[i].GameCategory;
+                result[i].Platform = listings[i].Platform.ToString();
+                result[i].GameCategory = listings[i].GameCategory.ToString();
             }
 
             return Ok(result);

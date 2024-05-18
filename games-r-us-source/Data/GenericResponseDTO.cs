@@ -8,9 +8,9 @@
 
         public string ShortDescription { get; set; }
 
-        public Platform Platform { get; set; }
+        public string Platform { get; set; }
 
-        public GameCategory? GameCategory { get; set; }
+        public string? GameCategory { get; set; }
 
         public decimal HighestBid { get; set; }
 

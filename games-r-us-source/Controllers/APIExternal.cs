@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+using games_r_us_source.Data;
+using games_r_us_source.Components.Helpers;
 
 namespace games_r_us_source.Controllers
 {
@@ -9,36 +9,44 @@ namespace games_r_us_source.Controllers
     [ApiController]
     public class APIExternal : ControllerBase
     {
-        // GET
-        [HttpGet]
-        public IEnumerable<string> Get()
+        private readonly ApplicationDbContext _context;
+
+        public APIExternal(ApplicationDbContext context)
         {
-            return new string[] { "value1", "value2" };
+            _context = context;
         }
 
-        // GET
-        [HttpGet("{id}")]
-        public string Get(int id)
+        /// <summary>
+        /// Returns ten listings at a time with their associated owner and highest bid.
+        /// </summary>
+        [HttpGet("listings")]
+        public async Task<ActionResult<Listing[]>> GetListings([FromQuery] int pageNr = 0)
         {
-            return "value";
-        }
+            // if pageNr is not entered (null) it is set to 0 automagically by .net
 
-        // POST
-        [HttpPost]
-        public void Post([FromBody] string value)
-        {
-        }
+            // get 10 listings paginated 
+            Listing[] listings = _context.Listings
+                .OrderBy(l => l.AuctionEnd)
+                .Skip(10 * pageNr)
+                .Take(10)
+                .ToArray();
 
-        // PUT
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
+            GenericResponseDTO[] result = new GenericResponseDTO[listings.Length];
 
-        // DELETE
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
+            // get top bid foreach listing & owner of listing
+            for (int i = 0; i < listings.Length; i++)
+            {
+                result[i].HighestBid = BidHelper.GetHighestBidFromListingID(listings[i].ID, _context).Amount;
+                result[i].ListingOwner = ApplicationUserHelper.GetAccountFromUserID(
+                    listings[i].ApplicationUserID, _context).FullName;
+
+                result[i].Name = listings[i].Name;
+                result[i].ShortDescription = listings[i].Description.Substring(0, 100);
+                result[i].Platform = listings[i].Platform;
+                result[i].GameCategory = listings[i].GameCategory;
+            }
+
+            return Ok(result);
         }
     }
 }

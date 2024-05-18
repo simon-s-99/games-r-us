@@ -54,13 +54,14 @@
 
 <!-- Temporary for testing purposes -->
 
+<ListingPagination OnPageChanged="HandlePageChange" />
 <ListingsForUser />
 
 
 @* <ListingDetails CurrentListing="@CurrentListing"/> *@
 
 @*<ListingDetails /> @* <-- For testing purposes*@
-<ListingDetails CurrentListing="@Helpers.ListingHelper.GetListingFromListingID(5, dbContextFactory.CreateDbContext())" /> @* <-- For testing purposes*@
+@* <ListingDetails CurrentListing="@Helpers.ListingHelper.GetListingFromListingID(5, dbContextFactory.CreateDbContext())" /> *@ @* <-- For testing purposes*@
 
 
 @code {
@@ -77,5 +78,11 @@
 		listings = sortResults;
 		StateHasChanged();
 	}
+
+    private void HandlePageChange(List<Listing> paginatedListings)
+    {
+        listings = paginatedListings;
+        StateHasChanged();
+    }
 }
 

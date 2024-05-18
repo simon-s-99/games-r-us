@@ -11,6 +11,7 @@ namespace games_r_us_source.Components.Helpers
             return listing;
         }
 
+        // Method to handle images
         public static async Task<(string base64Image, string currentImagePath)> LoadFilesAsync(InputFileChangeEventArgs e, string currentImagePath, long maxFileSize)
         {
             var imageFile = e.File;

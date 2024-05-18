@@ -5,6 +5,7 @@
 @using System.ComponentModel.DataAnnotations
 @using games_r_us_source.Data
 @using Microsoft.EntityFrameworkCore
+@using games_r_us_source.Components.Helpers
 
 @* Follwing three using/injects are needed for ApplicationUserID *@
 @using Microsoft.AspNetCore.Identity
@@ -208,25 +209,25 @@ helping mitigate issues associated with having a DbContext that is too long-live
         {
             if (!string.IsNullOrEmpty(currentImagePath))
             {              
-            // We send the images to a temp storage in case they won't be needed later. Example: if the user changes image
+                // We send the images to a temp storage in case they won't be needed later. Example: if the user changes image
 
-            //path to the permanent storage directory for images
+                //path to the permanent storage directory for images
                 string permanentFolderPath = Path.Combine("C:\\Temp");
 
-            // path to the image currently in temporary storage
+                // path to the image currently in temporary storage
                 string sourcePath = Path.Combine("C:\\Temp", "temp_images", currentImagePath);
 
-            // destination path for the image once it is confirmed for permanent storage.
-            string destinationPath = Path.Combine(permanentFolderPath, currentImagePath);
+                // destination path for the image once it is confirmed for permanent storage.
+                string destinationPath = Path.Combine(permanentFolderPath, currentImagePath);
 
-            // Move the uploaded image from temporary to permanent storage upon successful listing creation
-            if (File.Exists(sourcePath))
-            {
-                Directory.CreateDirectory(permanentFolderPath);
-                File.Move(sourcePath, destinationPath);
-            }
+                // Move the uploaded image from temporary to permanent storage upon successful listing creation
+                if (File.Exists(sourcePath))
+                {
+                    Directory.CreateDirectory(permanentFolderPath);
+                    File.Move(sourcePath, destinationPath);
+                }
 
-            // Update listing with the path of the permanently stored image
+                // Update listing with the path of the permanently stored image
                 // listing.ImagePath = Path.Combine("C:\\Temp", currentImagePath);
                 listing.ImagePath = currentImagePath; // Only store the file name
             }
@@ -249,48 +250,58 @@ helping mitigate issues associated with having a DbContext that is too long-live
         }
     }
 
-    // Method to handle images
     private async Task LoadFiles(InputFileChangeEventArgs e)
     {
-        var imageFile = e.File;
-        if (imageFile != null && imageFile.Size > 0)
-        {
-            MemoryStream ms = new MemoryStream();
-            try
-            {
-                // Create the existence of a temporary storage directory for images
-                string tempFolderPath = Path.Combine("C:\\Temp", "temp_images");
-                Directory.CreateDirectory(tempFolderPath);
+        var result = await ListingHelper.LoadFilesAsync(e, currentImagePath, maxFileSize);
 
+        base64Image = result.base64Image;
+        currentImagePath = result.currentImagePath;
 
-                // Delete previous image if the user changes image before submitting
-                if (!string.IsNullOrEmpty(currentImagePath))
-                {
-                    var previousFilePath = Path.Combine(tempFolderPath, currentImagePath);
-                    if (File.Exists(previousFilePath))
-                    {
-                        File.Delete(previousFilePath); // Delete the image if it isn't used for a listing
-                    }
-                }
-
-                await imageFile.OpenReadStream(maxFileSize).CopyToAsync(ms);
-                byte[] buffer = ms.ToArray();
-                base64Image = $"data:image/png;base64,{Convert.ToBase64String(buffer)}";
-
-                string fileName = Path.ChangeExtension(Path.GetRandomFileName(), Path.GetExtension(imageFile.Name));
-                string fullPath = Path.Combine(tempFolderPath, fileName);
-                await File.WriteAllBytesAsync(fullPath, buffer); // Save in temporary directory
-
-                currentImagePath = fileName;
-            }
-            catch (Exception ex)
-            {
-                base64Image = null;
-                currentImagePath = null;
-            }
-
-        }
+        StateHasChanged();
     }
+
+    // Method to handle images
+    // private async Task LoadFiles(InputFileChangeEventArgs e)
+    // {
+    //     var imageFile = e.File;
+    //     if (imageFile != null && imageFile.Size > 0)
+    //     {
+    //         MemoryStream ms = new MemoryStream();
+    //         try
+    //         {
+    //             // Create the existence of a temporary storage directory for images
+    //             string tempFolderPath = Path.Combine("C:\\Temp", "temp_images");
+    //             Directory.CreateDirectory(tempFolderPath);
+
+
+    //             // Delete previous image if the user changes image before submitting
+    //             if (!string.IsNullOrEmpty(currentImagePath))
+    //             {
+    //                 var previousFilePath = Path.Combine(tempFolderPath, currentImagePath);
+    //                 if (File.Exists(previousFilePath))
+    //                 {
+    //                     File.Delete(previousFilePath); // Delete the image if it isn't used for a listing
+    //                 }
+    //             }
+
+    //             await imageFile.OpenReadStream(maxFileSize).CopyToAsync(ms);
+    //             byte[] buffer = ms.ToArray();
+    //             base64Image = $"data:image/png;base64,{Convert.ToBase64String(buffer)}";
+
+    //             string fileName = Path.ChangeExtension(Path.GetRandomFileName(), Path.GetExtension(imageFile.Name));
+    //             string fullPath = Path.Combine(tempFolderPath, fileName);
+    //             await File.WriteAllBytesAsync(fullPath, buffer); // Save in temporary directory
+
+    //             currentImagePath = fileName;
+    //         }
+    //         catch (Exception ex)
+    //         {
+    //             base64Image = null;
+    //             currentImagePath = null;
+    //         }
+
+    //     }
+    // }
 
     private void RemoveImage()
     {

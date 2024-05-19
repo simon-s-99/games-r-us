@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace games_r_us_source.Hubs
 {
-    //[Authorize] // <-- might need to remove this if program crashes 
     public class NotificationsHub : Hub<INotificationClient>
     {
         // Send a test notification when user connect to hub

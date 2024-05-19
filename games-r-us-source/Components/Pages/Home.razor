@@ -88,7 +88,7 @@
         var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var userName = authenticationState.User.Identity.Name;
 
-        if (userName is not null)
+        if (userName is not null) // not strictly necessary but dis-allows non-logged in users from sending notifications
         {
             hubConnection = new HubConnectionBuilder()
                 .WithUrl(NavigationManager.ToAbsoluteUri("/Notifications"), options =>
@@ -110,7 +110,7 @@
         }
     }
 
-    private async Task Send()
+    private async Task Send() // remove this when testing is done 
     {
         if (hubConnection is not null)
         {

@@ -1,6 +1,6 @@
 ﻿namespace games_r_us_source.Hubs
 {
-    public class MessagingDTO
+    public class NotificationDTO
     {
         // This class is only used to send messages to our NotificationsHub
         // since sending multiple parameters to a method via SignalR
@@ -9,7 +9,7 @@
         public string UserName { get; set; }
         public string Message { get; set; }
 
-        public MessagingDTO(string userName, string message)
+        public NotificationDTO(string userName, string message)
         {
             this.UserName = userName;
             this.Message = message;

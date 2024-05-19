@@ -37,15 +37,13 @@ namespace games_r_us_source
 
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-
             // Add dbContextFactory aswell so that we can inject IDbContextFactory in our components 
             builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
                 options.UseSqlServer(connectionString));
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
-
                 options.UseSqlServer(connectionString));
-            builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
+            builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
             builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -74,40 +72,24 @@ namespace games_r_us_source
             app.UseHttpsRedirection();
 
             app.UseStaticFiles();
+            app.UseAntiforgery();
 
             // Following code is used for configuring the middleware pipeline
             // <----------------->
-            app.UseRouting();
+            //app.UseRouting();
 
-            app.UseAntiforgery();
-            app.UseAuthentication();
-            app.UseAuthorization();
+            //app.UseAuthentication();
+            //app.UseAuthorization();
 
-            // Endpoint for controllers
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers(); // Map the controllers to the request pipeline
-            });
+            //// Endpoint for controllers
+            //app.UseEndpoints(endpoints =>
+            //{
+            //    endpoints.MapControllers(); // Map the controllers to the request pipeline
+            //});
             // <------------------>
 
             app.MapRazorComponents<App>()
                 .AddInteractiveServerRenderMode();
-
-            // Following code is used for configuring the middleware pipeline
-            // <----------------->
-            app.UseRouting();
-
-            app.UseAntiforgery();
-            app.UseAuthentication();
-            app.UseAuthorization();
-
-            // Endpoint for controllers
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers(); // Map the controllers to the request pipeline
-            });
-            // <------------------>
-
 
             // Add additional endpoints required by the Identity /Account Razor components.
             app.MapAdditionalIdentityEndpoints();

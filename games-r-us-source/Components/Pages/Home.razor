@@ -89,23 +89,26 @@
         var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var userName = authenticationState.User.Identity.Name;
 
-        hubConnection = new HubConnectionBuilder()
-            .WithUrl(NavigationManager.ToAbsoluteUri("/Notifications"), options =>
-            {
-                // NOTE: Ideally we should do this with bearer tokens for better security.
-                //
-                // Pass username as header to our SignalR hub extension.
-                options.Headers.Add(new("UserName", userName));
-            })
-            .Build();
-
-        hubConnection.On<string>("RecieveNotificationAsync", notification =>
+        if (userName is not null)
         {
-            notifications.Add(notification);
-            InvokeAsync(StateHasChanged);
-        });
+            hubConnection = new HubConnectionBuilder()
+                .WithUrl(NavigationManager.ToAbsoluteUri("/Notifications"), options =>
+                {
+                    // NOTE: Ideally we should do this with bearer tokens for better security.
+                    //
+                    // Pass username as header to our SignalR hub extension.
+                    options.Headers.Add(new("UserName", userName));
+                })
+                .Build();
 
-        await hubConnection.StartAsync();
+            hubConnection.On<string>("RecieveNotificationAsync", notification =>
+            {
+                notifications.Add(notification);
+                InvokeAsync(StateHasChanged);
+            });
+
+            await hubConnection.StartAsync();
+        }
     }
 
     private async Task Send()

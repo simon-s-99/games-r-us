@@ -32,6 +32,15 @@
 
 <ListingSort OnSortResultsUpdated="HandleSorting" />
 
+<!-- temp buttons to test signalr messaging -->
+<button @onclick="Send" class="rounded-xl bg-orange-300 px-4 py-2">Click me</button>
+
+<ul>
+    @foreach (string notification in notifications)
+    {
+        <li>@notification</li>
+    }
+</ul>
 
 <!-- Only here as a template for how to show content if
     user is logged  in or not.
@@ -50,16 +59,6 @@
 <ListingDisplayAll listings="@listings" />
 
 <ListingsForUser />
-
-<!-- temp buttons to test signalr messaging -->
-<button @onclick="Send" class="rounded-xl bg-orange-300 px-4 py-2">Click me</button>
-
-<ul>
-    @foreach (string notification in notifications)
-    {
-        <li>@notification</li>
-    }
-</ul>
 
 @code {
     private List<Listing> listings = new List<Listing>();
@@ -101,7 +100,7 @@
                 })
                 .Build();
 
-            hubConnection.On<string>("RecieveNotificationAsync", notification =>
+            hubConnection.On<string>("ReceiveNotificationAsync", notification =>
             {
                 notifications.Add(notification);
                 InvokeAsync(StateHasChanged);

@@ -19,10 +19,10 @@ namespace games_r_us_source.Hubs
             // which also removes it from Groups.
             Groups.AddToGroupAsync(Context.ConnectionId, headerUserName);
 
-            await Clients.Client(Context.ConnectionId).RecieveNotificationAsync(
+            await Clients.Client(Context.ConnectionId).ReceiveNotificationAsync(
                 "User-message = " + Context.ConnectionId);
 
-            await Clients.Client(Context.ConnectionId).RecieveNotificationAsync(
+            await Clients.Client(Context.ConnectionId).ReceiveNotificationAsync(
                 "User-Name = " + headerUserName);
 
             await base.OnConnectedAsync();
@@ -30,12 +30,12 @@ namespace games_r_us_source.Hubs
 
         public async Task SendNotificationTo(MessagingDTO messagingDTO)
         {
-            await Clients.Group(messagingDTO.UserName).RecieveNotificationAsync(messagingDTO.Message);
+            await Clients.Group(messagingDTO.UserName).ReceiveNotificationAsync(messagingDTO.Message);
         }
     }
 
     public interface INotificationClient
     {
-        Task RecieveNotificationAsync(string message);
+        Task ReceiveNotificationAsync(string message);
     }
 }

@@ -112,7 +112,7 @@
     {
         if (hubConnection is not null)
         {
-            await hubConnection.SendAsync("SendNotification", "testMsg");
+            await hubConnection.SendAsync("SendNotificationTo", new MessagingDTO("simon.t.sorqvist@gmail.com", "Success"));
         }
     }
 

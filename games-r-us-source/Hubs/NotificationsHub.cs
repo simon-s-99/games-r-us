@@ -13,15 +13,24 @@ namespace games_r_us_source.Hubs
             var httpContext = Context.GetHttpContext();
             var headerUserName = httpContext.Request.Headers["UserName"].ToString();
 
+            // this is one of 4 approaches recommended by microsoft - this is "Single-user groups"
+            // OnConnect we add the users ConnectionId to Groups which is essentially just a Dictionary/Hashmap
+            // When the User is disconnected dispose is called on their connection
+            // which also removes it from Groups.
+            Groups.AddToGroupAsync(Context.ConnectionId, headerUserName);
+
             await Clients.Client(Context.ConnectionId).RecieveNotificationAsync(
                 "User-message = " + Context.ConnectionId);
+
+            await Clients.Client(Context.ConnectionId).RecieveNotificationAsync(
+                "User-Name = " + headerUserName);
 
             await base.OnConnectedAsync();
         }
 
-        public async Task SendNotification(string message)
+        public async Task SendNotificationTo(MessagingDTO messagingDTO)
         {
-            await Clients.All.RecieveNotificationAsync(message);
+            await Clients.Group(messagingDTO.UserName).RecieveNotificationAsync(messagingDTO.Message);
         }
     }
 

@@ -27,7 +27,7 @@ namespace games_r_us_source.Hubs
             await base.OnConnectedAsync();
         }
 
-        public async Task SendNotificationTo(MessagingDTO messagingDTO)
+        public async Task SendNotificationTo(NotificationDTO messagingDTO)
         {
             await Clients.Group(messagingDTO.UserName).ReceiveNotificationAsync(messagingDTO.Message);
         }

@@ -22,6 +22,8 @@ namespace games_r_us_source
             builder.Services.AddScoped<IdentityUserAccessor>();
             builder.Services.AddScoped<IdentityRedirectManager>();
             builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+            // adds NotificationState to a users Blazor circuit
+            builder.Services.AddSingleton<NotificationState>();
 
             // Add SignalR
             builder.Services.AddSignalR();

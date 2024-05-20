@@ -61,7 +61,7 @@
 
                 <!-- Show tooltip on hover -->
                 <div class="group relative mt-4 inline-block cursor-help md:mt-0">
-                    <p>Ends in</p><span class="border-b-2 border-dotted border-black text-red-700">@(CurrentListing.AuctionEnd > DateTime.Today ? "ended" : TimeRemaining)</span>
+                    <p>Ends in</p><span class="border-b-2 border-dotted border-black text-red-700">@(CurrentListing.AuctionEnd < DateTime.Today ? "ended" : TimeRemaining)</span>
                     <span class="-ml-[70%] invisible absolute bottom-full left-1/2 w-fit text-nowrap rounded bg-black text-white opacity-70 group-hover:visible">@CurrentListing.AuctionEnd</span>
                 </div>
             </div>
@@ -115,7 +115,7 @@
 
     private string TimeRemaining { get; set; }
 
-    Timer timer;
+    Timer? timer;
 
     protected override async Task OnInitializedAsync()
     {
@@ -138,19 +138,22 @@
         // Only initalize timer if there are less than 24 hours remaining, to prevent performance issues
         if (timeDifference.TotalDays > 0)
         {
-            timer = new Timer(UpdateTime, null, 1000, 0);
+            // Create timer that updates every 1000 milliseconds
+            timer = new Timer(UpdateTime, null, 1000, 1000);
         }
     }
 
     private void UpdateTime(object _)
     {
+        // Method is called when timer updates, updates the TimeRemaining variable
         TimeRemaining = ListingHelper.GetTimeDifference(CurrentListing.AuctionEnd);
         InvokeAsync(StateHasChanged);
     }
 
     public void Dispose()
     {
-        timer.Dispose();
+        // Releases the timer when it runs out
+        timer?.Dispose();
     }
 
     private async Task CheckOwnership()

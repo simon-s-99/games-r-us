@@ -32,13 +32,6 @@
 
         @if (selectedListing != null)
         {
-            @* <div class="inset-0 bg-black fixed z-20 flex items-center justify-center bg-opacity-50" @onclick="CloseListingDetails">
-                <div class="new-parent-class bg-white p-4 rounded-lg shadow-md" @onclick:stopPropagation="true">
-                    <div class="relative w-full">
-                        <ListingDetails CurrentListing="selectedListing" />
-                    </div>
-                </div>
-            </div> *@
             <article class="inset-0 bg-black fixed z-20 flex items-center justify-center bg-opacity-50" @onclick="CloseListingDetails">
                 @* <div class="relative w-full" @onclick:stopPropagation="true"> *@
                     <ListingDetails CurrentListing="selectedListing" />

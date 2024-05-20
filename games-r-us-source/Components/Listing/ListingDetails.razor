@@ -7,7 +7,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
 
-<article class="font-[Kadwa] border-blue-800 bg-gray-200 p-4 m-auto flex h-fit w-1/2 flex-col rounded-2xl border-2 text-center md:flex-row">
+<article class="font-[Kadwa] border-2 m-auto flex h-fit w-1/2 flex-col rounded-2xl border-blue-800 bg-gray-200 p-4 text-center md:flex-row">
     <!-- checks if user is logged in & the listings owner to display edit/delete button -->
     <AuthorizeView>
         <Authorized>
@@ -57,12 +57,12 @@
                 </div>
 
                 <!-- Vertical divider -->
-                <div class="border-gray-400 hidden border-r-2 md:block"></div>
+                <div class="border-r-2 hidden border-gray-400 md:block"></div>
 
                 <!-- Show tooltip on hover -->
-                <div class="mt-4 group relative inline-block cursor-help md:mt-0">
-                    <p>Ends in</p><span class="border-black text-red-700 border-b-2 border-dotted">@BidHelper.GetTimeDifference(CurrentListing.AuctionEnd)</span>
-                    <span class="-ml-[70%] bg-black text-white invisible absolute bottom-full left-1/2 w-fit text-nowrap rounded opacity-70 group-hover:visible">@CurrentListing.AuctionEnd</span>
+                <div class="group relative mt-4 inline-block cursor-help md:mt-0">
+                    <p>Ends in</p><span class="border-b-2 border-dotted border-black text-red-700">@(CurrentListing.AuctionEnd > DateTime.Today ? "ended" : TimeRemaining)</span>
+                    <span class="-ml-[70%] invisible absolute bottom-full left-1/2 w-fit text-nowrap rounded bg-black text-white opacity-70 group-hover:visible">@CurrentListing.AuctionEnd</span>
                 </div>
             </div>
 
@@ -80,14 +80,14 @@
                 }
             </section>
 
-            <section class="mb-4 mt-8 border-black pb-4 border-b-2">
+            <section class="border-b-2 mb-4 mt-8 border-black pb-4">
                 <h4 class="font-bold">Seller</h4>
                 <p>
-                    @CurrentListing.ApplicationUser.FullName
+                    @CurrentListing.ApplicationUser?.FullName
                 </p>
                 Phone:
-                <a class="text-blue-700 underline" href="tel:@CurrentListing.ApplicationUser.PhoneNumber">
-                    @CurrentListing.ApplicationUser.PhoneNumber
+                <a class="text-blue-700 underline" href="tel:@CurrentListing.ApplicationUser?.PhoneNumber">
+                    @CurrentListing.ApplicationUser?.PhoneNumber
                 </a>
             </section>
 
@@ -113,6 +113,10 @@
 
     private bool IsOwner { get; set; } = false;
 
+    private string TimeRemaining { get; set; }
+
+    Timer timer;
+
     protected override async Task OnInitializedAsync()
     {
         using (var dbContext = dbContextFactory.CreateDbContext())
@@ -125,6 +129,28 @@
         }
 
         await CheckOwnership();
+    }
+
+    protected override void OnInitialized()
+    {
+        TimeSpan timeDifference = CurrentListing.AuctionEnd - DateTime.Now;
+
+        // Only initalize timer if there are less than 24 hours remaining, to prevent performance issues
+        if (timeDifference.TotalDays > 0)
+        {
+            timer = new Timer(UpdateTime, null, 1000, 0);
+        }
+    }
+
+    private void UpdateTime(object _)
+    {
+        TimeRemaining = ListingHelper.GetTimeDifference(CurrentListing.AuctionEnd);
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        timer.Dispose();
     }
 
     private async Task CheckOwnership()
@@ -140,29 +166,4 @@
             }
         }
     }
-
-    private string GetTimeDifference(DateTime endDate)
-    {
-        if (DateTime.Now > endDate)
-        {
-            return "ended";
-        }
-
-        TimeSpan timeDifference = endDate - DateTime.Today;
-
-        if (timeDifference.TotalDays >= 7)
-        {
-            // Round down
-            double wholeWeeks = Math.Floor(timeDifference.TotalDays / 7);
-
-            // Get the rest value
-            double wholeDays = Math.Round(timeDifference.TotalDays % 7);
-
-            return wholeWeeks + " weeks" + (wholeDays > 0 ? $", {wholeDays} days" : "");
-        }
-
-        return timeDifference.TotalDays + " days";
-    }
-
-
 }

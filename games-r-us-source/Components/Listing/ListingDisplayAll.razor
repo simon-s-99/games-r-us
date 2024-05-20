@@ -1,27 +1,28 @@
 ﻿@using Microsoft.EntityFrameworkCore
 @using games_r_us_source.Data
+@using games_r_us_source.Components.Helpers
 @inject IDbContextFactory<ApplicationDbContext> dbContextFactory
 
 @* Display the listings here *@
 @if (listings.Any())
 {
     <div class="mt-4 px-4">
-        <h2 class="text-gray-800 text-lg font-semibold">Listings:</h2>
-        <div class="gap-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        <h2 class="text-lg font-semibold text-gray-800">Listings:</h2>
+        <div class="grid-cols-1 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             @foreach (var listing in listings)
             {
-                <div class="bg-white p-4 overflow-hidden rounded-lg shadow-lg">
+                <div class="overflow-hidden rounded-lg bg-white p-4 shadow-lg">
                     <img class="h-64 w-full object-cover" src="@($"/images/{listing.ImagePath}")" alt="Image of listing">
                     <div class="p-4">
-                        <h3 class="text-md text-gray-900 font-semibold">@listing.Name</h3>
+                        <h3 class="text-md font-semibold text-gray-900">@listing.Name</h3>
                         <!-- height and overflow handling for the description -->
-                        <p class="text-gray-500 h-20 overflow-hidden overflow-ellipsis">@listing.Description</p>
+                        <p class="h-20 overflow-hidden overflow-ellipsis text-gray-500">@listing.Description</p>
                     </div>
-                    <div class="border-gray-200 bg-gray-100 px-4 pb-4 pt-3 border-t">
-                        <div class="text-gray-600 text-xs font-bold uppercase tracking-wide">Price</div>
-                        <div class="text-gray-900 text-lg">$@listingPrices[listing.ID]</div>
-                        <div class="text-gray-600 text-xs font-bold uppercase tracking-wide">Time Remaining</div>
-                        <div class="text-gray-900 text-lg">@GetTimeDifference(listing.AuctionEnd)</div>
+                    <div class="border-t border-gray-200 bg-gray-100 px-4 pb-4 pt-3">
+                        <div class="text-xs font-bold uppercase tracking-wide text-gray-600">Price</div>
+                        <div class="text-lg text-gray-900">$@listingPrices[listing.ID]</div>
+                        <div class="text-xs font-bold uppercase tracking-wide text-gray-600">Time Remaining</div>
+                        <div class="text-lg text-gray-900">@ListingHelper.GetTimeDifference(listing.AuctionEnd)</div>
                     </div>
                 </div>
             }
@@ -49,6 +50,10 @@ else
 
     public bool ShowBidAsPrice = false;
 
+    private string TimeRemaining { get; set; }
+
+    Timer timer;
+
     // Lifecycle method for blazor that is called after this component
     // is initialized but before being rendered
     protected override async Task OnInitializedAsync()
@@ -58,6 +63,7 @@ else
             await LoadListingsAndPrices();
         }
     }
+
     // Communication with other components (search)
     protected override void OnParametersSet()
     {
@@ -98,56 +104,5 @@ else
         }
 
         StateHasChanged();
-    }
-
-
-    private string GetTimeDifference(DateTime endDate)
-    {
-        TimeSpan timeDifference = endDate - DateTime.Now;
-
-        if (timeDifference.TotalDays >= 7)
-        {
-            int weeks = (int)(timeDifference.TotalDays / 7);
-            int days = (int)(timeDifference.TotalDays % 7); // Get remaining days after full weeks
-            if (days > 0)
-                return $"{weeks} weeks and {days} days";
-            else
-                return $"{weeks} weeks";
-        }
-        else if (timeDifference.TotalDays >= 1)
-        {
-            int days = (int)timeDifference.TotalDays;
-            int hours = timeDifference.Hours;
-            if (hours > 0)
-                return $"{days} days and {hours} hours";
-            else
-                return $"{days} days";
-        }
-        else if (timeDifference.TotalHours >= 1)
-        {
-            int hours = (int)timeDifference.TotalHours;
-            int minutes = timeDifference.Minutes;
-            if (minutes > 0)
-                return $"{hours} hours and {minutes} minutes";
-            else
-                return $"{hours} hours";
-        }
-        else if (timeDifference.TotalMinutes >= 1)
-        {
-            int minutes = (int)timeDifference.TotalMinutes;
-            int seconds = timeDifference.Seconds;
-            if (seconds > 0)
-                return $"{minutes} minutes and {seconds} seconds";
-            else
-                return $"{minutes} minutes";
-        }
-        else if (timeDifference.TotalSeconds >= 1)
-        {
-            return $"{(int)Math.Floor(timeDifference.TotalSeconds)} seconds";
-        }
-        else
-        {
-            return "Auction has ended";
-        }
     }
 }

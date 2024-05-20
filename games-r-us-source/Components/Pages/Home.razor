@@ -77,11 +77,25 @@
         StateHasChanged();
     }
 
+    private void HandleNotification(NotificationDTO notificationDTO)
+    {
+        if (hubConnection is not null)
+        {
+            hubConnection.SendAsync("SendNotificationTo", notificationDTO);
+        }
+    }
+
+    // send is a test class that chagnes notificationstate which in turn
+    // triggers a response from onchange triggering a method call to handlenotification
+    private async Task Send()
+    {
+        NotificationState.SetNotificationDTO(new NotificationDTO("simon.t.sorqvist@gmail.com", "Success"));
+    }
+
     protected override async Task OnInitializedAsync()
     {
         // Subscribes to changes in NotificationState class
-        // allows us to re-render this component from e.g. a grand-child component
-        NotificationState.OnChange += StateHasChanged;
+        NotificationState.OnChange += HandleNotification;
 
         // Get the logged in user
         var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -100,6 +114,8 @@
                 })
                 .Build();
 
+            // hubconneciton on string is only needed on pages where we actually want to display
+            // notifications (so i guess on all pages, move to layout? discouraged?)
             hubConnection.On<string>("ReceiveNotificationAsync", notification =>
             {
                 notifications.Add(notification);
@@ -107,23 +123,6 @@
             });
 
             await hubConnection.StartAsync();
-        }
-    }
-
-    private async Task Send()
-    {
-        // Get the logged in user
-        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var userName = authenticationState.User.Identity.Name;
-
-        if (userName is not null) // not strictly necessary but dis-allows non-logged in users from sending notifications
-        {
-            NotificationState.SetNotificationDTO(new NotificationDTO("simon.t.sorqvist@gmail.com", "Success"));
-
-            if (hubConnection is not null)
-            {
-                await hubConnection.SendAsync("SendNotificationTo", NotificationState.NotificationDTO);
-            }
         }
     }
 
@@ -135,6 +134,6 @@
         }
 
         // Un-subscribes this component from NotificationState on dispose
-        NotificationState.OnChange -= StateHasChanged;
+        NotificationState.OnChange -= HandleNotification;
     }
 }

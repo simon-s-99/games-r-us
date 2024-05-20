@@ -11,11 +11,11 @@
             NotifyStateChanged(); // triggers an onchange event when notifications are set
         }
 
-        public event Action OnChange;
+        public event Action<NotificationDTO> OnChange;
 
         private void NotifyStateChanged()
         {
-            OnChange?.Invoke();
+            OnChange?.Invoke(this.NotificationDTO);
         }
     }
 }

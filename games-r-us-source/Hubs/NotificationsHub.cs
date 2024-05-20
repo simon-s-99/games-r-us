@@ -18,12 +18,6 @@ namespace games_r_us_source.Hubs
             // which also removes it from Groups.
             Groups.AddToGroupAsync(Context.ConnectionId, headerUserName);
 
-            await Clients.Client(Context.ConnectionId).ReceiveNotificationAsync(
-                "User-message = " + Context.ConnectionId);
-
-            await Clients.Client(Context.ConnectionId).ReceiveNotificationAsync(
-                "User-Name = " + headerUserName);
-
             await base.OnConnectedAsync();
         }
 

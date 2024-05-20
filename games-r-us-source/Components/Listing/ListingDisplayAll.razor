@@ -21,8 +21,18 @@
                     <div class="border-t border-gray-200 bg-gray-100 px-4 pb-4 pt-3">
                         <div class="text-xs font-bold uppercase tracking-wide text-gray-600">Price</div>
                         <div class="text-lg text-gray-900">$@listingPrices[listing.ID]</div>
-                        <div class="text-xs font-bold uppercase tracking-wide text-gray-600">Time Remaining</div>
-                        <div class="text-lg text-gray-900">@ListingHelper.GetTimeDifference(listing.AuctionEnd)</div>
+
+                        @* if time is less than 1 minute, turn the Time remaining red*@
+                        @if (TimeRemainingSpan[listing.ID].TotalMinutes < 1)
+                        {
+                            <div class="text-xs font-bold uppercase tracking-wide text-red-600">Time Remaining</div>
+                            <div class="text-lg text-red-600">@TimeRemaining[listing.ID]</div>
+                        }
+                        else
+                        {
+                            <div class="text-xs font-bold uppercase tracking-wide text-gray-600">Time Remaining</div>
+                            <div class="text-lg text-gray-900">@TimeRemaining[listing.ID]</div>
+                        }
                     </div>
                 </div>
             }
@@ -36,23 +46,29 @@ else
 }
 
 @code {
-    // [PAGINATION COMMENT (issue #8 on github)] 
+    // [PAGINATION COMMENT (issue #8 on github)]
     // this will need to be restricted later to only get a certain amount of
     // listings from the database, implement when doing pagination
     [Parameter]
     public List<Listing> listings { get; set; }
-
-    // display the price associated with each listing.The dictionary allows us to directly access the price using the listing ID
-    private Dictionary<int, decimal> listingPrices = new Dictionary<int, decimal>(); 
-
     [Parameter]
     public Bid? HighestBid { get; set; }
 
-    public bool ShowBidAsPrice = false;
+    // display the price associated with each listing.The dictionary allows us to directly access the price using the listing ID
+    // decimal for value(price), int for ID.
+    private Dictionary<int, decimal> listingPrices = new Dictionary<int, decimal>();
 
-    private string TimeRemaining { get; set; }
+    // store time remaining for each listing
+    private Dictionary<int, string> TimeRemaining = new Dictionary<int, string>();
+
+    // store time remaining as TimeSpan for each listing
+    private Dictionary<int, TimeSpan> TimeRemainingSpan = new Dictionary<int, TimeSpan>();
 
     Timer timer;
+
+    public bool ShowBidAsPrice = false;
+
+
 
     // Lifecycle method for blazor that is called after this component
     // is initialized but before being rendered
@@ -62,28 +78,25 @@ else
         {
             await LoadListingsAndPrices();
         }
+
+        // Initialize the timer only if there are listings and at least one has less than 24 hours remaining
+        if (listings.Any())
+        {
+            var earliestAuctionEnd = listings.Min(l => l.AuctionEnd);
+            TimeSpan timeDifference = earliestAuctionEnd - DateTime.Now;
+
+            if (timeDifference.TotalDays < 1)
+            {
+                // 1000 ms interval for regular updates. (updates every second)
+                timer = new Timer(UpdateTime, null, 1000, 1000);
+            }
+        }
     }
 
     // Communication with other components (search)
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
-    }
-
-    private async Task<decimal> GetCurrentBid(int listingID)
-    {
-        using var dbContext = dbContextFactory.CreateDbContext();
-
-        // Fetch highest bid for the listing
-        var highestBid = await dbContext.Bids
-            .Where(b => b.ListingID == listingID)
-            .MaxAsync(b => (decimal?)b.Amount);
-
-            //Return highestbid or StartingPrice if bid == null
-        return highestBid ?? (await dbContext.Listings
-            .Where(l => l.ID == listingID)
-            .Select(l => l.StartingPrice)
-            .FirstOrDefaultAsync());
     }
 
     //fetch listings and their respecrtive prices
@@ -100,9 +113,54 @@ else
             {
                 decimal price = await GetCurrentBid(listing.ID);
                 listingPrices[listing.ID] = price;
+
+                var timeDifference = listing.AuctionEnd - DateTime.Now;
+                TimeRemaining[listing.ID] = ListingHelper.GetTimeDifference(listing.AuctionEnd);
+                TimeRemainingSpan[listing.ID] = timeDifference;
             }
         }
 
         StateHasChanged();
+    }
+
+    private async Task<decimal> GetCurrentBid(int listingID)
+    {
+        using var dbContext = dbContextFactory.CreateDbContext();
+
+        // Fetch highest bid for the listing
+        var highestBid = await dbContext.Bids
+            .Where(b => b.ListingID == listingID)
+            .MaxAsync(b => (decimal?)b.Amount);
+
+        //Return highestbid or StartingPrice if bid == null
+        return highestBid ?? (await dbContext.Listings
+            .Where(l => l.ID == listingID)
+            .Select(l => l.StartingPrice)
+            .FirstOrDefaultAsync());
+    }
+
+    private void UpdateTime(object _)
+    {
+        foreach (var listing in listings)
+        {
+            var timeDifference = listing.AuctionEnd - DateTime.Now;
+            if (timeDifference <= TimeSpan.Zero)
+            {
+                TimeRemaining[listing.ID] = "Ended";
+                TimeRemainingSpan[listing.ID] = TimeSpan.Zero;
+            }
+            else
+            {
+                TimeRemaining[listing.ID] = ListingHelper.GetTimeDifference(listing.AuctionEnd);
+                TimeRemainingSpan[listing.ID] = timeDifference;
+            }
+        }
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        timer?.Dispose(); // "?" to ensure the timer is disposed if it's not null
     }
 }

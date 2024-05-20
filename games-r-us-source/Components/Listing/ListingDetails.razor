@@ -61,6 +61,7 @@
 
                 <!-- Show tooltip on hover -->
                 <div class="group relative mt-4 inline-block cursor-help md:mt-0">
+                    @* Ternary is needed as timer does not call method to set time to "ended" when it runs out *@
                     <p>Ends in</p><span class="border-b-2 border-dotted border-black text-red-700">@(CurrentListing.AuctionEnd < DateTime.Today ? "ended" : TimeRemaining)</span>
                     <span class="-ml-[70%] invisible absolute bottom-full left-1/2 w-fit text-nowrap rounded bg-black text-white opacity-70 group-hover:visible">@CurrentListing.AuctionEnd</span>
                 </div>
@@ -121,10 +122,7 @@
     {
         using (var dbContext = dbContextFactory.CreateDbContext())
         {
-            // For testing purposes
-            //CurrentListing = ListingHelper.GetListingFromListingID(4, dbContext);
             CurrentListing.ApplicationUser = ApplicationUserHelper.GetAccountFromUserID(CurrentListing.ApplicationUserID, dbContext);
-
             HighestBid = BidHelper.GetHighestBidFromListingID(CurrentListing.ID, dbContext);
         }
 

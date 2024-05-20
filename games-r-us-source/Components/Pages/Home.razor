@@ -8,9 +8,9 @@
 @using games_r_us_source.Hubs
 @using games_r_us_source.Components.Helpers
 
-@inject IDbContextFactory<ApplicationDbContext> dbContextFactory
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider;
+@inject NotificationState NotificationState
 
 @implements IAsyncDisposable
 
@@ -61,6 +61,8 @@
 <ListingsForUser />
 
 @code {
+    private HubConnection? hubConnection;
+    private readonly List<string> notifications = new List<string>();
     private List<Listing> listings = new List<Listing>();
 
     private void HandleSearchResults(List<Listing> results)
@@ -75,19 +77,17 @@
         StateHasChanged();
     }
 
-
-    // =================
-    // testing hub
-    // ==================
-    private HubConnection? hubConnection;
-    private readonly List<string> notifications = new List<string>();
-
     protected override async Task OnInitializedAsync()
     {
+        // Subscribes to changes in NotificationState class
+        // allows us to re-render this component from e.g. a grand-child component
+        NotificationState.OnChange += StateHasChanged;
+
         // Get the logged in user
         var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var userName = authenticationState.User.Identity.Name;
 
+        // send the logged in users name to signalR hub so that they can recieve notifications 
         if (userName is not null) // not strictly necessary but dis-allows non-logged in users from sending notifications
         {
             hubConnection = new HubConnectionBuilder()
@@ -110,11 +110,20 @@
         }
     }
 
-    private async Task Send() // remove this when testing is done 
+    private async Task Send()
     {
-        if (hubConnection is not null)
+        // Get the logged in user
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userName = authenticationState.User.Identity.Name;
+
+        if (userName is not null) // not strictly necessary but dis-allows non-logged in users from sending notifications
         {
-            await hubConnection.SendAsync("SendNotificationTo", new NotificationDTO("simon.t.sorqvist@gmail.com", "Success"));
+            NotificationState.SetNotificationDTO(new NotificationDTO("simon.t.sorqvist@gmail.com", "Success"));
+
+            if (hubConnection is not null)
+            {
+                await hubConnection.SendAsync("SendNotificationTo", new NotificationDTO("simon.t.sorqvist@gmail.com", "Success"));
+            }
         }
     }
 
@@ -124,5 +133,8 @@
         {
             await hubConnection.DisposeAsync();
         }
+
+        // Un-subscribes this component from NotificationState on dispose
+        NotificationState.OnChange -= StateHasChanged;
     }
 }

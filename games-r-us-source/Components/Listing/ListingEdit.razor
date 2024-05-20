@@ -25,7 +25,7 @@
 @if (IsVisible)
 {
     @* if the user presses outside of the "ShowModal" it triggers "ShowConfirmCancel" *@
-    <div @onclick="ShowConfirmCancel" class="inset-0 bg-gray-800 fixed flex items-center justify-center bg-opacity-75">
+    <div @onclick="ShowConfirmCancel" class="inset-0 bg-gray-800 fixed z-10 flex items-center justify-center bg-opacity-75">
         <div class="bg-white p-6 w-full max-w-md rounded-lg shadow-lg" @onclick:stopPropagation>
 
             @* If the user has an image uploaded we show the "delete image" button *@
@@ -157,7 +157,7 @@
 
     @if (isSuccessful)
     {
-        <div class="inset-0 bg-black fixed flex items-center justify-center bg-opacity-50">
+        <div class="inset-0 bg-black fixed z-30 flex items-center justify-center bg-opacity-50">
             <div class="bg-white p-4 flex flex-col items-center rounded">
                 <h3 class="mb-4 text-lg">Changes saved successfully</h3>
             </div>

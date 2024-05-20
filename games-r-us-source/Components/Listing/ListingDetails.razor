@@ -19,7 +19,7 @@
         </Authorized>
     </AuthorizeView>
 
-    <img class="mb-6 mr-2 rounded object-contain drop-shadow-2xl xl:object-cover md:w-1/2 md:mb-0" src="@CurrentListing.ImagePath" alt="@CurrentListing.Name" />
+    <img class="mb-6 mr-2 rounded object-contain drop-shadow-2xl xl:object-cover md:w-1/2 md:mb-0" src="@($"/images/{CurrentListing.ImagePath}")" alt="@CurrentListing.Name" />
 
     <div class="pl-2 md:w-1/2">
         <span class="text-gray-800">

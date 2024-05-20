@@ -122,7 +122,7 @@
 
             if (hubConnection is not null)
             {
-                await hubConnection.SendAsync("SendNotificationTo", new NotificationDTO("simon.t.sorqvist@gmail.com", "Success"));
+                await hubConnection.SendAsync("SendNotificationTo", NotificationState.NotificationDTO);
             }
         }
     }

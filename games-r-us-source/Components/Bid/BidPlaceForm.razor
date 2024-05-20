@@ -8,15 +8,15 @@
 
 <AuthorizeView Context="authorizeViewContext">
     <Authorized>
-        <p class="text-red-600 font-bold">@ErrorMessage</p>
-        <p class="text-green-600 font-bold">@SuccessMessage</p>
+        <p class="font-bold text-red-600">@ErrorMessage</p>
+        <p class="font-bold text-green-600">@SuccessMessage</p>
         <EditForm class="m-auto max-w-full" Model="@bid" OnValidSubmit="HandleValidSubmit" FormName="bidPlaceForm">
             <DataAnnotationsValidator />
             <ValidationSummary />
             <label for="amount" class="block text-center">
                 New bid
             </label>
-            <div class="border-black flex flex-col border-2 md:flex-row">
+            <div class="border-2 flex flex-col border-black md:flex-row">
                 <InputNumber id="amount" class="w-full flex-grow" @bind-Value="@bid.Amount" />
                 <button class="bg-green-500" type="submit">Place bid</button>
             </div>
@@ -96,6 +96,7 @@
         {
             dbContext.Bids.Add(bid); // Adds the new listing to the database
             await dbContext.SaveChangesAsync();
+            // [PUT NOTIFICATION HERE] <-------------=======================-------------------------------------------------------
         }
         catch (DbUpdateException ex)
         {

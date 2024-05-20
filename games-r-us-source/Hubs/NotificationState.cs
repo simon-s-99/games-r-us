@@ -8,7 +8,7 @@
         public void SetNotificationDTO(NotificationDTO notificationDTO)
         {
             this.NotificationDTO = notificationDTO;
-            NotifyStateChanged();
+            NotifyStateChanged(); // triggers an onchange event when notifications are set
         }
 
         public event Action OnChange;

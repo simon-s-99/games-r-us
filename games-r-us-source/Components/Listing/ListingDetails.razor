@@ -64,7 +64,7 @@
                     @* Below code needed as timer does not call method to set time to "ended" when it runs out *@
                     <p>Ends in</p>
 
-                    @if (CurrentListing.AuctionEnd > DateTime.Today)
+                    @if (CurrentListing.AuctionEnd < DateTime.Now)
                     {
 
                         <span class="border-b-2 border-dotted border-black text-red-700">ended</span>
@@ -125,7 +125,7 @@
 
     private bool IsOwner { get; set; } = false;
 
-    private string TimeRemaining { get; set; }
+    private string TimeRemaining { get; set; } = "";
 
     Timer? timer;
 
@@ -145,7 +145,7 @@
         TimeSpan timeDifference = CurrentListing.AuctionEnd - DateTime.Now;
 
         // Only initalize timer if there are less than 24 hours remaining, to prevent performance issues
-        if (timeDifference.TotalDays > 0)
+        if (CurrentListing.AuctionEnd > DateTime.Now || timeDifference.TotalDays < 1)
         {
             // Create timer that updates every 1000 milliseconds
             timer = new Timer(UpdateTime, null, 1000, 1000);

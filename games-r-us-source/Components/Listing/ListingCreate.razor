@@ -63,8 +63,10 @@ helping mitigate issues associated with having a DbContext that is too long-live
                 <div class="relative text-center">
                     @if (base64Image != null)
                     {
+
                         <img src="@base64Image" alt="Listing Image" class="relative-fit w-48 h-48 mb-4 mx-auto overflow-hidden rounded-md">
                         <label class="bg-white text-gray-500 m-auto block cursor-pointer rounded-l border-2 bg-clip-border transition hover:bg-gray-400 w-full[padding:0.375rem_0.75rem]">
+
                             Change Image
                             <InputFile class="hidden" OnChange="@LoadFiles" accept=".png, .jpg, .jpeg, .img" />
                         </label>
@@ -166,7 +168,6 @@ helping mitigate issues associated with having a DbContext that is too long-live
     // file size set to 3MB
     private long maxFileSize = 1024 * 1024 * 3;
     private int maxAllowedFiles = 1; // In case we ever want to allow more than one image
-    /* private List<string> errors = new(); */ //displays errors in the UI
 
     private IBrowserFile? file; // Holds a reference to the uploaded file
 
@@ -292,14 +293,12 @@ helping mitigate issues associated with having a DbContext that is too long-live
     {
         showConfirmation = false;
         IsVisible = false;
-        // errors.Clear();
     }
 
     public void ShowModal()
     {
         listing = new Listing { AuctionEnd = DateTime.Now.AddDays(7), StartingPrice = 1 };
         base64Image = null;
-        // errors.Clear();
         IsVisible = true;
     }
 
@@ -307,7 +306,6 @@ helping mitigate issues associated with having a DbContext that is too long-live
     {
         listing = new Listing { AuctionEnd = DateTime.Now.AddDays(7), StartingPrice = 1 };
         base64Image = null;
-        // errors.Clear();
         IsVisible = false;
     }
 }

@@ -26,7 +26,7 @@
 @if (IsVisible)
 {
     @* if the user presses outside of the "ShowModal" it triggers "ShowConfirmCancel" *@
-    <div @onclick="ShowConfirmCancel" class="inset-0 bg-gray-800 fixed flex items-center justify-center bg-opacity-75">
+    <div @onclick="ShowConfirmCancel" class="inset-0 bg-gray-800 fixed z-10 flex items-center justify-center bg-opacity-75">
         <div class="bg-white p-6 w-full max-w-md rounded-lg shadow-lg" @onclick:stopPropagation>
 
             @* If the user has an image uploaded we show the "delete image" button *@
@@ -47,6 +47,7 @@
                     {
                         <img src="@base64Image" alt="New Listing Image" class="relative-fit w-48 h-48 mb-4 mx-auto overflow-hidden rounded-md">
                         <label for="image" class="bg-white text-gray-500 m-auto block w-full cursor-pointer rounded-l border-2 bg-clip-border transition hover:bg-gray-400">
+
                             Change Image
                             <InputFile id="image" class="hidden" OnChange="@LoadFiles" accept=".png, .jpg, .jpeg, .img" />
                         </label>
@@ -55,6 +56,7 @@
                     {
                         <img src="@($"/images/{Listing.ImagePath}")" alt="Existing Listing Image" class="relative-fit w-48 h-48 mb-4 mx-auto overflow-hidden rounded-md">
                         <label for="image" class="bg-white text-gray-500 m-auto block w-full cursor-pointer rounded-l border-2 bg-clip-border transition hover:bg-gray-400">
+
                             Change Image
                             <InputFile id="image" class="hidden" OnChange="@LoadFiles" accept=".png, .jpg, .jpeg, .img" />
                         </label>
@@ -145,7 +147,7 @@
 
     @if (showConfirmation) @* If the user presses "cancel" we show this confirmation modal *@
     {
-        <div class="inset-0 bg-black fixed flex items-center justify-center bg-opacity-50">
+        <div class="inset-0 bg-black fixed z-30 flex items-center justify-center bg-opacity-50">
             <div class="bg-white p-4 flex flex-col items-center rounded">
                 <h2 class="mb-4 text-lg">Are you sure you want to cancel?</h2>
                 <div class="space-x-4 flex justify-center">
@@ -158,7 +160,7 @@
 
     @if (isSuccessful)
     {
-        <div class="inset-0 bg-black fixed flex items-center justify-center bg-opacity-50">
+        <div class="inset-0 bg-black fixed z-30 flex items-center justify-center bg-opacity-50">
             <div class="bg-white p-4 flex flex-col items-center rounded">
                 <h3 class="mb-4 text-lg">Changes saved successfully</h3>
             </div>

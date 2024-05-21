@@ -65,10 +65,10 @@
 @* <ListingDetails CurrentListing="@Helpers.ListingHelper.GetListingFromListingID(5, dbContextFactory.CreateDbContext())" /> *@
 
 @code {
-    private List<Listing> allListings = new List<Listing>();
-    private List<Listing> searchResults = new List<Listing>();
-    private List<Listing> sortedResults = new List<Listing>();
-    private List<Listing> displayListings = new List<Listing>();
+    private List<Listing> allListings = new List<Listing>(); // contains all listings
+    private List<Listing> searchResults = new List<Listing>(); // contains searchResults
+    private List<Listing> sortedResults = new List<Listing>(); // contains sortResults
+    private List<Listing> displayListings = new List<Listing>(); // contains the final result to be displayed
 
     private void HandleSearchResults(List<Listing> results)
     {

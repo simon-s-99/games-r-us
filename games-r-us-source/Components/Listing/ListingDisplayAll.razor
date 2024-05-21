@@ -1,6 +1,7 @@
 ﻿@using Microsoft.EntityFrameworkCore
 @using games_r_us_source.Data
 @inject IDbContextFactory<ApplicationDbContext> dbContextFactory
+@using games_r_us_source.Components.Helpers
 
 @* Display the listings here *@
 @if (listings.Any())
@@ -12,15 +13,18 @@
             {
                 <div class="relative transform transition-transform duration-300 ease-in-out @(selectedListing == listing ? "scale-95" : "")" @onclick="() => ShowListingDetails(listing)">
                 <div class="bg-white p-4 overflow-hidden rounded-lg shadow-lg">
+
                     <img class="h-64 w-full object-cover" src="@($"/images/{listing.ImagePath}")" alt="Image of listing">
                     <div class="p-4">
                         <h3 class="text-md text-gray-900 font-semibold">@listing.Name</h3>
                         <!-- height and overflow handling for the description -->
+
                         <p class="h-20 text-gray-500 overflow-hidden overflow-ellipsis">@listing.Description</p>
+
                     </div>
                     <div class="border-gray-200 bg-gray-100 px-4 pb-4 pt-3 border-t">
                         <div class="text-gray-600 text-xs font-bold uppercase tracking-wide">Price</div>
-                        <div class="text-gray-900 text-lg">$@listingPrices[listing.ID]</div>
+                        <div class="text-gray-900 text-lg">$@(listing.HighestBid is null ? listing.StartingPrice : listing.HighestBid.Amount)</div>
                         <div class="text-gray-600 text-xs font-bold uppercase tracking-wide">Time Remaining</div>
                         <div class="text-gray-900 text-lg">@GetTimeDifference(listing.AuctionEnd)</div>
                     </div>
@@ -56,60 +60,33 @@ else
     [Parameter]
     public List<Listing> listings { get; set; }
 
-    // display the price associated with each listing.The dictionary allows us to directly access the price using the listing ID
-    private Dictionary<int, decimal> listingPrices = new Dictionary<int, decimal>(); 
-
-    [Parameter]
-    public Bid? HighestBid { get; set; }
-
     public bool ShowBidAsPrice = false;
     private Listing? selectedListing = null;
 
-    // Lifecycle method for blazor that is called after this component
-    // is initialized but before being rendered
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        using (ApplicationDbContext dbContext = dbContextFactory.CreateDbContext())
-        {
-            await LoadListingsAndPrices();
-        }
+        LoadListingsAndPrices();
     }
+
     // Communication with other components (search)
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
     }
 
-    private async Task<decimal> GetCurrentBid(int listingID)
-    {
-        using var dbContext = dbContextFactory.CreateDbContext();
-
-        // Fetch highest bid for the listing
-        var highestBid = await dbContext.Bids
-            .Where(b => b.ListingID == listingID)
-            .MaxAsync(b => (decimal?)b.Amount);
-
-            //Return highestbid or StartingPrice if bid == null
-        return highestBid ?? (await dbContext.Listings
-            .Where(l => l.ID == listingID)
-            .Select(l => l.StartingPrice)
-            .FirstOrDefaultAsync());
-    }
-
     //fetch listings and their respecrtive prices
-    private async Task LoadListingsAndPrices()
+    private void LoadListingsAndPrices()
     {
         using (var dbContext = dbContextFactory.CreateDbContext())
         {
             var currentDate = DateTime.Now;
-            listings = await dbContext.Listings
+            listings = dbContext.Listings
                 .Where(l => l.AuctionEnd > currentDate)
-                .ToListAsync();
+                .ToList();
 
             foreach (var listing in listings)
             {
-                decimal price = await GetCurrentBid(listing.ID);
-                listingPrices[listing.ID] = price;
+                listing.HighestBid = BidHelper.GetHighestBidFromListingID(listing.ID, dbContext);
             }
         }
 

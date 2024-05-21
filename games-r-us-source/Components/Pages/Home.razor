@@ -65,7 +65,6 @@
 @* <ListingDetails CurrentListing="@Helpers.ListingHelper.GetListingFromListingID(5, dbContextFactory.CreateDbContext())" /> *@
 
 @code {
-    private List<Listing> allListings = new List<Listing>(); // contains all listings
     private List<Listing> searchResults = new List<Listing>(); // contains searchResults
     private List<Listing> sortedResults = new List<Listing>(); // contains sortResults
     private List<Listing> displayListings = new List<Listing>(); // contains the final result to be displayed
@@ -101,7 +100,7 @@
     private void CombineResults()
     {
         // Determine the base list of listings to work with, depending on whether a search has been performed
-        var filteredListings = searchResults.Any() ? searchResults : allListings;
+        var filteredListings = searchResults.Any() ? searchResults : displayListings;
 
         // If there are sorted results, filter them further to ensure they match the current search results
         // (or all listings if no search is applied)

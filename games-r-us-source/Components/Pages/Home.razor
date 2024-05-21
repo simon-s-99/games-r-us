@@ -72,13 +72,29 @@
     private void HandleSearchResults(List<Listing> results)
     {
         searchResults = results; // Updates the list that is passed to ListingsDisplayAll
-        CombineResults();
+
+        if (sortedResults.Any())
+        {
+            CombineResults();
+        }
+        else
+        {
+            displayListings = searchResults;
+        }
     } 
 
     private void HandleSorting(List<Listing> sortResults)
     {
         sortedResults = sortResults; // Updates the list that is passed to ListingsDisplayAll
-        CombineResults();
+
+        if (searchResults.Any())
+        {
+            CombineResults();    
+        }
+        else
+        {
+            displayListings = sortedResults;
+        }
     }
 
     private void CombineResults()

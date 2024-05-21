@@ -30,71 +30,71 @@
         <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-lg" @onclick:stopPropagation>
 
             @* If the user has an image uploaded we show the "delete image" button *@
-@if (base64Image != null || Listing.ImagePath != null)
-{
-    <button @onclick="RemoveImage"
-            class="mb-4 rounded-lg bg-red-500 px-2 py-1 font-bold text-white shadow transition duration-150 ease-in-out hover:bg-red-700"
-            disabled="@(Listing.AuctionEnd <= DateTime.Now)">
-        Remove Image
-    </button>
-}
+            @if (base64Image != null || ListingClone.ImagePath != null)
+            {
+                <button @onclick="RemoveImage"
+                        class="mb-4 rounded-lg bg-red-500 px-2 py-1 font-bold text-white shadow transition duration-150 ease-in-out hover:bg-red-700"
+                        disabled="@(ListingClone.AuctionEnd <= DateTime.Now)">
+                    Remove Image
+                </button>
+            }
 
-@* Editform used in blazor for editing a listing *@
-<EditForm Model="@Listing" OnValidSubmit="HandleValidSubmit">
+            @* Editform used in blazor for editing a listing *@
+            <EditForm Model="@ListingClone" >
 
-    @* Here the user uploads their image *@
-    <div class="relative text-center">
-        @if (base64Image != null)
-        {
-            <img src="@base64Image" alt="New Listing Image" class="relative-fit mx-auto mb-4 h-48 w-48 overflow-hidden rounded-md">
-            @if (Listing.AuctionEnd <= DateTime.Now)
-            {
-                <label for="image" class="border-2 m-auto block w-full cursor-not-allowed rounded-l bg-gray-200 text-gray-500">
-                    Change Image
-                </label>
-            }
-            else
-            {
-                <label for="image" class="border-2 m-auto block w-full cursor-pointer rounded-l bg-white bg-clip-border text-gray-500 transition hover:bg-gray-400">
-                    Change Image
-                    <InputFile id="image" class="hidden" OnChange="@LoadFiles" accept=".png, .jpg, .jpeg, .img" />
-                </label>
-            }
-        }
-        else if (Listing.ImagePath != null)
-        {
-            <img src="@($"/images/{Listing.ImagePath}")" alt="Existing Listing Image" class="relative-fit mx-auto mb-4 h-48 w-48 overflow-hidden rounded-md">
-            @if (Listing.AuctionEnd <= DateTime.Now)
-            {
-                <label for="image" class="border-2 m-auto block w-full cursor-not-allowed rounded-l bg-gray-200 text-gray-500">
-                    Change Image
-                </label>
-            }
-            else
-            {
-                <label for="image" class="border-2 m-auto block w-full cursor-pointer rounded-l bg-white bg-clip-border text-gray-500 transition hover:bg-gray-400">
-                    Change Image
-                    <InputFile id="image" class="hidden" OnChange="@LoadFiles" accept=".png, .jpg, .jpeg, .img" />
-                </label>
-            }
-        }
-        else
-        {
-            @if (Listing.AuctionEnd <= DateTime.Now)
-            {
-                <label for="image" class="leading-6 m-auto mt-4 block inline-block w-full cursor-not-allowed rounded rounded-full border border-gray-300 bg-gray-200 p-2 px-3 py-1.5 text-base text-sm text-gray-700 text-black">
-                    Add Image
-                </label>
-            }
-            else
-            {
-                <label for="image" class="leading-6 m-auto mt-4 block inline-block w-full cursor-pointer rounded rounded-full border border-gray-300 bg-white bg-gray-300 p-2 px-3 py-1.5 text-base text-sm text-gray-700 text-black transition-colors duration-150 ease-in-out hover:bg-gray-400">
-                    Add Image
-                    <InputFile id="image" class="hidden" OnChange="@LoadFiles" accept=".png, .jpg, .jpeg, .img" />
-                </label>
-            }
-        }
-    </div>
+                @* Here the user uploads their image *@
+                <div class="relative text-center">
+                    @if (base64Image != null)
+                    {
+                        <img src="@base64Image" alt="New Listing Image" class="relative-fit mx-auto mb-4 h-48 w-48 overflow-hidden rounded-md">
+                        @if (ListingClone.AuctionEnd <= DateTime.Now)
+                        {
+                            <label for="image" class="border-2 m-auto block w-full cursor-not-allowed rounded-l bg-gray-200 text-gray-500">
+                                Change Image
+                            </label>
+                        }
+                        else
+                        {
+                            <label for="image" class="border-2 m-auto block w-full cursor-pointer rounded-l bg-white bg-clip-border text-gray-500 transition hover:bg-gray-400">
+                                Change Image
+                                <InputFile id="image" class="hidden" OnChange="@LoadFiles" accept=".png, .jpg, .jpeg, .img" />
+                            </label>
+                        }
+                    }
+                    else if (ListingClone.ImagePath != null)
+                    {
+                        <img src="@($"/images/{ListingClone.ImagePath}")" alt="Existing Listing Image" class="relative-fit mx-auto mb-4 h-48 w-48 overflow-hidden rounded-md">
+                        @if (ListingClone.AuctionEnd <= DateTime.Now)
+                        {
+                            <label for="image" class="border-2 m-auto block w-full cursor-not-allowed rounded-l bg-gray-200 text-gray-500">
+                                Change Image
+                            </label>
+                        }
+                        else
+                        {
+                            <label for="image" class="border-2 m-auto block w-full cursor-pointer rounded-l bg-white bg-clip-border text-gray-500 transition hover:bg-gray-400">
+                                Change Image
+                                <InputFile id="image" class="hidden" OnChange="@LoadFiles" accept=".png, .jpg, .jpeg, .img" />
+                            </label>
+                        }
+                    }
+                    else
+                    {
+                        @if (ListingClone.AuctionEnd <= DateTime.Now)
+                        {
+                            <label for="image" class="leading-6 m-auto mt-4 block inline-block w-full cursor-not-allowed rounded rounded-full border border-gray-300 bg-gray-200 p-2 px-3 py-1.5 text-base text-sm text-gray-700 text-black">
+                                Add Image
+                            </label>
+                        }
+                        else
+                        {
+                            <label for="image" class="leading-6 m-auto mt-4 block inline-block w-full cursor-pointer rounded rounded-full border border-gray-300 bg-white bg-gray-300 p-2 px-3 py-1.5 text-base text-sm text-gray-700 text-black transition-colors duration-150 ease-in-out hover:bg-gray-400">
+                                Add Image
+                                <InputFile id="image" class="hidden" OnChange="@LoadFiles" accept=".png, .jpg, .jpeg, .img" />
+                            </label>
+                        }
+                    }
+                </div>
 
                 @* Rest of the input fields *@
                 <div class="mt-4 text-center">
@@ -104,73 +104,73 @@
                     <ul class="mt-3 space-y-4">
 
                         @* Input for name disabled if the listing has expired *@
-                        @if (Listing.AuctionEnd <= DateTime.Now)
+                        @if (ListingClone.AuctionEnd <= DateTime.Now)
                         {
                             <li>
                                 <label for="name" class="block text-sm font-medium text-gray-700">Name:</label>
-                                <InputText id="name" @bind-Value="Listing.Name" class="input-field mt-1 block w-full"
-                                           placeholder="@Listing.Name" min="1" disabled />
-                                <ValidationMessage For="@(() => Listing.Name)" class="text-red-500 text-xs mt-1" />
+                                <InputText id="name" @bind-Value="ListingClone.Name" class="input-field mt-1 block w-full"
+                                           placeholder="@ListingClone.Name" min="1" disabled />
+                                <ValidationMessage For="@(() => ListingClone.Name)" class="text-red-500 text-xs mt-1" />
                             </li>
                         }
-                        @if (Listing.AuctionEnd >= DateTime.Now)
+                        @if (ListingClone.AuctionEnd >= DateTime.Now)
                         {
                             <li>
                                 @* Input for name *@
                                 <label for="name" class="block text-sm font-medium text-gray-700">Name:</label>
-                                <InputText id="name" @bind-Value="Listing.Name" class="input-field mt-1 block w-full"
-                                           placeholder="@Listing.Name" min="1" />
-                                <ValidationMessage For="@(() => Listing.Name)" class="text-red-500 text-xs mt-1" />
+                                <InputText id="name" @bind-Value="ListingClone.Name" class="input-field mt-1 block w-full"
+                                           placeholder="@ListingClone.Name" min="1" />
+                                <ValidationMessage For="@(() => ListingClone.Name)" class="text-red-500 text-xs mt-1" />
                             </li>
                         }
                         <li>
                             @* Input for starting price *@
                             <label for="startingPrice" class="block text-sm font-medium text-gray-700">Starting price:</label>
 
-                        @if (!DisablePrice && Listing.AuctionEnd >= DateTime.Now)
+                            @if (!DisablePrice && ListingClone.AuctionEnd >= DateTime.Now)
                             {
-                                <InputNumber id="startingPrice" @bind-Value="Listing.StartingPrice" class="input-field mt-1 block w-full"
-                                             placeholder="@Listing.StartingPrice" min="1" />
-                                <ValidationMessage For="@(() => Listing.StartingPrice)" class="text-red-500 text-xs mt-1" />
+                                <InputNumber id="startingPrice" @bind-Value="ListingClone.StartingPrice" class="input-field mt-1 block w-full"
+                                             placeholder="@ListingClone.StartingPrice" min="1" />
+                                <ValidationMessage For="@(() => ListingClone.StartingPrice)" class="text-red-500 text-xs mt-1" />
                             }
-                           @*  If there has been a bid made, the user cannot edit the starting price *@
+                            @*  If there has been a bid made, the user cannot edit the starting price *@
                             else
                             {
-                                <InputNumber id="startingPrice" @bind-Value="Listing.StartingPrice" class="input-field mt-1 block w-full"
+                                <InputNumber id="startingPrice" @bind-Value="ListingClone.StartingPrice" class="input-field mt-1 block w-full"
                                              disabled />
                                 <p class="mt-1 text-xs text-red-500">Cannot change starting price after a bid has been made.</p>
                             }
                         </li>
 
-                        @if (Listing.AuctionEnd <= DateTime.Now)
+                        @if (ListingClone.AuctionEnd <= DateTime.Now)
                         {
-                        <li>
-                            @* Input for description disabled if the listing has expired *@
-                            <label for="description" class="block text-sm font-medium text-gray-700">Description:</label>
-                            <InputTextArea id="description" @bind-Value="Listing.Description" class="input-field mt-1 block w-full" disabled
-                                           placeholder="@Listing.Description" maxlength="100" />
-                          </li>
+                            <li>
+                                @* Input for description disabled if the listing has expired *@
+                                <label for="description" class="block text-sm font-medium text-gray-700">Description:</label>
+                                <InputTextArea id="description" @bind-Value="ListingClone.Description" class="input-field mt-1 block w-full" disabled
+                                               placeholder="@ListingClone.Description" maxlength="100" />
+                            </li>
                         }
                         else
                         {
                             <li>
                                 @* Input for description *@
                                 <label for="description" class="block text-sm font-medium text-gray-700">Description:</label>
-                                <InputTextArea id="description" @bind-Value="Listing.Description" class="input-field mt-1 block w-full"
-                                               placeholder="@Listing.Description" maxlength="100" />
+                                <InputTextArea id="description" @bind-Value="ListingClone.Description" class="input-field mt-1 block w-full"
+                                               placeholder="@ListingClone.Description" maxlength="100" />
                             </li>
                         }
                         <li>
                             @* Uneditable end date *@
                             <label for="auctionEnd" class="block text-sm font-medium text-gray-700">End date for Auction:</label>
-                            <input type="datetime-local" id="auctionEnd" @bind="Listing.AuctionEnd" class="input-field mt-1 block w-full"
+                            <input type="datetime-local" id="auctionEnd" @bind="ListingClone.AuctionEnd" class="input-field mt-1 block w-full"
                                    min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" disabled />
                         </li>
 
                         <li>
                             @* Platform input (xbox, gamecube, etc.) *@
                             <label for="platform" class="block text-sm font-medium text-gray-700">Platform:</label>
-                            <InputSelect id="platform" @bind-Value="Listing.Platform" class="input-field mt-1 block w-full" disabled="@(Listing.AuctionEnd <= DateTime.Now)">
+                            <InputSelect id="platform" @bind-Value="ListingClone.Platform" class="input-field mt-1 block w-full" disabled="@(ListingClone.AuctionEnd <= DateTime.Now)">
                                 @* generate options for platforms *@
                                 @foreach (var platform in Enum.GetValues(typeof(Platform)))
                                 {
@@ -182,7 +182,7 @@
                         <li>
                             @* Game category (fps, indie, etc.) *@
                             <label for="gameCategory" class="block text-sm font-medium text-gray-700">Game Category:</label>
-                            <InputSelect id="gameCategory" @bind-Value="Listing.GameCategory" class="input-field mt-1 block w-full" disabled="@(Listing.AuctionEnd <= DateTime.Now)">
+                            <InputSelect id="gameCategory" @bind-Value="ListingClone.GameCategory" class="input-field mt-1 block w-full" disabled="@(ListingClone.AuctionEnd <= DateTime.Now)">
                                 <option value="null">None</option> @* None as an option in case the listing is a console *@
                                 @foreach (var category in Enum.GetValues(typeof(GameCategory)))
                                 {
@@ -227,6 +227,8 @@
     [Parameter]
     public Listing Listing { get; set; } // Get Listing from "ListingDetails"
 
+    private Listing ListingClone { get; set; } // Clone of the Listing for editing
+
     [Parameter]
     public Bid? HighestBid { get; set; }
 
@@ -236,6 +238,7 @@
     private IBrowserFile? file; // Holds a reference to the uploaded file
 
     private string base64Image; // For immediate display in our ui
+    private string originalImagePath; // Store original image path
     private string serverImagePath; // Path where the image is stored
     private string currentImagePath;
     private DateTime lastSubmissionTime = DateTime.MinValue;
@@ -270,7 +273,7 @@
 
             if (File.Exists(tempImagePath))
             {
-                Directory.CreateDirectory(permanentFolderPath); // Ensure the permanent directory exists
+                Directory.CreateDirectory(permanentFolderPath);
                 File.Move(tempImagePath, permanentImagePath); // Move the image from temp to perm
                 Listing.ImagePath = currentImagePath; // Update the database image path
             }
@@ -283,6 +286,15 @@
         // Attempt to save changes to the database
         try
         {
+            // Manually update Listing properties from ListingClone.
+            // this is used to ensure that if the user edits some fields and then cancels the changes won't get saved
+            Listing.Name = ListingClone.Name;
+            Listing.StartingPrice = ListingClone.StartingPrice;
+            Listing.Description = ListingClone.Description;
+            Listing.AuctionEnd = ListingClone.AuctionEnd;
+            Listing.Platform = ListingClone.Platform;
+            Listing.GameCategory = ListingClone.GameCategory;
+
             dbContext.Update(Listing);
             await dbContext.SaveChangesAsync();
             isSuccessful = true;
@@ -321,6 +333,18 @@
     public void ShowModal()
     {
         DisablePrice = HighestBid != null && HighestBid.Amount > Listing.StartingPrice;
+        ListingClone = new Listing
+        {
+            ID = Listing.ID,
+            Name = Listing.Name,
+            StartingPrice = Listing.StartingPrice,
+            Description = Listing.Description,
+            AuctionEnd = Listing.AuctionEnd,
+            Platform = Listing.Platform,
+            GameCategory = Listing.GameCategory,
+            ImagePath = Listing.ImagePath
+        };
+        originalImagePath = Listing.ImagePath; // Store the original image path
         IsVisible = true;
     }
 
@@ -340,7 +364,7 @@
             currentImagePath = null;
         }
 
-        Listing.ImagePath = null;
+        ListingClone.ImagePath = null;
         StateHasChanged();
     }
 
@@ -355,6 +379,10 @@
     {
         showConfirmation = false;
         IsVisible = false;
+        ListingClone = null;
+        base64Image = null;
+        currentImagePath = null;
+        Listing.ImagePath = originalImagePath; // Resets the image path
     }
 
     public void CloseModal()

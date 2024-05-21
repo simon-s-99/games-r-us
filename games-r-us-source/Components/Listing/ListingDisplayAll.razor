@@ -11,12 +11,16 @@
         <div class="grid-cols-1 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             @foreach (var listing in listings)
             {
+                <div class="relative transform transition-transform duration-300 ease-in-out @(selectedListing == listing ? "scale-95" : "")" @onclick="() => ShowListingDetails(listing)">
                 <div class="overflow-hidden rounded-lg bg-white p-4 shadow-lg">
+
                     <img class="h-64 w-full object-cover" src="@($"/images/{listing.ImagePath}")" alt="Image of listing">
                     <div class="p-4">
                         <h3 class="text-md font-semibold text-gray-900">@listing.Name</h3>
                         <!-- height and overflow handling for the description -->
+
                         <p class="h-20 overflow-hidden overflow-ellipsis text-gray-500">@listing.Description</p>
+
                     </div>
                     <div class="border-t border-gray-200 bg-gray-100 px-4 pb-4 pt-3">
                         <div class="text-xs font-bold uppercase tracking-wide text-gray-600">Price</div>
@@ -25,10 +29,24 @@
                         <div class="text-lg text-gray-900">@GetTimeDifference(listing.AuctionEnd)</div>
                     </div>
                 </div>
+                </div>
             }
         </div>
 
+
+        @if (selectedListing != null)
+        {
+            <article class="z-20 fixed inset-0 flex items-center justify-center bg-black bg-opacity-50" @onclick="CloseListingDetails">
+                @* <div class="relative w-full" @onclick:stopPropagation="true"> *@
+                    <ListingDetails CurrentListing="selectedListing" />
+                @* </div> *@
+            </article>
+
+        }
     </div>
+
+
+
 }
 else
 {
@@ -43,6 +61,7 @@ else
     public List<Listing> listings { get; set; }
 
     public bool ShowBidAsPrice = false;
+    private Listing? selectedListing = null;
 
     protected override void OnInitialized()
     {
@@ -71,6 +90,25 @@ else
             }
         }
 
+        StateHasChanged();
+    }
+
+    private void ShowListingDetails(Listing listing)
+    {
+        if (selectedListing == listing)
+        {
+            selectedListing = null;
+        }
+        else
+        {
+            selectedListing = listing;
+        }
+        StateHasChanged();
+    }
+
+    private void CloseListingDetails()
+    {
+        selectedListing = null;
         StateHasChanged();
     }
 

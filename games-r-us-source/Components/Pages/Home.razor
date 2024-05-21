@@ -59,9 +59,10 @@
 
 @* <ListingDetails CurrentListing="@CurrentListing"/> *@
 
-@*<ListingDetails /> @* <-- For testing purposes*@
-@* <ListingDetails CurrentListing="@Helpers.ListingHelper.GetListingFromListingID(5, dbContextFactory.CreateDbContext())" /> *@ @* <-- For testing purposes*@
 
+
+
+@* <ListingDetails CurrentListing="@Helpers.ListingHelper.GetListingFromListingID(5, dbContextFactory.CreateDbContext())" /> *@
 
 @code {
     private List<Listing> allListings = new List<Listing>();

@@ -62,7 +62,7 @@
 
 
 
-@* <ListingDetails CurrentListing="@Helpers.ListingHelper.GetListingFromListingID(5, dbContextFactory.CreateDbContext())" /> *@
+<ListingDetails CurrentListing="@Helpers.ListingHelper.GetListingFromListingID(4, dbContextFactory.CreateDbContext())" OnSearchResultsUpdated="HandleSearchResults" />
 
 @code {
     private List<Listing> searchResults = new List<Listing>(); // contains searchResults

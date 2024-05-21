@@ -7,26 +7,26 @@
 @if (listings.Any())
 {
     <div class="mt-4 px-4">
-        <h2 class="text-gray-800 text-lg font-semibold">Listings:</h2>
-        <div class="gap-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        <h2 class="text-lg font-semibold text-gray-800">Listings:</h2>
+        <div class="grid-cols-1 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             @foreach (var listing in listings)
             {
                 <div class="relative transform transition-transform duration-300 ease-in-out @(selectedListing == listing ? "scale-95" : "")" @onclick="() => ShowListingDetails(listing)">
-                <div class="bg-white p-4 overflow-hidden rounded-lg shadow-lg">
+                <div class="overflow-hidden rounded-lg bg-white p-4 shadow-lg">
 
                     <img class="h-64 w-full object-cover" src="@($"/images/{listing.ImagePath}")" alt="Image of listing">
                     <div class="p-4">
-                        <h3 class="text-md text-gray-900 font-semibold">@listing.Name</h3>
+                        <h3 class="text-md font-semibold text-gray-900">@listing.Name</h3>
                         <!-- height and overflow handling for the description -->
 
-                        <p class="h-20 text-gray-500 overflow-hidden overflow-ellipsis">@listing.Description</p>
+                        <p class="h-20 overflow-hidden overflow-ellipsis text-gray-500">@listing.Description</p>
 
                     </div>
-                    <div class="border-gray-200 bg-gray-100 px-4 pb-4 pt-3 border-t">
-                        <div class="text-gray-600 text-xs font-bold uppercase tracking-wide">Price</div>
-                        <div class="text-gray-900 text-lg">$@(listing.HighestBid is null ? listing.StartingPrice : listing.HighestBid.Amount)</div>
-                        <div class="text-gray-600 text-xs font-bold uppercase tracking-wide">Time Remaining</div>
-                        <div class="text-gray-900 text-lg">@GetTimeDifference(listing.AuctionEnd)</div>
+                    <div class="border-t border-gray-200 bg-gray-100 px-4 pb-4 pt-3">
+                        <div class="text-xs font-bold uppercase tracking-wide text-gray-600">Price</div>
+                        <div class="text-lg text-gray-900">$@(listing.HighestBid is null ? listing.StartingPrice : listing.HighestBid.Amount)</div>
+                        <div class="text-xs font-bold uppercase tracking-wide text-gray-600">Time Remaining</div>
+                        <div class="text-lg text-gray-900">@GetTimeDifference(listing.AuctionEnd)</div>
                     </div>
                 </div>
                 </div>
@@ -36,7 +36,7 @@
 
         @if (selectedListing != null)
         {
-            <article class="inset-0 bg-black fixed z-20 flex items-center justify-center bg-opacity-50" @onclick="CloseListingDetails">
+            <article class="z-20 fixed inset-0 flex items-center justify-center bg-black bg-opacity-50" @onclick="CloseListingDetails">
                 @* <div class="relative w-full" @onclick:stopPropagation="true"> *@
                     <ListingDetails CurrentListing="selectedListing" />
                 @* </div> *@

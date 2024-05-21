@@ -1,5 +1,6 @@
 using games_r_us_source.Components;
 using games_r_us_source.Components.Account;
+using games_r_us_source.Components.Notifications;
 using games_r_us_source.Data;
 using games_r_us_source.Hubs;
 using Microsoft.AspNetCore.Components.Authorization;

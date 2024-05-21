@@ -1,4 +1,4 @@
-﻿namespace games_r_us_source.Hubs
+﻿namespace games_r_us_source.Components.Notifications
 {
     public class NotificationDTO
     {
@@ -11,8 +11,8 @@
 
         public NotificationDTO(string userName, string message)
         {
-            this.UserName = userName;
-            this.Message = message;
+            UserName = userName;
+            Message = message;
         }
     }
 }

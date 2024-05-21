@@ -1,4 +1,4 @@
-﻿namespace games_r_us_source.Hubs
+﻿namespace games_r_us_source.Components.Notifications
 {
     // Used to pass state to ancestors instead of chaining eventcallbacks
     public class NotificationState
@@ -7,7 +7,7 @@
 
         public void SetNotificationDTO(NotificationDTO notificationDTO)
         {
-            this.NotificationDTO = notificationDTO;
+            NotificationDTO = notificationDTO;
             NotifyStateChanged(); // triggers an onchange event when notifications are set
         }
 
@@ -15,7 +15,7 @@
 
         private void NotifyStateChanged()
         {
-            OnChange?.Invoke(this.NotificationDTO);
+            OnChange?.Invoke(NotificationDTO);
         }
     }
 }

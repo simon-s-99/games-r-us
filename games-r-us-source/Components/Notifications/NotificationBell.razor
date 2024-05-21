@@ -1,37 +1,28 @@
-﻿@page "/counter"
-@rendermode InteractiveServer
-@using Components.Bid;
+﻿@using games_r_us_source.Data
 @using Microsoft.AspNetCore.SignalR.Client
-@using games_r_us_source.Components.Notifications
-@using games_r_us_source.Hubs
 
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
-@inject AuthenticationStateProvider AuthenticationStateProvider;
 @inject NotificationState NotificationState
 
 @implements IAsyncDisposable
 
-<PageTitle>Counter</PageTitle>
-
-<h1>Counter</h1>
-
-<!-- Temporary for testing purposes -->
-<games_r_us_source.Components.Account.CustomComponents.CompleteProfilePrompt />
-
-<!-- temp buttons to test signalr messaging -->
-<button @onclick="Send" class="rounded-xl bg-orange-300 px-4 py-2">Click me</button>
+<h3>NotificationBell</h3>
 
 @code {
     private HubConnection? hubConnection;
+    private readonly List<string> notifications = new List<string>();
 
-    private void HandleNotification(NotificationDTO test)
+    private void HandleNotification(NotificationDTO notificationDTO)
     {
         if (hubConnection is not null)
         {
-            hubConnection.SendAsync("SendNotificationTo", test);
+            hubConnection.SendAsync("SendNotificationTo", notificationDTO);
         }
     }
 
+    // send is a test class that chagnes notificationstate which in turn
+    // triggers a response from onchange triggering a method call to handlenotification
     private async Task Send()
     {
         NotificationState.SetNotificationDTO(new NotificationDTO("simon.t.sorqvist@gmail.com", "Success"));
@@ -58,6 +49,14 @@
                     options.Headers.Add(new("UserName", userName));
                 })
                 .Build();
+
+            // hubconneciton on string is only needed on pages where we actually want to display
+            // notifications (so i guess on all pages, move to layout? discouraged?)
+            hubConnection.On<string>("ReceiveNotificationAsync", notification =>
+            {
+                notifications.Add(notification);
+                InvokeAsync(StateHasChanged);
+            });
 
             await hubConnection.StartAsync();
         }

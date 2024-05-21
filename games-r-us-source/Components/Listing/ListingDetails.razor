@@ -61,8 +61,19 @@
 
                 <!-- Show tooltip on hover -->
                 <div class="group relative mt-4 inline-block cursor-help md:mt-0">
-                    @* Ternary is needed as timer does not call method to set time to "ended" when it runs out *@
-                    <p>Ends in</p><span class="border-b-2 border-dotted border-black text-red-700">@(CurrentListing.AuctionEnd < DateTime.Today ? "ended" : TimeRemaining)</span>
+                    @* Below code needed as timer does not call method to set time to "ended" when it runs out *@
+                    <p>Ends in</p>
+
+                    @if (CurrentListing.AuctionEnd > DateTime.Today)
+                    {
+
+                        <span class="border-b-2 border-dotted border-black text-red-700">ended</span>
+                    }
+                    else
+                    {
+                        <span class="border-b-2 border-dotted border-black text-red-700">@TimeRemaining</span>
+                    }
+
                     <span class="-ml-[70%] invisible absolute bottom-full left-1/2 w-fit text-nowrap rounded bg-black text-white opacity-70 group-hover:visible">@CurrentListing.AuctionEnd</span>
                 </div>
             </div>

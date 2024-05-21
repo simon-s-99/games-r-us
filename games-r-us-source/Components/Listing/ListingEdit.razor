@@ -192,7 +192,14 @@
                         </li>
 
                     </ul> @* Submit and cancel buttons *@
-                    <button type="submit" @onclick="HandleValidSubmit" class="mt-4 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700">Save changes</button>
+                    @if (Listing.AuctionEnd <= DateTime.Now)
+                    {
+                        <button type="submit" @onclick="HandleValidSubmit" class="mt-4 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700" disabled >Save changes</button>
+                    }
+                    else
+                    {
+                        <button type="submit" @onclick="HandleValidSubmit" class="mt-4 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700">Save changes</button>
+                    }
                     <button type="button" @onclick="ShowConfirmCancel" class="ml-2 mt-4 rounded bg-red-500 px-4 py-2 font-bold text-white hover:bg-red-700">Cancel</button>
                 </div>
             </EditForm>

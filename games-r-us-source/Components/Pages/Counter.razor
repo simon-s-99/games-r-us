@@ -1,11 +1,6 @@
 ﻿@page "/counter"
 @rendermode InteractiveServer
 @using Components.Bid;
-@using Microsoft.AspNetCore.SignalR.Client
-@using games_r_us_source.Components.Notifications
-@using games_r_us_source.Hubs
-
-@inject NotificationState NotificationState
 
 <PageTitle>Counter</PageTitle>
 
@@ -14,12 +9,15 @@
 <!-- Temporary for testing purposes -->
 <games_r_us_source.Components.Account.CustomComponents.CompleteProfilePrompt />
 
-<!-- temp buttons to test signalr messaging -->
-<button @onclick="Send" class="rounded-xl bg-orange-300 px-4 py-2">Click me</button>
+<p role="status">Current count: @currentCount</p>
+
+<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
 
 @code {
-    private async Task Send()
+    private int currentCount = 0;
+
+    private void IncrementCount()
     {
-        NotificationState.SetNotificationDTO(new NotificationDTO("simon.t.sorqvist@gmail.com", "Success"));
+        currentCount++;
     }
 }

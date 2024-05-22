@@ -1,10 +1,12 @@
 ﻿@using Microsoft.EntityFrameworkCore
+@using games_r_us_source.Components.Notifications
 @using games_r_us_source.Data;
 @using games_r_us_source.Components.Helpers;
 @using Microsoft.AspNetCore.Components.Authorization
 @rendermode InteractiveServer
 @inject IDbContextFactory<ApplicationDbContext> dbContextFactory;
 @inject AuthenticationStateProvider AuthenticationStateProvider;
+@inject NotificationState NotificationState
 
 <AuthorizeView Context="authorizeViewContext">
     <Authorized>
@@ -96,7 +98,13 @@
         {
             dbContext.Bids.Add(bid); // Adds the new listing to the database
             await dbContext.SaveChangesAsync();
-            // [PUT NOTIFICATION HERE] <-------------=======================-------------------------------------------------------
+
+            // Notifies user of trumped bid that they have been outbid
+            // (currently only works if user is online)
+            string? oldBidUserName = ApplicationUserHelper
+                .GetAccountFromUserID(HighestBid.ApplicationUserID, dbContext).UserName;
+            NotificationState.SetNotificationDTO(new NotificationDTO(oldBidUserName,
+                $"Your bid on {CurrentListing.Name} has been trumped with a bid of ${bid.Amount}."));
         }
         catch (DbUpdateException ex)
         {

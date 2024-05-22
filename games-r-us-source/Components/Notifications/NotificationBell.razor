@@ -27,6 +27,8 @@
 
 @if (showNotifications)
 {
+    // VVV this if statement is ugly but it executes the code in blazor 
+    if (newNotification) { newNotification = false; }
     <ul>
         @foreach (var notification in notifications)
         {
@@ -60,6 +62,8 @@
         {
             hubConnection.SendAsync("SendNotificationTo", notificationDTO);
         }
+
+        newNotification = true;
     }
 
     protected override async Task OnInitializedAsync()

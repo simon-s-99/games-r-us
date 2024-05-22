@@ -7,7 +7,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
 
-<article class="font-[Kadwa] border-blue-800 bg-gray-200 p-4 m-auto flex h-fit w-1/2 flex-col rounded-2xl border-2 text-center md:flex-row" @onclick:stopPropagation="true">
+<article class="font-[Kadwa] border-2 m-auto flex h-fit w-1/2 flex-col rounded-2xl border-blue-800 bg-gray-200 p-4 text-center md:flex-row" @onclick:stopPropagation="true">
     <!-- checks if user is logged in & the listings owner to display edit/delete button -->
     <AuthorizeView>
         <Authorized>
@@ -27,16 +27,16 @@
         </span>
 
         <!-- TODO: Add breadcrumb navigation when search/filter functionality works -->
-        <a class="text-blue-700 underline" href="#">
+        <button class="text-blue-700 underline" @onclick="() => Search(CurrentListing.Platform, null)">
             @CurrentListing.Platform
-        </a>
+        </button>
 
         @if (CurrentListing.GameCategory != null)
         {
             <span class="text-gray-800"> > </span>
-            <a class="text-blue-700 underline" href="#">
+            <button class="text-blue-700 underline" @onclick="() => Search(null, CurrentListing.GameCategory)">
                 @CurrentListing.GameCategory
-            </a>
+            </button>
         }
 
         <div class="mt-10 flex h-1/2 flex-col justify-between">
@@ -57,12 +57,24 @@
                 </div>
 
                 <!-- Vertical divider -->
-                <div class="border-gray-400 hidden border-r-2 md:block"></div>
+                <div class="border-r-2 hidden border-gray-400 md:block"></div>
 
                 <!-- Show tooltip on hover -->
-                <div class="mt-4 group relative inline-block cursor-help md:mt-0">
-                    <p>Ends in</p><span class="border-black text-red-700 border-b-2 border-dotted">@BidHelper.GetTimeDifference(CurrentListing.AuctionEnd)</span>
-                    <span class="-ml-[70%] bg-black text-white invisible absolute bottom-full left-1/2 w-fit text-nowrap rounded opacity-70 group-hover:visible">@CurrentListing.AuctionEnd</span>
+                <div class="group relative mt-4 inline-block cursor-help md:mt-0">
+                    @* Below code needed as timer does not call method to set time to "ended" when it runs out *@
+                    <p>Ends in</p>
+
+                    @if (CurrentListing.AuctionEnd < DateTime.Now)
+                    {
+
+                        <span class="border-b-2 border-dotted border-black text-red-700">ended</span>
+                    }
+                    else
+                    {
+                        <span class="border-b-2 border-dotted border-black text-red-700">@TimeRemaining</span>
+                    }
+
+                    <span class="-ml-[70%] invisible absolute bottom-full left-1/2 w-fit text-nowrap rounded bg-black text-white opacity-70 group-hover:visible">@CurrentListing.AuctionEnd</span>
                 </div>
             </div>
 
@@ -80,14 +92,26 @@
                 }
             </section>
 
-            <section class="mb-4 mt-8 border-black pb-4 border-b-2">
+            @* 
+               ApplicationUser gets reset when component rerenders, and OnInitalized does not get called for some reason 
+               This is kind of ugly, but it ensures that ApplicationUser always gets a value
+            *@
+            @if (CurrentListing.ApplicationUser is null && CurrentListing.ApplicationUserID is not null)
+            {
+                using (var dbContext = dbContextFactory.CreateDbContext())
+                {
+                    CurrentListing.ApplicationUser = ApplicationUserHelper.GetAccountFromUserID(CurrentListing.ApplicationUserID, dbContext);
+                }
+            }
+
+            <section class="border-b-2 mb-4 mt-8 border-black pb-4">
                 <h4 class="font-bold">Seller</h4>
                 <p>
-                    @CurrentListing.ApplicationUser.FullName
+                    @CurrentListing.ApplicationUser?.FullName
                 </p>
                 Phone:
-                <a class="text-blue-700 underline" href="tel:@CurrentListing.ApplicationUser.PhoneNumber">
-                    @CurrentListing.ApplicationUser.PhoneNumber
+                <a class="text-blue-700 underline" href="tel:@CurrentListing.ApplicationUser?.PhoneNumber">
+                    @CurrentListing.ApplicationUser?.PhoneNumber
                 </a>
             </section>
 
@@ -109,22 +133,51 @@
     [Parameter]
     public Listing CurrentListing { get; set; }
 
+    [Parameter] // exposes our callback in Home.razor so that displayed listings are updated
+    public EventCallback<List<Listing>> OnSearchResultsUpdated { get; set; }
+
     private Bid? HighestBid { get; set; }
 
     private bool IsOwner { get; set; } = false;
+
+    private string TimeRemaining { get; set; } = "";
+
+    Timer? timer;
 
     protected override async Task OnInitializedAsync()
     {
         using (var dbContext = dbContextFactory.CreateDbContext())
         {
-            // For testing purposes
-            //CurrentListing = ListingHelper.GetListingFromListingID(4, dbContext);
             CurrentListing.ApplicationUser = ApplicationUserHelper.GetAccountFromUserID(CurrentListing.ApplicationUserID, dbContext);
-
             HighestBid = BidHelper.GetHighestBidFromListingID(CurrentListing.ID, dbContext);
         }
 
         await CheckOwnership();
+    }
+
+    protected override void OnInitialized()
+    {
+        TimeSpan timeDifference = CurrentListing.AuctionEnd - DateTime.Now;
+
+        // Only initalize timer if there are less than 24 hours remaining, to prevent performance issues
+        if (CurrentListing.AuctionEnd > DateTime.Now || timeDifference.TotalDays < 1)
+        {
+            // Create timer that updates every 1000 milliseconds
+            timer = new Timer(UpdateTime, null, 1000, 1000);
+        }
+    }
+
+    private void UpdateTime(object _)
+    {
+        // Method is called when timer updates, updates the TimeRemaining variable
+        TimeRemaining = ListingHelper.GetTimeDifference(CurrentListing.AuctionEnd);
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        // Releases the timer when it runs out
+        timer?.Dispose();
     }
 
     private async Task CheckOwnership()
@@ -140,29 +193,26 @@
             }
         }
     }
-
-    private string GetTimeDifference(DateTime endDate)
+    
+    // Perform the same search as in ListingSearch, but leave out the query
+    private async Task Search(Platform? platform, GameCategory? category)
     {
-        if (DateTime.Now > endDate)
+        using (var dbContext = dbContextFactory.CreateDbContext())
         {
-            return "ended";
+            var query = dbContext.Listings.AsQueryable();
+
+            if (platform.HasValue)
+            {
+                query = query.Where(l => l.Platform == platform);
+            }
+
+            if (category.HasValue)
+            {
+                query = query.Where(l => l.GameCategory == category);
+            }
+
+            var filteredListings = await query.ToListAsync();
+            await OnSearchResultsUpdated.InvokeAsync(filteredListings); // triggers the event callback
         }
-
-        TimeSpan timeDifference = endDate - DateTime.Today;
-
-        if (timeDifference.TotalDays >= 7)
-        {
-            // Round down
-            double wholeWeeks = Math.Floor(timeDifference.TotalDays / 7);
-
-            // Get the rest value
-            double wholeDays = Math.Round(timeDifference.TotalDays % 7);
-
-            return wholeWeeks + " weeks" + (wholeDays > 0 ? $", {wholeDays} days" : "");
-        }
-
-        return timeDifference.TotalDays + " days";
     }
-
-
 }

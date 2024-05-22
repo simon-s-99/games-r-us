@@ -59,10 +59,8 @@
 
 @* <ListingDetails CurrentListing="@CurrentListing"/> *@
 
-
-
-
-<ListingDetails CurrentListing="@Helpers.ListingHelper.GetListingFromListingID(4, dbContextFactory.CreateDbContext())" OnSearchResultsUpdated="HandleSearchResults" />
+@*<ListingDetails /> @* <-- For testing purposes*@
+@* <ListingDetails CurrentListing="@Helpers.ListingHelper.GetListingFromListingID(4, dbContextFactory.CreateDbContext())" OnSearchResultsUpdated="HandleSearchResults" /> *@
 
 @code {
     private List<Listing> searchResults = new List<Listing>(); // contains searchResults

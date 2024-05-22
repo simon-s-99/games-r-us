@@ -6,6 +6,7 @@
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Identity
 @using games_r_us_source.Components
+@using games_r_us_source.Components.Helpers
 @using games_r_us_source.Data
 @inject IDbContextFactory<ApplicationDbContext> dbContextFactory
 
@@ -25,14 +26,14 @@
 @if (IsVisible)
 {
     @* if the user presses outside of the "ShowModal" it triggers "ShowConfirmCancel" *@
-    <div @onclick="ShowConfirmCancel" class="inset-0 bg-gray-800 fixed flex items-center justify-center bg-opacity-75">
+    <div @onclick="ShowConfirmCancel" class="inset-0 bg-gray-800 fixed z-10 flex items-center justify-center bg-opacity-75">
         <div class="bg-white p-6 w-full max-w-md rounded-lg shadow-lg" @onclick:stopPropagation>
 
             @* If the user has an image uploaded we show the "delete image" button *@
             @if (base64Image != null || Listing.ImagePath != null)
             {
                 <button @onclick="RemoveImage"
-                        class="bg-red-500 px-4 py-2 text-white rounded-lg font-bold shadow transition duration-150 ease-in-out hover:bg-red-700">
+                        class="bg-red-500 px-2 py-1 text-white mb-4 rounded-lg font-bold shadow transition duration-150 ease-in-out hover:bg-red-700">
                     Remove Image
                 </button>
             }
@@ -44,16 +45,18 @@
                 <div class="relative text-center">
                     @if (base64Image != null)
                     {
-                        <img src="@base64Image" alt="New Listing Image" class="h-48 w-48 mx-auto rounded-md object-cover">
+                        <img src="@base64Image" alt="New Listing Image" class="relative-fit w-48 h-48 mb-4 mx-auto overflow-hidden rounded-md">
                         <label for="image" class="bg-white text-gray-500 m-auto block w-full cursor-pointer rounded-l border-2 bg-clip-border transition hover:bg-gray-400">
+
                             Change Image
                             <InputFile id="image" class="hidden" OnChange="@LoadFiles" accept=".png, .jpg, .jpeg, .img" />
                         </label>
                     }
                     else if (Listing.ImagePath != null)
                     {
-                        <img src="@Listing.ImagePath" alt="Existing Listing Image" class="h-48 w-48 mx-auto rounded-md object-cover">
+                        <img src="@($"/images/{Listing.ImagePath}")" alt="Existing Listing Image" class="relative-fit w-48 h-48 mb-4 mx-auto overflow-hidden rounded-md">
                         <label for="image" class="bg-white text-gray-500 m-auto block w-full cursor-pointer rounded-l border-2 bg-clip-border transition hover:bg-gray-400">
+
                             Change Image
                             <InputFile id="image" class="hidden" OnChange="@LoadFiles" accept=".png, .jpg, .jpeg, .img" />
                         </label>
@@ -144,7 +147,7 @@
 
     @if (showConfirmation) @* If the user presses "cancel" we show this confirmation modal *@
     {
-        <div class="inset-0 bg-black fixed flex items-center justify-center bg-opacity-50">
+        <div class="inset-0 bg-black fixed z-30 flex items-center justify-center bg-opacity-50">
             <div class="bg-white p-4 flex flex-col items-center rounded">
                 <h2 class="mb-4 text-lg">Are you sure you want to cancel?</h2>
                 <div class="space-x-4 flex justify-center">
@@ -157,7 +160,7 @@
 
     @if (isSuccessful)
     {
-        <div class="inset-0 bg-black fixed flex items-center justify-center bg-opacity-50">
+        <div class="inset-0 bg-black fixed z-30 flex items-center justify-center bg-opacity-50">
             <div class="bg-white p-4 flex flex-col items-center rounded">
                 <h3 class="mb-4 text-lg">Changes saved successfully</h3>
             </div>
@@ -207,15 +210,15 @@
         // Directly using Listing object assuming it's the same object updated by data-binding in the form
         if (!string.IsNullOrEmpty(currentImagePath))
         {
-            string permanentFolderPath = Path.Combine(Environment.WebRootPath, "images");
-            string tempImagePath = Path.Combine(Environment.WebRootPath, "temp_images", currentImagePath);
+            string permanentFolderPath = Path.Combine("C:\\Temp");
+            string tempImagePath = Path.Combine("C:\\Temp", "temp_images", currentImagePath);
             string permanentImagePath = Path.Combine(permanentFolderPath, currentImagePath);
 
             if (File.Exists(tempImagePath))
             {
                 Directory.CreateDirectory(permanentFolderPath); // Ensure the permanent directory exists
                 File.Move(tempImagePath, permanentImagePath); // Move the image from temp to perm
-                Listing.ImagePath = Path.Combine("images", currentImagePath); // Update the database image path
+                Listing.ImagePath = currentImagePath; // Update the database image path
             }
             else
             {
@@ -251,46 +254,14 @@
         }
     }
 
-    // Method to handle images
     private async Task LoadFiles(InputFileChangeEventArgs e)
     {
-        var imageFile = e.File;
-        if (imageFile != null && imageFile.Size > 0)
-        {
-            MemoryStream ms = new MemoryStream();
-            try
-            {
-                // Create the existence of a temporary storage directory for images
-                string tempFolderPath = Path.Combine(Environment.WebRootPath, "temp_images");
-                Directory.CreateDirectory(tempFolderPath); // Ensure the directory exists
+        var result = await ListingHelper.LoadFilesAsync(e, currentImagePath, maxFileSize);
 
+        base64Image = result.base64Image;
+        currentImagePath = result.currentImagePath;
 
-                // Delete previous image if the user changes image before submitting
-                if (!string.IsNullOrEmpty(currentImagePath))
-                {
-                    var previousFilePath = Path.Combine(tempFolderPath, currentImagePath);
-                    if (File.Exists(previousFilePath))
-                    {
-                        File.Delete(previousFilePath); // Delete the image if it isn't used for a listing
-                    }
-                }
-
-                await imageFile.OpenReadStream(maxFileSize).CopyToAsync(ms);
-                byte[] buffer = ms.ToArray();
-                base64Image = $"data:image/png;base64,{Convert.ToBase64String(buffer)}";
-
-                string fileName = Path.ChangeExtension(Path.GetRandomFileName(), Path.GetExtension(imageFile.Name));
-                string fullPath = Path.Combine(tempFolderPath, fileName);
-                await File.WriteAllBytesAsync(fullPath, buffer); // Save in temporary directory
-
-                currentImagePath = fileName;
-            }
-            catch (Exception ex)
-            {
-                base64Image = null;
-                currentImagePath = null;
-            }
-        }
+        StateHasChanged();
     }
 
     public void ShowModal()
@@ -306,7 +277,7 @@
         // If there's a current image path in temporary storage, delete it
         if (!string.IsNullOrEmpty(currentImagePath))
         {
-            string tempFolderPath = Path.Combine(Environment.WebRootPath, "temp_images");
+            string tempFolderPath = Path.Combine("C:\\Temp", "temp_images");
             string fullPath = Path.Combine(tempFolderPath, currentImagePath);
             if (File.Exists(fullPath))
             {

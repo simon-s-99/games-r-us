@@ -10,29 +10,34 @@
 @rendermode InteractiveServer
 
 <!-- Notification bell button -->
-<button class="rounded-3xl px-1 py-1 hover:bg-gray-200">
-    @* if no new notification show normal bell icon *@
-    <img class="h-10 w-10" 
-        src="images/notification-bell.svg" 
-        alt="Image of notification bell button" />
-    @* show this image if there are new/unread notifications *@
-    @*
-    <img class="h-10 w-10" 
-        src="images/notification-bell-new.svg" 
-        alt="Image of notification bell button, new notification available" />
-    *@
+<button @onclick="() => showNotifications = !showNotifications" class="rounded-3xl px-1 py-1 hover:bg-gray-200">
+    @if (newNotification == true)
+    {
+        <img class="h-10 w-10" 
+            src="images/notification-bell-new.svg" 
+            alt="Image of notification bell button, new notification available" />
+    }
+    else
+    {
+        <img class="h-10 w-10" 
+            src="images/notification-bell.svg" 
+            alt="Image of notification bell button" />
+    }
 </button>
 
-<ul>
-    @foreach (var notification in notifications)
-    {
-        <li>
-            <p>
-                @notification
-            </p>
-        </li>
-    }
-</ul>
+@if (showNotifications)
+{
+    <ul>
+        @foreach (var notification in notifications)
+        {
+            <li>
+                <p>
+                    @notification
+                </p>
+            </li>
+        }
+    </ul>
+}
 
 @code {
     // To send notifications from a component:
@@ -46,6 +51,8 @@
 
     private HubConnection? hubConnection;
     private readonly List<string> notifications = new List<string>();
+    private bool showNotifications = false;
+    private bool newNotification = false;
 
     private void HandleNotification(NotificationDTO notificationDTO)
     {

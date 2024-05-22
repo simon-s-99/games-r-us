@@ -1,0 +1,112 @@
+﻿@using games_r_us_source.Data
+@using Microsoft.AspNetCore.SignalR.Client
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+@inject NotificationState NotificationState
+
+@implements IAsyncDisposable
+
+@rendermode InteractiveServer
+
+<!-- Notification bell button -->
+<button @onclick="() => showNotifications = !showNotifications" class="rounded-3xl px-1 py-1 hover:bg-gray-200">
+    @if (newNotification == true)
+    {
+        <img class="h-10 w-10" 
+            src="images/notification-bell-new.svg" 
+            alt="Image of notification bell button, new notification available" />
+    }
+    else
+    {
+        <img class="h-10 w-10" 
+            src="images/notification-bell.svg" 
+            alt="Image of notification bell button" />
+    }
+</button>
+
+@if (showNotifications)
+{
+    // VVV this if statement is ugly but it executes the code in blazor 
+    if (newNotification) { newNotification = false; }
+    <ul>
+        @foreach (var notification in notifications)
+        {
+            <li>
+                <p>
+                    @notification
+                </p>
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    // To send notifications from a component:
+    // inject NotificationState
+    // and implement Send() method (or similar)
+    //
+    // private async Task Send()
+    // {
+    //     NotificationState.SetNotificationDTO(new NotificationDTO("[PUT USERNAME OF RECEIVER HERE]", "[MESSAGE]"));
+    // }
+
+    private HubConnection? hubConnection;
+    private readonly List<string> notifications = new List<string>();
+    private bool showNotifications = false;
+    private bool newNotification = false;
+
+    private void HandleNotification(NotificationDTO notificationDTO)
+    {
+        if (hubConnection is not null)
+        {
+            hubConnection.SendAsync("SendNotificationTo", notificationDTO);
+        }
+
+        newNotification = true;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Subscribes to changes in NotificationState class
+        NotificationState.OnChange += HandleNotification;
+
+        // Get the logged in user
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userName = authenticationState.User.Identity.Name;
+
+        // send the logged in users name to signalR hub so that they can recieve notifications
+        if (userName is not null) // not strictly necessary but dis-allows non-logged in users from sending notifications
+        {
+            hubConnection = new HubConnectionBuilder()
+                .WithUrl(NavigationManager.ToAbsoluteUri("/Notifications"), options =>
+                {
+                    // NOTE: Ideally we should do this with bearer tokens for better security.
+                    //
+                    // Pass username as header to our SignalR hub extension.
+                    options.Headers.Add(new("UserName", userName));
+                })
+                .Build();
+
+            // hubconnection on string is only needed on pages where we actually want to display notifications
+            hubConnection.On<string>("ReceiveNotificationAsync", notification =>
+            {
+                notifications.Add(notification);
+                InvokeAsync(StateHasChanged);
+            });
+
+            await hubConnection.StartAsync();
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+
+        // Un-subscribes this component from NotificationState on dispose
+        NotificationState.OnChange -= HandleNotification;
+    }
+}

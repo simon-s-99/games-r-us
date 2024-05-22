@@ -2,6 +2,8 @@
 @using games_r_us_source.Components.Account.CustomComponents
 @inject NavigationManager NavigationManager
 
+@using games_r_us_source.Components.Notifications
+
 <div class="page">
     <main>
         <div class="item-center item-center flex flex-row items-center justify-between bg-blue-300">
@@ -13,6 +15,11 @@
                 <LoginLogoutButton />
                 <ProfileButton />
             </div>
+        </div>
+
+        <!-- MOVE THIS NOTIFICATION BELL LATER -->
+        <div>
+            <NotificationBell />
         </div>
 
         <article class="content px-4">

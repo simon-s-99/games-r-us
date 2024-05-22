@@ -50,7 +50,7 @@
 @code {
     private List<Listing> paginatedListings = new List<Listing>();
     private int currentPage = 1;
-    private int pageSize = 10; 
+    private int pageSize = 9; 
     private int totalListingsCount = 0;
     private int totalPages => (int)Math.Ceiling((double)totalListingsCount / pageSize);
 
@@ -70,12 +70,12 @@
         using (var dbContext = dbContextFactory.CreateDbContext())
         {
             totalListingsCount = await dbContext.Listings.CountAsync();
-
             paginatedListings = await dbContext.Listings
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
         }
+        await OnPageChanged.InvokeAsync(paginatedListings);
     }
 
     private async Task PreviousPage()
@@ -84,7 +84,6 @@
         {
             currentPage--;
             await LoadPaginatedListings(currentPage, pageSize);
-            await OnPageChanged.InvokeAsync(paginatedListings);
         }
     }
 
@@ -94,7 +93,6 @@
         {
             currentPage++;
             await LoadPaginatedListings(currentPage, pageSize);
-            await OnPageChanged.InvokeAsync(paginatedListings);
         }
     }
 
@@ -104,14 +102,12 @@
         {
             currentPage = page;
             await LoadPaginatedListings(currentPage, pageSize);
-            await OnPageChanged.InvokeAsync(paginatedListings);
         }
     }
 
     private async Task ApplyPageSize()
     {
         await LoadPaginatedListings(currentPage, pageSize);
-        await OnPageChanged.InvokeAsync(paginatedListings);
     }
 
 }

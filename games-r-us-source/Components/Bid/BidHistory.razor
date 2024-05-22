@@ -7,38 +7,37 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider;
 @rendermode InteractiveServer
 
-<h3 class="mb-4 block text-center text-2xl font-bold">Bidding History</h3>
-<main class="border-2 rounded border-black text-center *:list-none">
-    <ul class="grid-cols-4 grid font-bold *:bg-gray-200">
-        <li>
-            <button class="rounded-xl px-4 py-2 uppercase tracking-wide hover:underline hover:bg-white" type="button" @onclick="() => OrderBids(SortingOrder.Amount)">
-                Amount
-                @DrawArrowIcon(SortingOrder.Amount)
-            </button>
-        </li>
-        <li class="border-l-[1px] border-r-[1px] border-black">
-            <button class="rounded-xl px-4 py-2 uppercase tracking-wide hover:underline hover:bg-white" type="button" @onclick="() => OrderBids(SortingOrder.Status)">
-                Status
-                @DrawArrowIcon(SortingOrder.Status)
-            </button>
-        </li>
-        <li class="border-r-[1px] border-black">
-            <button class="rounded-xl px-4 py-2 uppercase tracking-wide hover:underline hover:bg-white" type="button" @onclick="() => OrderBids(SortingOrder.Listing)">
-                Listing
-                @DrawArrowIcon(SortingOrder.Listing)
-            </button>
-        </li>
-        <li>
-            <button class="rounded-xl px-4 py-2 uppercase tracking-wide hover:underline hover:bg-white" type="button" @onclick="() => OrderBids(SortingOrder.Time)">
-                Time
-                @DrawArrowIcon(SortingOrder.Time)
-            </button>
-        </li>
-    </ul>
 
-    @if (Bids.Any())
-    {
-
+@if (Bids.Any())
+{
+    <h3 class="mb-4 block text-center text-2xl font-bold">Bidding History</h3>
+    <main class="border-2 rounded border-black text-center *:list-none">
+        <ul class="grid-cols-4 grid font-bold *:bg-gray-200">
+            <li>
+                <button class="rounded-xl px-4 py-2 uppercase tracking-wide hover:underline hover:bg-white" type="button" @onclick="() => OrderBids(SortingOrder.Amount)">
+                    Amount
+                    @DrawArrowIcon(SortingOrder.Amount)
+                </button>
+            </li>
+            <li class="border-l-[1px] border-r-[1px] border-black">
+                <button class="rounded-xl px-4 py-2 uppercase tracking-wide hover:underline hover:bg-white" type="button" @onclick="() => OrderBids(SortingOrder.Status)">
+                    Status
+                    @DrawArrowIcon(SortingOrder.Status)
+                </button>
+            </li>
+            <li class="border-r-[1px] border-black">
+                <button class="rounded-xl px-4 py-2 uppercase tracking-wide hover:underline hover:bg-white" type="button" @onclick="() => OrderBids(SortingOrder.Listing)">
+                    Listing
+                    @DrawArrowIcon(SortingOrder.Listing)
+                </button>
+            </li>
+            <li>
+                <button class="rounded-xl px-4 py-2 uppercase tracking-wide hover:underline hover:bg-white" type="button" @onclick="() => OrderBids(SortingOrder.Time)">
+                    Time
+                    @DrawArrowIcon(SortingOrder.Time)
+                </button>
+            </li>
+        </ul>
         @foreach (Bid bid in Bids)
         {
             Bid highestBid = new Bid();
@@ -78,12 +77,12 @@
                 <li>@bid.Time.ToShortDateString()<p>@bid.Time.ToShortTimeString()</p></li>
             </ul>
         }
-    }
-    else
-    {
-        <p>You have no placed bids.</p>
-    }
-</main>
+    </main>
+}
+else
+{
+    <p class="text-center font-bold">You have no placed bids.</p>
+}
 
 @code {
     private List<Bid?> Bids { get; set; } = new List<Bid?>();

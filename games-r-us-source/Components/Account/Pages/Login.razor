@@ -12,56 +12,34 @@
 
 <PageTitle>Log in</PageTitle>
 
-<h1>Log in</h1>
-<div class="row">
-    <div class="col-md-4">
-        <section>
-            <StatusMessage Message="@errorMessage" />
-            <EditForm Model="Input" method="post" OnValidSubmit="LoginUser" FormName="login">
-                <DataAnnotationsValidator />
-                <h2>Use a local account to log in.</h2>
-                <hr />
-                <ValidationSummary class="text-danger" role="alert" />
-                <div class="form-floating mb-3">
-                    <InputText @bind-Value="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                    <label for="email" class="form-label">Email</label>
-                    <ValidationMessage For="() => Input.Email" class="text-danger" />
-                </div>
-                <div class="form-floating mb-3">
-                    <InputText type="password" @bind-Value="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
-                    <label for="password" class="form-label">Password</label>
-                    <ValidationMessage For="() => Input.Password" class="text-danger" />
-                </div>
-                <div class="checkbox mb-3">
-                    <label class="form-label">
-                        <InputCheckbox @bind-Value="Input.RememberMe" class="darker-border-checkbox form-check-input" />
-                        Remember me
-                    </label>
-                </div>
-                <div>
-                    <button type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
-                </div>
-                <div>
-                    <p>
-                        <a href="Account/ForgotPassword">Forgot your password?</a>
-                    </p>
-                    <p>
-                        <a href="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))">Register as a new user</a>
-                    </p>
-                    <p>
-                        <a href="Account/ResendEmailConfirmation">Resend email confirmation</a>
-                    </p>
-                </div>
-            </EditForm>
-        </section>
-    </div>
-    <div class="col-md-6 col-md-offset-2">
-        <section>
-            <h3>Use another service to log in.</h3>
-            <hr />
-            <ExternalLoginPicker />
-        </section>
-    </div>
+<div class="border-2 font-[Kadwa] m-auto mt-6 w-2/5 rounded border-black text-center">
+
+    <h1 class="mb-4 text-2xl font-bold">Log in</h1>
+    <p>New to Games '<span class="text-red-500">Я</span>' Us? <NavLink class="text-blue-400" href="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))">Register</NavLink></p>
+
+    <StatusMessage Message="@errorMessage" />
+    <EditForm class="m-2 flex flex-col justify-center" Model="Input" method="post" OnValidSubmit="LoginUser" FormName="login">
+        <DataAnnotationsValidator />
+        <ValidationSummary class="text-danger" role="alert" />
+        <label for="email" class="left-[9999px] absolute">Email</label> @* For accessibility purposes *@
+        <InputText @bind-Value="Input.Email" id="email" class="border-[1px] peer mt-8 rounded border-black py-2" autocomplete="username" aria-required="true" placeholder="Email" />
+        <ValidationMessage For="() => Input.Email" class="text-red-500" />
+        <label for="password" class="left-[9999px] absolute">Password</label>
+        <InputText type="password" id="password" @bind-Value="Input.Password" class="border-[1px] mt-4 rounded border-black py-2" autocomplete="current-password" aria-required="true" placeholder="Password" />
+        <ValidationMessage For="() => Input.Password" class="text-red-500" />
+        <div class="flex flex-col justify-between md:flex-row">
+            <label class="m-2">
+                <InputCheckbox @bind-Value="Input.RememberMe" />
+                Remember me
+            </label>
+            <NavLink class="m-2 text-left text-red-700" href="Account/ForgotPassword">Forgot your password?</NavLink>
+        </div>
+
+        <button type="submit" class="border-[1px] m-auto block rounded-xl border-black bg-green-300 p-2">Log in</button>
+    </EditForm>
+    <div class="border-b-2 m-auto my-8 h-1 w-3/4 border-dashed border-black"></div> @* Vertical divider *@
+    <p class="mb-3">Or sign in using</p>
+    <ExternalLoginPicker />
 </div>
 
 @code {

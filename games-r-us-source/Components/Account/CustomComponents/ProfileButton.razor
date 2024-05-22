@@ -1,7 +1,7 @@
 ﻿<AuthorizeView>
 	<Authorized>
-		<NavLink class="rounded-3xl border border-black bg-emerald-300 px-4 py-2 hover:bg-gray-200" href="Account/Manage">
-			<span class="text-3xl font-bold text-black">@(context.User.Identity.Name[0])</span>
+		<NavLink class="m-2 h-10 w-10 rounded-3xl border border-black bg-emerald-300 hover:bg-gray-200" href="Account/Manage">
+			<p class="text-center text-3xl font-bold text-black">@(context.User.Identity.Name[0])</p>
 		</NavLink>
 	</Authorized>
 	<NotAuthorized>

@@ -27,16 +27,16 @@
         </span>
 
         <!-- TODO: Add breadcrumb navigation when search/filter functionality works -->
-        <a class="text-blue-700 underline" href="#">
+        <button class="text-blue-700 underline" @onclick="() => Search(CurrentListing.Platform, null)">
             @CurrentListing.Platform
-        </a>
+        </button>
 
         @if (CurrentListing.GameCategory != null)
         {
             <span class="text-gray-800"> > </span>
-            <a class="text-blue-700 underline" href="#">
+            <button class="text-blue-700 underline" @onclick="() => Search(null, CurrentListing.GameCategory)">
                 @CurrentListing.GameCategory
-            </a>
+            </button>
         }
 
         <div class="mt-10 flex h-1/2 flex-col justify-between">
@@ -80,14 +80,26 @@
                 }
             </section>
 
-            <section class="mb-4 mt-8 border-black pb-4 border-b-2">
+            @* 
+               ApplicationUser gets reset when component rerenders, and OnInitalized does not get called for some reason 
+               This is kind of ugly, but it ensures that ApplicationUser always gets a value
+            *@
+            @if (CurrentListing.ApplicationUser is null && CurrentListing.ApplicationUserID is not null)
+            {
+                using (var dbContext = dbContextFactory.CreateDbContext())
+                {
+                    CurrentListing.ApplicationUser = ApplicationUserHelper.GetAccountFromUserID(CurrentListing.ApplicationUserID, dbContext);
+                }
+            }
+
+            <section class="border-b-2 mb-4 mt-8 border-black pb-4">
                 <h4 class="font-bold">Seller</h4>
                 <p>
-                    @CurrentListing.ApplicationUser.FullName
+                    @CurrentListing.ApplicationUser?.FullName
                 </p>
                 Phone:
-                <a class="text-blue-700 underline" href="tel:@CurrentListing.ApplicationUser.PhoneNumber">
-                    @CurrentListing.ApplicationUser.PhoneNumber
+                <a class="text-blue-700 underline" href="tel:@CurrentListing.ApplicationUser?.PhoneNumber">
+                    @CurrentListing.ApplicationUser?.PhoneNumber
                 </a>
             </section>
 
@@ -109,6 +121,9 @@
     [Parameter]
     public Listing CurrentListing { get; set; }
 
+    [Parameter] // exposes our callback in Home.razor so that displayed listings are updated
+    public EventCallback<List<Listing>> OnSearchResultsUpdated { get; set; }
+
     private Bid? HighestBid { get; set; }
 
     private bool IsOwner { get; set; } = false;
@@ -117,10 +132,7 @@
     {
         using (var dbContext = dbContextFactory.CreateDbContext())
         {
-            // For testing purposes
-            //CurrentListing = ListingHelper.GetListingFromListingID(4, dbContext);
             CurrentListing.ApplicationUser = ApplicationUserHelper.GetAccountFromUserID(CurrentListing.ApplicationUserID, dbContext);
-
             HighestBid = BidHelper.GetHighestBidFromListingID(CurrentListing.ID, dbContext);
         }
 
@@ -164,5 +176,25 @@
         return timeDifference.TotalDays + " days";
     }
 
+    // Perform the same search as in ListingSearch, but leave out the query
+    private async Task Search(Platform? platform, GameCategory? category)
+    {
+        using (var dbContext = dbContextFactory.CreateDbContext())
+        {
+            var query = dbContext.Listings.AsQueryable();
 
+            if (platform.HasValue)
+            {
+                query = query.Where(l => l.Platform == platform);
+            }
+
+            if (category.HasValue)
+            {
+                query = query.Where(l => l.GameCategory == category);
+            }
+
+            var filteredListings = await query.ToListAsync();
+            await OnSearchResultsUpdated.InvokeAsync(filteredListings); // triggers the event callback
+        }
+    }
 }

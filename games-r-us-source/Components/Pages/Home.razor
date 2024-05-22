@@ -47,6 +47,9 @@
 
 <ListingsForUser />
 
+@* used listingdetails have to pass an eventcallback for breadcrumb nav-functionality vv *@
+@* <ListingDetails CurrentListing="@Helpers.ListingHelper.GetListingFromListingID(4, dbContextFactory.CreateDbContext())" OnSearchResultsUpdated="HandleSearchResults" /> *@
+
 @code {
     private List<Listing> searchResults = new List<Listing>(); // contains searchResults
     private List<Listing> sortedResults = new List<Listing>(); // contains sortResults

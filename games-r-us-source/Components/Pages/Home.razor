@@ -1,40 +1,27 @@
-@using Microsoft.EntityFrameworkCore
+﻿@using Microsoft.EntityFrameworkCore
 @using games_r_us_source.Components.Listing
 @using games_r_us_source.Components.Account
 @using games_r_us_source.Components.Account.CustomComponents
 @using games_r_us_source.Data
 @using games_r_us_source.Components.Helpers
-@inject IDbContextFactory<ApplicationDbContext> dbContextFactory
+
 @rendermode InteractiveServer
+
 @page "/"
 
 <PageTitle>Home</PageTitle>
 
 <h1>Hello, world!</h1>
 
-<!-- Temporary for testing purposes -->
-@* <ListingDetails CurrentListing="@CurrentListing"/> *@
-@* <ListingDetails CurrentListing="@Helpers.ListingHelper.GetListingFromListingID(2, dbContextFactory.CreateDbContext())" /> *@ @* <-- For testing purposes*@
-
-<!-- Temporary for testing purposes -->
 <LoginLogoutButton />
-
-<!-- Temporary for testing purposes -->
-@* <ListingEdit /> <-- moved to listingdetails *@
-
-<!-- Temporary for testing purposes -->
 
 <ProfileButton />
 
-
 <ListingCreate />
 
+<ListingSearch OnSearchResultsUpdated="HandleSearchResults" />
 
 <ListingSort OnSortResultsUpdated="HandleSorting" />
-
-<!-- Temporary for testing purposes -->
-<ListingSearch OnSearchResultsUpdated="HandleSearchResults" /> 
-
 
 <!-- Only here as a template for how to show content if
     user is logged  in or not.
@@ -52,14 +39,9 @@
 
 <ListingDisplayAll listings="@displayListings" />
 
-<!-- Temporary for testing purposes -->
-
 <ListingsForUser />
 
-
-@* <ListingDetails CurrentListing="@CurrentListing"/> *@
-
-@*<ListingDetails /> @* <-- For testing purposes*@
+@* listingdetails have to pass an eventcallback for breadcrumb nav-functionality vv *@
 @* <ListingDetails CurrentListing="@Helpers.ListingHelper.GetListingFromListingID(4, dbContextFactory.CreateDbContext())" OnSearchResultsUpdated="HandleSearchResults" /> *@
 
 @code {
@@ -111,7 +93,5 @@
             // If there are no sorted results, use the filtered listings (either search results or all listings) directly
             displayListings = filteredListings;
         }
-
     }
 }
-

@@ -8,16 +8,17 @@
 
 @page "/search"
 
-<div class="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
-    <form @onsubmit="SearchDebounce" class="flex gap-4">
+<div class="px-4 py-6 mx-auto max-w-4xl sm:px-6 lg:px-8">
+    <form @onsubmit="SearchDebounce" class="gap-4 flex">
         <div class="flex-1">
-            <InputText class="w-full rounded-lg border-gray-300 shadow-sm"
-                        @bind-Value="searchText"
-                        @oninput="SearchDebounce" 
-                        @onblur="SearchDebounce" placeholder="Search..." maxlength="50" />
+
+            <InputText class="border-gray-300 w-full rounded-lg shadow-sm"
+                       @bind-Value="searchText"
+                       @oninput="OnInputChanged"
+                       @onblur="SearchDebounce" placeholder="Search..." maxlength="50" />
         </div>
         <div class="w-48">
-            <select @bind="platform" @oninput="SearchDebounce" class="w-full rounded-lg border-gray-300 shadow-sm">
+            <select @bind="@platform" @oninput="SearchDebounce" class="border-gray-300 w-full rounded-lg shadow-sm">
                 <option value="">All Platforms</option>
                 @foreach (var platform in Enum.GetValues(typeof(Platform)))
                 {
@@ -26,7 +27,7 @@
             </select>
         </div>
         <div class="w-48">
-            <select @bind="category" @oninput="SearchDebounce" class="w-full rounded-lg border-gray-300 shadow-sm">
+            <select @bind="@category" @oninput="SearchDebounce" class="border-gray-300 w-full rounded-lg shadow-sm">
                 <option value="">All Categories</option>
                 @foreach (var category in Enum.GetValues(typeof(GameCategory)))
                 {
@@ -38,7 +39,7 @@
 </div>
 
 @code {
-    private string searchText;
+    private string searchText = string.Empty;
     private Platform? platform = null;
     private GameCategory? category = null;
     private Timer debounceTimer;
@@ -46,19 +47,27 @@
     [Parameter] // exposes our callback in Home.razor so that displayed listings are updated
     public EventCallback<List<Listing>> OnSearchResultsUpdated { get; set; }
 
+
+    // This method ensures that the searchText variable is updated correctly before initiating the debounce function
+    private void OnInputChanged(ChangeEventArgs e)
+    {
+        SearchDebounce();
+    }
+
     // Debounce for live searching so that we do not send too many queries to the database.
     private void SearchDebounce()
     {
+        if (debounceTimer is not null) { debounceTimer.Dispose(); }
         debounceTimer = new Timer(callback: TimerCallBack, null, dueTime: 300, period: Timeout.Infinite);
     }
 
     // new Timer() constructor only accepts callback with this format
-    void TimerCallBack(object state)
+    void TimerCallBack(object _)
     {
-        InvokeAsync(async () => ApplyFilters(searchText, platform, category));
+        InvokeAsync(async () => await ApplyFilters(searchText, platform, category));
     }
 
-    // performs the actual search and filtering towards the database 
+    // performs the actual search and filtering towards the database
     private async Task ApplyFilters(string searchText, Platform? platform, GameCategory? category)
     {
         using (var dbContext = dbContextFactory.CreateDbContext())
@@ -68,10 +77,8 @@
             // Get input from search, and fetch similar listings names, and descriptions
             if (!string.IsNullOrEmpty(searchText))
             {
-                query = query.Where(l => EF.Functions
-                    .Like(l.Name, $"%{searchText}%")
-                    ||
-                    EF.Functions.Like(l.Description, $"%{searchText}%"));
+                query = query.Where(l => EF.Functions.Like(l.Name, $"%{searchText}%")
+                                       || EF.Functions.Like(l.Description, $"%{searchText}%"));
             }
 
             if (platform.HasValue)

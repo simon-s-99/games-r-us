@@ -1,6 +1,7 @@
 ﻿@rendermode InteractiveServer
 @using games_r_us_source.Data
 @using Microsoft.EntityFrameworkCore
+@using games_r_us_source.Components.Helpers
 
 @inject IDbContextFactory<ApplicationDbContext> dbContextFactory
 
@@ -8,10 +9,10 @@
 
 <h3>Sort by</h3>
 
-<div class="bg-gray-100 p-6 mt-6 mx-auto max-w-md rounded-lg shadow-md">
-    <h3 class="text-gray-800 mb-4 text-lg font-semibold">Sort by</h3>
+<div class="mx-auto mt-6 max-w-md rounded-lg bg-gray-100 p-6 shadow-md">
+    <h3 class="mb-4 text-lg font-semibold text-gray-800">Sort by</h3>
     <select @bind="SelectedSortingOrder" @oninput="HandleSortChange"
-            class="form-select px-2 py-1 text-gray-700 bg-white border-gray-300 m-0 px-2 py-1 block w-full appearance-none rounded border border-solid bg-clip-padding bg-no-repeat text-base font-normal transition ease-in-out focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none">
+            class="form-select m-0 block w-full appearance-none rounded border border-solid border-gray-300 bg-white bg-clip-padding bg-no-repeat px-2 px-2 py-1 py-1 text-base font-normal text-gray-700 transition ease-in-out focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none">
 
         @* if the user have done a "sorting", remove the "Any" option*@
         @if (!HasSorted)
@@ -82,8 +83,14 @@
                 break;
         }
 
-        // Convert the sorted data back to a list of listings to update the UI
+        // Convert the sorted data back to a list of listings and update their HighestBid property
         var sortedListings = listingsWithMaxPrice.Select(x => x.Listing).ToList();
+        foreach (var listing in sortedListings)
+        {
+            listing.HighestBid = BidHelper.GetHighestBidFromListingID(listing.ID, dbContext); 
+        }
+
+        // Invoke the callback to update the parent component with the sorted listings
         await OnSortResultsUpdated.InvokeAsync(sortedListings);
     }
 

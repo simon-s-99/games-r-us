@@ -101,10 +101,13 @@
 
             // Notifies user of trumped bid that they have been outbid
             // (currently only works if user is online)
-            string? oldBidUserName = ApplicationUserHelper
-                .GetAccountFromUserID(HighestBid.ApplicationUserID, dbContext).UserName;
-            NotificationState.SetNotificationDTO(new NotificationDTO(oldBidUserName,
-                $"Your bid on {CurrentListing.Name} has been trumped with a bid of ${bid.Amount}."));
+            if (HighestBid is not null) // do not send notification if there is no bid
+            {
+                string? oldBidUserName = ApplicationUserHelper
+                    .GetAccountFromUserID(HighestBid.ApplicationUserID, dbContext).UserName;
+                NotificationState.SetNotificationDTO(new NotificationDTO(oldBidUserName,
+                    $"Your bid on {CurrentListing.Name} has been trumped with a bid of ${bid.Amount}."));
+            }
         }
         catch (DbUpdateException ex)
         {

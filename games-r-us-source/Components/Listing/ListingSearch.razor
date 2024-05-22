@@ -12,7 +12,7 @@
     <form  class="flex gap-4">
         <div class="flex-1">
             <input type="text" class="w-full rounded-lg border-gray-300 shadow-sm"
-                   value="@searchText"
+                   @bind-value="searchText"
                    @oninput="OnInputChanged"
                    @onblur="SearchDebounce" placeholder="Search..." maxlength="50" />
         </div>
@@ -61,7 +61,7 @@
     }
 
     // new Timer() constructor only accepts callback with this format
-    void TimerCallBack(object state)
+    void TimerCallBack(object _)
     {
         InvokeAsync(async () => await ApplyFilters(searchText, platform, category));
     }
@@ -69,7 +69,6 @@
     // performs the actual search and filtering towards the database
     private async Task ApplyFilters(string searchText, Platform? platform, GameCategory? category)
     {
-
         using (var dbContext = dbContextFactory.CreateDbContext())
         {
             var query = dbContext.Listings.AsQueryable();

@@ -2,6 +2,7 @@
 @using games_r_us_source.Data
 @using games_r_us_source.Components.Helpers
 @inject IDbContextFactory<ApplicationDbContext> dbContextFactory
+@using games_r_us_source.Components.Helpers
 
 @* Display the listings here *@
 @if (listings.Any())
@@ -11,33 +12,43 @@
         <div class="grid-cols-1 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             @foreach (var listing in listings)
             {
-                <div class="overflow-hidden rounded-lg bg-white p-4 shadow-lg">
-                    <img class="h-64 w-full object-cover" src="@($"/images/{listing.ImagePath}")" alt="Image of listing">
-                    <div class="p-4">
-                        <h3 class="text-md font-semibold text-gray-900">@listing.Name</h3>
-                        <!-- height and overflow handling for the description -->
-                        <p class="h-20 overflow-hidden overflow-ellipsis text-gray-500">@listing.Description</p>
-                    </div>
-                    <div class="border-t border-gray-200 bg-gray-100 px-4 pb-4 pt-3">
-                        <div class="text-xs font-bold uppercase tracking-wide text-gray-600">Price</div>
-                        <div class="text-lg text-gray-900">$@listingPrices[listing.ID]</div>
+                <div class="relative transform transition-transform duration-300 ease-in-out @(selectedListing == listing ? "scale-95" : "")" @onclick="() => ShowListingDetails(listing)">
+                    <div class="overflow-hidden rounded-lg bg-white p-4 shadow-lg">
 
-                        @* if time is less than 1 minute, turn the Time remaining red*@
-                        @if (TimeRemainingSpan[listing.ID].TotalMinutes < 1)
-                        {
-                            <div class="text-xs font-bold uppercase tracking-wide text-red-600">Time Remaining</div>
-                            <div class="text-lg text-red-600">@TimeRemaining[listing.ID]</div>
-                        }
-                        else
-                        {
-                            <div class="text-xs font-bold uppercase tracking-wide text-gray-600">Time Remaining</div>
-                            <div class="text-lg text-gray-900">@TimeRemaining[listing.ID]</div>
-                        }
+                        <img class="h-64 w-full object-cover" src="@($"/images/{listing.ImagePath}")" alt="Image of listing">
+                        <div class="p-4">
+                            <h3 class="text-md font-semibold text-gray-900">@listing.Name</h3>
+                            <!-- height and overflow handling for the description -->
+                            <p class="h-20 overflow-hidden overflow-ellipsis text-gray-500">@listing.Description</p>
+                        </div>
+                        <div class="border-t border-gray-200 bg-gray-100 px-4 pb-4 pt-3">
+                            <div class="text-xs font-bold uppercase tracking-wide text-gray-600">Price</div>
+                            <div class="text-lg text-gray-900">$@(listing.HighestBid is null ? listing.StartingPrice : listing.HighestBid.Amount)</div>
+
+                            @* if time is less than 1 minute, turn the Time remaining red*@
+                            @if (TimeRemainingSpan[listing.ID].TotalMinutes < 1)
+                            {
+                                <div class="text-xs font-bold uppercase tracking-wide text-red-600">Time Remaining</div>
+                                <div class="text-lg text-gray-900">@ListingHelper.GetTimeDifference(listing.AuctionEnd)</div>
+                            }
+                            else
+                            {
+                                <div class="text-xs font-bold uppercase tracking-wide text-gray-600">Time Remaining</div>
+                                <div class="text-lg text-gray-900">@ListingHelper.GetTimeDifference(listing.AuctionEnd)</div>
+                            }
+                        </div>
                     </div>
                 </div>
             }
         </div>
 
+        @if (selectedListing != null)
+        {
+            <article class="z-20 fixed inset-0 flex items-center justify-center bg-black bg-opacity-50" @onclick="CloseListingDetails">
+                    <ListingDetails CurrentListing="selectedListing" />
+            </article>
+
+        }
     </div>
 }
 else
@@ -51,12 +62,6 @@ else
     // listings from the database, implement when doing pagination
     [Parameter]
     public List<Listing> listings { get; set; }
-    [Parameter]
-    public Bid? HighestBid { get; set; }
-
-    // display the price associated with each listing.The dictionary allows us to directly access the price using the listing ID
-    // decimal for value(price), int for ID.
-    private Dictionary<int, decimal> listingPrices = new Dictionary<int, decimal>();
 
     // store time remaining for each listing
     private Dictionary<int, string> TimeRemaining = new Dictionary<int, string>();
@@ -67,12 +72,14 @@ else
     Timer timer;
 
     public bool ShowBidAsPrice = false;
+    private Listing? selectedListing = null;
 
 
 
     // Lifecycle method for blazor that is called after this component
     // is initialized but before being rendered
-    protected override async Task OnInitializedAsync()
+    // ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+    @* protected override async Task OnInitializedAsync()
     {
         using (ApplicationDbContext dbContext = dbContextFactory.CreateDbContext())
         {
@@ -91,6 +98,11 @@ else
                 timer = new Timer(UpdateTime, null, 1000, 1000);
             }
         }
+    } *@
+
+    protected override void OnInitialized()
+    {
+        LoadListingsAndPrices();
     }
 
     // Communication with other components (search)
@@ -100,30 +112,49 @@ else
     }
 
     //fetch listings and their respecrtive prices
-    private async Task LoadListingsAndPrices()
+    private void LoadListingsAndPrices()
     {
         using (var dbContext = dbContextFactory.CreateDbContext())
         {
             var currentDate = DateTime.Now;
-            listings = await dbContext.Listings
+            listings = dbContext.Listings
                 .Where(l => l.AuctionEnd > currentDate)
-                .ToListAsync();
+                .ToList();
 
             foreach (var listing in listings)
             {
-                decimal price = await GetCurrentBid(listing.ID);
-                listingPrices[listing.ID] = price;
-
                 var timeDifference = listing.AuctionEnd - DateTime.Now;
                 TimeRemaining[listing.ID] = ListingHelper.GetTimeDifference(listing.AuctionEnd);
                 TimeRemainingSpan[listing.ID] = timeDifference;
+                listing.HighestBid = BidHelper.GetHighestBidFromListingID(listing.ID, dbContext);
             }
         }
 
         StateHasChanged();
     }
 
-    private async Task<decimal> GetCurrentBid(int listingID)
+    
+    private void ShowListingDetails(Listing listing)
+    {
+        if (selectedListing == listing)
+        {
+            selectedListing = null;
+        }
+        else
+        {
+            selectedListing = listing;
+        }
+        StateHasChanged();
+    }
+
+    private void CloseListingDetails()
+    {
+        selectedListing = null;
+        StateHasChanged();
+    }
+
+    @* vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv *@
+    @* private async Task<decimal> GetCurrentBid(int listingID)
     {
         using var dbContext = dbContextFactory.CreateDbContext();
 
@@ -137,7 +168,7 @@ else
             .Where(l => l.ID == listingID)
             .Select(l => l.StartingPrice)
             .FirstOrDefaultAsync());
-    }
+    } *@
 
     private void UpdateTime(object _)
     {

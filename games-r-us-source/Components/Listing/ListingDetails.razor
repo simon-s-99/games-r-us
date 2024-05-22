@@ -7,7 +7,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
 
-<article class="font-[Kadwa] border-2 m-auto flex h-fit w-1/2 flex-col rounded-2xl border-blue-800 bg-gray-200 p-4 text-center md:flex-row">
+<article class="font-[Kadwa] border-blue-800 bg-gray-200 p-4 m-auto flex h-fit w-1/2 flex-col rounded-2xl border-2 text-center md:flex-row" @onclick:stopPropagation="true">
     <!-- checks if user is logged in & the listings owner to display edit/delete button -->
     <AuthorizeView>
         <Authorized>
@@ -27,16 +27,16 @@
         </span>
 
         <!-- TODO: Add breadcrumb navigation when search/filter functionality works -->
-        <a class="text-blue-700 underline" href="#">
+        <button class="text-blue-700 underline" @onclick="() => Search(CurrentListing.Platform, null)">
             @CurrentListing.Platform
-        </a>
+        </button>
 
         @if (CurrentListing.GameCategory != null)
         {
             <span class="text-gray-800"> > </span>
-            <a class="text-blue-700 underline" href="#">
+            <button class="text-blue-700 underline" @onclick="() => Search(null, CurrentListing.GameCategory)">
                 @CurrentListing.GameCategory
-            </a>
+            </button>
         }
 
         <div class="mt-10 flex h-1/2 flex-col justify-between">
@@ -92,6 +92,18 @@
                 }
             </section>
 
+            @* 
+               ApplicationUser gets reset when component rerenders, and OnInitalized does not get called for some reason 
+               This is kind of ugly, but it ensures that ApplicationUser always gets a value
+            *@
+            @if (CurrentListing.ApplicationUser is null && CurrentListing.ApplicationUserID is not null)
+            {
+                using (var dbContext = dbContextFactory.CreateDbContext())
+                {
+                    CurrentListing.ApplicationUser = ApplicationUserHelper.GetAccountFromUserID(CurrentListing.ApplicationUserID, dbContext);
+                }
+            }
+
             <section class="border-b-2 mb-4 mt-8 border-black pb-4">
                 <h4 class="font-bold">Seller</h4>
                 <p>
@@ -120,6 +132,9 @@
 @code {
     [Parameter]
     public Listing CurrentListing { get; set; }
+
+    [Parameter] // exposes our callback in Home.razor so that displayed listings are updated
+    public EventCallback<List<Listing>> OnSearchResultsUpdated { get; set; }
 
     private Bid? HighestBid { get; set; }
 
@@ -176,6 +191,28 @@
             {
                 IsOwner = ApplicationUserHelper.IsUserListingOwner(userName, CurrentListing, dbContext);
             }
+        }
+    }
+    
+    // Perform the same search as in ListingSearch, but leave out the query
+    private async Task Search(Platform? platform, GameCategory? category)
+    {
+        using (var dbContext = dbContextFactory.CreateDbContext())
+        {
+            var query = dbContext.Listings.AsQueryable();
+
+            if (platform.HasValue)
+            {
+                query = query.Where(l => l.Platform == platform);
+            }
+
+            if (category.HasValue)
+            {
+                query = query.Where(l => l.GameCategory == category);
+            }
+
+            var filteredListings = await query.ToListAsync();
+            await OnSearchResultsUpdated.InvokeAsync(filteredListings); // triggers the event callback
         }
     }
 }

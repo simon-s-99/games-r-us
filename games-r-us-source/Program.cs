@@ -37,15 +37,13 @@ namespace games_r_us_source
 
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-
             // Add dbContextFactory aswell so that we can inject IDbContextFactory in our components 
             builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
                 options.UseSqlServer(connectionString));
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
-
                 options.UseSqlServer(connectionString));
-            builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
+            builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
             builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -74,14 +72,9 @@ namespace games_r_us_source
             app.UseHttpsRedirection();
 
             app.UseStaticFiles();
-
-            // Following code is used for configuring the middleware pipeline
-            // <----------------->
-            app.UseRouting();
-
+            app.UseRouting(); // <- used for endpoint/controller mapping
             app.UseAntiforgery();
-            app.UseAuthentication();
-            app.UseAuthorization();
+            app.UseAuthorization(); // <- must be placed between UseRouting() & UseEndpoints()
 
             // Endpoint for controllers
             app.UseEndpoints(endpoints =>
@@ -93,27 +86,11 @@ namespace games_r_us_source
             app.MapRazorComponents<App>()
                 .AddInteractiveServerRenderMode();
 
-            // Following code is used for configuring the middleware pipeline
-            // <----------------->
-            app.UseRouting();
-
-            app.UseAntiforgery();
-            app.UseAuthentication();
-            app.UseAuthorization();
-
-            // Endpoint for controllers
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers(); // Map the controllers to the request pipeline
-            });
-            // <------------------>
-
-
             // Add additional endpoints required by the Identity /Account Razor components.
             app.MapAdditionalIdentityEndpoints();
 
             // adds sampledata for a table if the table is empty 
-            // DOES NOT add data for AspNet-tables
+            // DOES NOT add data for AspNet-tables (other than AspNetUsers)
             using (var scope = app.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;

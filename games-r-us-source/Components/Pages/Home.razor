@@ -50,7 +50,7 @@
     </NotAuthorized>
 </AuthorizeView>
 
-<ListingDisplayAll listings="@listings" />
+<ListingDisplayAll listings="@displayListings" />
 
 <!-- Temporary for testing purposes -->
 
@@ -60,22 +60,58 @@
 @* <ListingDetails CurrentListing="@CurrentListing"/> *@
 
 @*<ListingDetails /> @* <-- For testing purposes*@
-<ListingDetails CurrentListing="@Helpers.ListingHelper.GetListingFromListingID(32, dbContextFactory.CreateDbContext())" /> @* <-- For testing purposes*@
-
+@* <ListingDetails CurrentListing="@Helpers.ListingHelper.GetListingFromListingID(4, dbContextFactory.CreateDbContext())" OnSearchResultsUpdated="HandleSearchResults" /> *@
 
 @code {
-    private List<Listing> listings = new List<Listing>();
+    private List<Listing> searchResults = new List<Listing>(); // contains searchResults
+    private List<Listing> sortedResults = new List<Listing>(); // contains sortResults
+    private List<Listing> displayListings = new List<Listing>(); // contains the final result to be displayed
 
     private void HandleSearchResults(List<Listing> results)
     {
-        listings = results; // Updates the list that is passed to ListingsDisplayAll
-        StateHasChanged(); // <-- this might be unnecessary 
+        searchResults = results; // Updates the list that is passed to ListingsDisplayAll
+
+        if (sortedResults.Any())
+        {
+            CombineResults();
+        }
+        else
+        {
+            displayListings = searchResults;
+        }
     } 
-                                  
+
     private void HandleSorting(List<Listing> sortResults)
-	{
-		listings = sortResults;
-		StateHasChanged();
-	}
+    {
+        sortedResults = sortResults; // Updates the list that is passed to ListingsDisplayAll
+
+        if (searchResults.Any())
+        {
+            CombineResults();    
+        }
+        else
+        {
+            displayListings = sortedResults;
+        }
+    }
+
+    private void CombineResults()
+    {
+        // Determine the base list of listings to work with, depending on whether a search has been performed
+        var filteredListings = searchResults.Any() ? searchResults : displayListings;
+
+        // If there are sorted results, filter them further to ensure they match the current search results
+        // (or all listings if no search is applied)
+        if (sortedResults.Any())
+        {
+            displayListings = sortedResults.Where(l => filteredListings.Any(fl => fl.ID == l.ID)).ToList();
+        }
+        else
+        {
+            // If there are no sorted results, use the filtered listings (either search results or all listings) directly
+            displayListings = filteredListings;
+        }
+
+    }
 }
 

@@ -8,16 +8,17 @@
 
 @page "/search"
 
-<div class="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
-    <form @onsubmit="SearchDebounce" class="flex gap-4">
+<div class="px-4 py-6 mx-auto max-w-4xl sm:px-6 lg:px-8">
+    <form @onsubmit="SearchDebounce" class="gap-4 flex">
         <div class="flex-1">
-            <InputText class="w-full rounded-lg border-gray-300 shadow-sm"
+
+            <InputText class="border-gray-300 w-full rounded-lg shadow-sm"
                        @bind-Value="searchText"
                        @oninput="OnInputChanged"
                        @onblur="SearchDebounce" placeholder="Search..." maxlength="50" />
         </div>
         <div class="w-48">
-            <select @bind="@platform" @oninput="SearchDebounce" class="w-full rounded-lg border-gray-300 shadow-sm">
+            <select @bind="@platform" @oninput="SearchDebounce" class="border-gray-300 w-full rounded-lg shadow-sm">
                 <option value="">All Platforms</option>
                 @foreach (var platform in Enum.GetValues(typeof(Platform)))
                 {
@@ -26,7 +27,7 @@
             </select>
         </div>
         <div class="w-48">
-            <select @bind="@category" @oninput="SearchDebounce" class="w-full rounded-lg border-gray-300 shadow-sm">
+            <select @bind="@category" @oninput="SearchDebounce" class="border-gray-300 w-full rounded-lg shadow-sm">
                 <option value="">All Categories</option>
                 @foreach (var category in Enum.GetValues(typeof(GameCategory)))
                 {
@@ -61,7 +62,7 @@
     }
 
     // new Timer() constructor only accepts callback with this format
-    void TimerCallBack(object state)
+    void TimerCallBack(object _)
     {
         InvokeAsync(async () => await ApplyFilters(searchText, platform, category));
     }
@@ -69,7 +70,6 @@
     // performs the actual search and filtering towards the database
     private async Task ApplyFilters(string searchText, Platform? platform, GameCategory? category)
     {
-
         using (var dbContext = dbContextFactory.CreateDbContext())
         {
             var query = dbContext.Listings.AsQueryable();

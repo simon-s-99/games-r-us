@@ -1,11 +1,12 @@
 ﻿@inherits LayoutComponentBase
 @using games_r_us_source.Components.Account.CustomComponents
 @using games_r_us_source.Components.Listing;
+@using games_r_us_source.Components.Notifications
 @inject NavigationManager NavigationManager
 
 <div class="page">
     <main>
-        <div class="item-center flex flex-row items-center justify-between bg-blue-300">
+        <div class="item-center bg-blue-300 flex flex-row items-center justify-between">
             <NavLink href="/">
                 <h1 class="font-[Kadwa] m-2 text-4xl font-medium">Games '<span class="text-red-500">Я</span>' Us</h1>
             </NavLink>
@@ -17,6 +18,7 @@
 
             <div class="flex flex-col items-center lg:flex-row">
                 <LoginLogoutButton />
+                <NotificationBell />
                 <ProfileButton />
             </div>
         </div>

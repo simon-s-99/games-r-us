@@ -29,12 +29,12 @@
                             @if (TimeRemainingSpan[listing.ID].TotalMinutes < 1)
                             {
                                 <div class="text-xs font-bold uppercase tracking-wide text-red-600">Time Remaining</div>
-                                <div class="text-lg text-gray-900">@ListingHelper.GetTimeDifference(listing.AuctionEnd)</div>
+                                <div class="text-lg text-red-600">@TimeRemaining[listing.ID]</div>
                             }
                             else
                             {
                                 <div class="text-xs font-bold uppercase tracking-wide text-gray-600">Time Remaining</div>
-                                <div class="text-lg text-gray-900">@ListingHelper.GetTimeDifference(listing.AuctionEnd)</div>
+                                <div class="text-lg text-gray-900">@TimeRemaining[listing.ID]</div>
                             }
                         </div>
                     </div>
@@ -74,19 +74,16 @@ else
     public bool ShowBidAsPrice = false;
     private Listing? selectedListing = null;
 
-
-
     // Lifecycle method for blazor that is called after this component
     // is initialized but before being rendered
-    // ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
-    @* protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         using (ApplicationDbContext dbContext = dbContextFactory.CreateDbContext())
         {
-            await LoadListingsAndPrices();
+            LoadListingsAndPrices();
         }
 
-        // Initialize the timer only if there are listings and at least one has less than 24 hours remaining
+        //Initialize the timer only if there are listings and at least one has less than 24 hours remaining
         if (listings.Any())
         {
             var earliestAuctionEnd = listings.Min(l => l.AuctionEnd);
@@ -94,15 +91,10 @@ else
 
             if (timeDifference.TotalDays < 1)
             {
-                // 1000 ms interval for regular updates. (updates every second)
+                //1000 ms interval for regular updates. (updates every second)
                 timer = new Timer(UpdateTime, null, 1000, 1000);
             }
         }
-    } *@
-
-    protected override void OnInitialized()
-    {
-        LoadListingsAndPrices();
     }
 
     // Communication with other components (search)
@@ -152,23 +144,6 @@ else
         selectedListing = null;
         StateHasChanged();
     }
-
-    @* vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv *@
-    @* private async Task<decimal> GetCurrentBid(int listingID)
-    {
-        using var dbContext = dbContextFactory.CreateDbContext();
-
-        // Fetch highest bid for the listing
-        var highestBid = await dbContext.Bids
-            .Where(b => b.ListingID == listingID)
-            .MaxAsync(b => (decimal?)b.Amount);
-
-        //Return highestbid or StartingPrice if bid == null
-        return highestBid ?? (await dbContext.Listings
-            .Where(l => l.ID == listingID)
-            .Select(l => l.StartingPrice)
-            .FirstOrDefaultAsync());
-    } *@
 
     private void UpdateTime(object _)
     {

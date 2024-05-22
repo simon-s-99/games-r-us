@@ -1,15 +1,9 @@
-﻿@using Microsoft.AspNetCore.SignalR
-@using Microsoft.AspNetCore.SignalR.Client
-@using Microsoft.EntityFrameworkCore
+﻿@using Microsoft.EntityFrameworkCore
 @using games_r_us_source.Components.Listing
 @using games_r_us_source.Components.Account
 @using games_r_us_source.Components.Account.CustomComponents
-@using games_r_us_source.Components.Notifications
 @using games_r_us_source.Data
-@using games_r_us_source.Hubs
 @using games_r_us_source.Components.Helpers
-
-@inject NotificationState NotificationState
 
 @rendermode InteractiveServer
 
@@ -99,14 +93,5 @@
             // If there are no sorted results, use the filtered listings (either search results or all listings) directly
             displayListings = filteredListings;
         }
-
-    }
-
-    // UPDATE THIS COMMENT =======================================================================================
-    // send is a test class that changes notificationstate which in turn
-    // triggers a response from onchange triggering a method call to handlenotification
-    private async Task Send()
-    {
-        NotificationState.SetNotificationDTO(new NotificationDTO("simon.t.sorqvist@gmail.com", "Success"));
     }
 }

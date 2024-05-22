@@ -7,9 +7,43 @@
 
 @implements IAsyncDisposable
 
-<h3>NotificationBell</h3>
+@rendermode InteractiveServer
+
+<!-- Notification bell button -->
+<button class="rounded-3xl px-1 py-1 hover:bg-gray-200">
+    @* if no new notification show normal bell icon *@
+    <img class="h-10 w-10" 
+        src="images/notification-bell.svg" 
+        alt="Image of notification bell button" />
+    @* show this image if there are new/unread notifications *@
+    @*
+    <img class="h-10 w-10" 
+        src="images/notification-bell-new.svg" 
+        alt="Image of notification bell button, new notification available" />
+    *@
+</button>
+
+<ul>
+    @foreach (var notification in notifications)
+    {
+        <li>
+            <p>
+                @notification
+            </p>
+        </li>
+    }
+</ul>
 
 @code {
+    // To send notifications from a component:
+    // inject NotificationState
+    // and implement Send() method (or similar)
+    //
+    // private async Task Send()
+    // {
+    //     NotificationState.SetNotificationDTO(new NotificationDTO("[PUT USERNAME OF RECEIVER HERE]", "[MESSAGE]"));
+    // }
+
     private HubConnection? hubConnection;
     private readonly List<string> notifications = new List<string>();
 
@@ -19,13 +53,6 @@
         {
             hubConnection.SendAsync("SendNotificationTo", notificationDTO);
         }
-    }
-
-    // send is a test class that chagnes notificationstate which in turn
-    // triggers a response from onchange triggering a method call to handlenotification
-    private async Task Send()
-    {
-        NotificationState.SetNotificationDTO(new NotificationDTO("simon.t.sorqvist@gmail.com", "Success"));
     }
 
     protected override async Task OnInitializedAsync()
@@ -50,8 +77,7 @@
                 })
                 .Build();
 
-            // hubconneciton on string is only needed on pages where we actually want to display
-            // notifications (so i guess on all pages, move to layout? discouraged?)
+            // hubconnection on string is only needed on pages where we actually want to display notifications
             hubConnection.On<string>("ReceiveNotificationAsync", notification =>
             {
                 notifications.Add(notification);

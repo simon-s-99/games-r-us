@@ -5,11 +5,7 @@
 @using games_r_us_source.Components.Notifications
 @using games_r_us_source.Hubs
 
-@inject NavigationManager NavigationManager
-@inject AuthenticationStateProvider AuthenticationStateProvider;
 @inject NotificationState NotificationState
-
-@implements IAsyncDisposable
 
 <PageTitle>Counter</PageTitle>
 
@@ -22,55 +18,8 @@
 <button @onclick="Send" class="rounded-xl bg-orange-300 px-4 py-2">Click me</button>
 
 @code {
-    private HubConnection? hubConnection;
-
-    private void HandleNotification(NotificationDTO test)
-    {
-        if (hubConnection is not null)
-        {
-            hubConnection.SendAsync("SendNotificationTo", test);
-        }
-    }
-
     private async Task Send()
     {
         NotificationState.SetNotificationDTO(new NotificationDTO("simon.t.sorqvist@gmail.com", "Success"));
-    }
-
-    protected override async Task OnInitializedAsync()
-    {
-        // Subscribes to changes in NotificationState class
-        NotificationState.OnChange += HandleNotification;
-
-        // Get the logged in user
-        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var userName = authenticationState.User.Identity.Name;
-
-        // send the logged in users name to signalR hub so that they can recieve notifications
-        if (userName is not null) // not strictly necessary but dis-allows non-logged in users from sending notifications
-        {
-            hubConnection = new HubConnectionBuilder()
-                .WithUrl(NavigationManager.ToAbsoluteUri("/Notifications"), options =>
-                {
-                    // NOTE: Ideally we should do this with bearer tokens for better security.
-                    //
-                    // Pass username as header to our SignalR hub extension.
-                    options.Headers.Add(new("UserName", userName));
-                })
-                .Build();
-
-            await hubConnection.StartAsync();
-        }
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (hubConnection is not null)
-        {
-            await hubConnection.DisposeAsync();
-        }
-
-        // Un-subscribes this component from NotificationState on dispose
-        NotificationState.OnChange -= HandleNotification;
     }
 }

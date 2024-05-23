@@ -17,41 +17,28 @@
 
 <PageTitle>Register</PageTitle>
 
-<h1>Register</h1>
+<div class="border-2 font-[Kadwa] m-auto mt-6 w-2/5 rounded border-black text-center">
 
-<div class="row">
-    <div class="col-md-4">
-        <StatusMessage Message="@Message" />
-        <EditForm Model="Input" asp-route-returnUrl="@ReturnUrl" method="post" OnValidSubmit="RegisterUser" FormName="register">
-            <DataAnnotationsValidator />
-            <h2>Create a new account.</h2>
-            <hr />
-            <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                <label for="email">Email</label>
-                <ValidationMessage For="() => Input.Email" class="text-danger" />
-            </div>
-            <div class="form-floating mb-3">
-                <InputText type="password" @bind-Value="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label for="password">Password</label>
-                <ValidationMessage For="() => Input.Password" class="text-danger" />
-            </div>
-            <div class="form-floating mb-3">
-                <InputText type="password" @bind-Value="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label for="confirm-password">Confirm Password</label>
-                <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
-            </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
-        </EditForm>
-    </div>
-    <div class="col-md-6 col-md-offset-2">
-        <section>
-            <h3>Use another service to register.</h3>
-            <hr />
-            <ExternalLoginPicker />
-        </section>
-    </div>
+    <h1 class="mb-4 text-2xl font-bold">Register</h1>
+
+    <StatusMessage Message="@Message" />
+    <EditForm class="m-2 flex flex-col justify-center" Model="Input" method="post" OnValidSubmit="RegisterUser" FormName="register">
+        <DataAnnotationsValidator />
+        <ValidationSummary class="text-danger" role="alert" />
+        <label for="email" class="left-[9999px] absolute">Email</label> @* For accessibility purposes *@
+        <InputText @bind-Value="Input.Email" id="email" class="border-[1px] peer mt-8 rounded border-black py-2" autocomplete="username" aria-required="true" placeholder="Email" />
+        <ValidationMessage For="() => Input.Email" class="text-red-500" />
+        <label for="password" class="left-[9999px] absolute">Password</label>
+        <InputText type="password" id="password" @bind-Value="Input.Password" class="border-[1px] mt-4 rounded border-black py-2" autocomplete="current-password" aria-required="true" placeholder="Password" />
+        <ValidationMessage For="() => Input.Password" class="text-red-500" />
+        <label for="confirm-password" class="left-[9999px] absolute">Confirm Password</label>
+        <InputText type="password" id="confirm-password" @bind-Value="Input.ConfirmPassword" class="border-[1px] mt-4 rounded border-black py-2" autocomplete="new-password" aria-required="true" placeholder="Confirm password" />
+        <ValidationMessage For="() => Input.ConfirmPassword" class="text-red-500" />
+        <button type="submit" class="border-[1px] m-auto mt-4 block rounded-xl border-black bg-green-300 p-2">Register</button>
+    </EditForm>
+    <div class="border-b-2 m-auto my-8 h-1 w-3/4 border-dashed border-black"></div> @* Vertical divider *@
+    <p class="mb-3">Or register using</p>
+    <ExternalLoginPicker />
 </div>
 
 @code {

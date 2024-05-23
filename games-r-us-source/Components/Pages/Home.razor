@@ -1,67 +1,47 @@
-@using Microsoft.EntityFrameworkCore
+﻿@using Microsoft.EntityFrameworkCore
 @using games_r_us_source.Components.Listing
 @using games_r_us_source.Components.Account
 @using games_r_us_source.Components.Account.CustomComponents
 @using games_r_us_source.Data
 @using games_r_us_source.Components.Helpers
+@using games_r_us_source.Components.Layout
+
 @inject IDbContextFactory<ApplicationDbContext> dbContextFactory
 @rendermode InteractiveServer
+@layout HomeLayout
+
 @page "/"
 
-<PageTitle>Home</PageTitle>
+<PageTitle>GamesRUs</PageTitle>
 
-<h1>Hello, world!</h1>
+<ListingsForUser />
 
-<!-- Temporary for testing purposes -->
-@* <ListingDetails CurrentListing="@CurrentListing"/> *@
-@* <ListingDetails CurrentListing="@Helpers.ListingHelper.GetListingFromListingID(2, dbContextFactory.CreateDbContext())" /> *@ @* <-- For testing purposes*@
-
-<!-- Temporary for testing purposes -->
-<LoginLogoutButton />
-
-<!-- Temporary for testing purposes -->
-@* <ListingEdit /> <-- moved to listingdetails *@
-
-<!-- Temporary for testing purposes -->
-
-<ProfileButton />
-
-
-<ListingCreate />
-
+<ListingSearch OnSearchResultsUpdated="HandleSearchResults" />
 
 <ListingSort OnSortResultsUpdated="HandleSorting" />
 
-<!-- Temporary for testing purposes -->
-<ListingSearch OnSearchResultsUpdated="HandleSearchResults" /> 
-
+<ListingDisplayAll listings="@displayListings" />
 
 <!-- Only here as a template for how to show content if
     user is logged  in or not.
 -->
-<AuthorizeView>
+@* <AuthorizeView>
     <Authorized>
         @* Display this content here if user is logged in *@
         @* content accesses the AuthenticationState of the logged in user *@
-        @context.User.Identity.Name
-    </Authorized>
-    <NotAuthorized>
+    @* </Authorized>
+    <NotAuthorized> *@
         @* Display this content here if user is not logged in *@
-    </NotAuthorized>
-</AuthorizeView>
-
-<ListingDisplayAll listings="@displayListings" />
-
-<!-- Temporary for testing purposes -->
+    @* </NotAuthorized>
+</AuthorizeView> *@
 
 <ListingPagination OnPageChanged="HandlePageChange" />
-<ListingsForUser />
 
 
-@* <ListingDetails CurrentListing="@CurrentListing"/> *@
 
 @*<ListingDetails /> @* <-- For testing purposes*@
 
+@* listingdetails have to pass an eventcallback for breadcrumb nav-functionality vv *@
 @* <ListingDetails CurrentListing="@Helpers.ListingHelper.GetListingFromListingID(4, dbContextFactory.CreateDbContext())" OnSearchResultsUpdated="HandleSearchResults" /> *@
 
 @code {
@@ -123,4 +103,3 @@
         StateHasChanged();
     }
 }
-

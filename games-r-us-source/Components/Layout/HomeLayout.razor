@@ -1,35 +1,30 @@
 ﻿@inherits LayoutComponentBase
 @using games_r_us_source.Components.Account.CustomComponents
-@inject NavigationManager NavigationManager
-
+@using games_r_us_source.Components.Listing;
 @using games_r_us_source.Components.Notifications
+@inject NavigationManager NavigationManager
 
 <div class="page">
     <main>
-        <div class="item-center item-center flex flex-row items-center justify-between bg-blue-300">
+        <div class="item-center bg-blue-300 flex flex-row items-center justify-between">
             <NavLink href="/">
                 <h1 class="font-[Kadwa] m-2 text-4xl font-medium">Games '<span class="text-red-500">Я</span>' Us</h1>
             </NavLink>
 
-            <div class="flex flex-row items-center">
+            <div class="flex flex-col items-center lg:flex-row">
+                <ListingCreate /> @* Authorization check not needed as component already comes with one *@
+                @* <ListingSearch /> *@ @* [COMMENTED OUT FOR DEMO] *@
+            </div>
+
+            <div class="flex flex-col items-center lg:flex-row">
                 <LoginLogoutButton />
+                <NotificationBell />
                 <ProfileButton />
             </div>
-        </div>
-
-        <!-- MOVE THIS NOTIFICATION BELL LATER -->
-        <div>
-            <NotificationBell />
         </div>
 
         <article class="content px-4">
             @Body
         </article>
     </main>
-</div>
-
-<div id="blazor-error-ui">
-    An unhandled error has occurred.
-    <a href="" class="reload">Reload</a>
-    <a class="dismiss">🗙</a>
 </div>

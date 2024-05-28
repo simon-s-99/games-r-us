@@ -35,7 +35,11 @@
     @* </NotAuthorized>
 </AuthorizeView> *@
 
+<ListingPagination OnPageChanged="HandlePageChange" />
 
+
+
+@*<ListingDetails /> @* <-- For testing purposes*@
 
 @* listingdetails have to pass an eventcallback for breadcrumb nav-functionality vv *@
 @* <ListingDetails CurrentListing="@Helpers.ListingHelper.GetListingFromListingID(4, dbContextFactory.CreateDbContext())" OnSearchResultsUpdated="HandleSearchResults" /> *@
@@ -89,5 +93,13 @@
             // If there are no sorted results, use the filtered listings (either search results or all listings) directly
             displayListings = filteredListings;
         }
+
+
+    }
+
+    private void HandlePageChange(List<Listing> paginatedListings)
+    {
+        displayListings = paginatedListings;
+        StateHasChanged();
     }
 }
